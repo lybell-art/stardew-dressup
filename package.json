@@ -1,0 +1,37 @@
+{
+  "name": "stardew_dressup",
+  "version": "0.0.1",
+  "description": "Stardew Valley Clothing Simulator (with react)",
+  "main": "index.js",
+  "scripts": {
+    "build": "rollup -c builder/rollup.config.js",
+    "watch": "rollup -c builder/rollup.config.js --watch"
+  },
+  "keywords": [
+    "Stardew Valley"
+  ],
+  "author": "Lybell",
+  "license": "MIT",
+  "dependencies": {
+    "@xnb-js/core": "^1.1.0",
+    "@xnb-js/readers": "^1.1.0",
+    "mobx": "^6.6.0",
+    "mobx-react-lite": "^3.4.0",
+    "pixi.js": "^6.3.2",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.18.2",
+    "@babel/preset-env": "^7.18.2",
+    "@babel/preset-react": "^7.17.12",
+    "@rollup/plugin-babel": "^5.3.1",
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-replace": "^4.0.0",
+    "rollup": "^2.74.1",
+    "rollup-plugin-livereload": "^2.0.5",
+    "rollup-plugin-serve": "^1.1.0"
+  }
+}

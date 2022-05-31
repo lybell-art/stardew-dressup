@@ -1,0 +1,192 @@
+/* Cloth List */
+.cloth-list-wrapper {
+	width: 550px;
+	height: 90px;
+	position: relative;
+	display: flex;
+	align-content: center;
+	align-items: center;
+	justify-content: center;
+}
+
+.cloth-list-wrapper .left-button, .cloth-list-wrapper .right-button {
+	position: absolute;
+	top: calc(50% - 6px);
+	z-index: 10;
+	transition: transform 0.1s ease-out;
+}
+
+.cloth-list-wrapper .left-button:hover, .cloth-list-wrapper .right-button:hover {
+	transform: scale(3.3);
+}
+
+.cloth-list-wrapper .left-button {
+	left: 10px;
+}
+
+.cloth-list-wrapper .right-button {
+	right: 10px;
+}
+
+.cloth-list-border {
+	padding: 10px 20px 0px;
+	border: 4px solid black;
+}
+
+.cloth-list {
+	width: 460px;
+	height: 70px;
+	display: flex;
+	gap: 20px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	flex-direction: row;
+	align-items: center;
+	scroll-snap-type: x mandatory;
+	scroll-padding: 0;
+	scroll-behavior: smooth;
+}
+
+.cloth-list::-webkit-scrollbar{
+	width: 10px;
+	height: 10px;
+}
+.cloth-list::-webkit-scrollbar-thumb{
+	background: #00000040;
+	background-clip: padding-box;
+	border: 3px solid transparent;
+}
+.cloth-list::-webkit-scrollbar-track {
+	background-color: transparent;
+}
+
+.cloth-item-box {
+	width: 60px;
+	height: 60px;
+	flex-shrink: 0;
+	display: flex;
+	position: relative;
+	justify-content: center;
+	align-items: center;
+	scroll-snap-align: start;
+}
+
+.cloth-item-box input[type="radio"] {
+	appearance: none;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.cloth-item-box input[type="radio"]:checked {
+	outline: 3px solid red;
+}
+
+.cloth-item {
+	width: 20px;
+	height: 20px;
+	transform: scale(3);
+	display: block;
+	image-rendering: pixelated;
+}
+
+.cloth-item.itemdata-hats {
+	background-image: url("/assets/hats.png");
+}
+
+
+
+/* UI Icon */
+.help-button,
+.language-button,
+.import-button,
+.hats-icon,
+.hairstyle-icon,
+.shirts-icon,
+.pants-icon,
+.shuffle-button,
+.male-button, 
+.female-button, 
+.left-button, 
+.right-button, 
+.left-turn-button,
+.right-turn-button{
+	background-image: url("/assets/ui.png");
+	background-repeat: no-repeat;
+	image-rendering: pixelated;
+}
+.help-button, .language-button, .import-button {
+	width: 30px;
+	height: 30px;
+}
+.hats-icon, .hairstyle-icon, .shirts-icon, .pants-icon {
+	width: 20px;
+	height: 20px;
+	transform: scale(3);
+}
+.male-button, .female-button {
+	width: 14px;
+	height: 16px;
+	transform: scale(3);
+}
+.left-button, .right-button {
+	width: 12px;
+	height: 11px;
+	transform: scale(3);
+}
+.left-turn-button, .right-turn-button {
+	width: 20px;
+	height: 12px;
+	transform: scale(3);
+}
+
+.help-button {
+	background-position: 0px 0px;
+}
+.language-button {
+	background-position: -30px 0px;
+}
+.import-button {
+	background-position: -60px 0px;
+}
+.hats-icon {
+	background-position: 0px -30px;
+}
+.hairstyle-icon {
+	background-position: -20px -30px;
+}
+.shirts-icon {
+	background-position: -40px -30px;
+}
+.pants-icon {
+	background-position: -60px -30px;
+}
+.shuffle-button {
+	width: 10px;
+	height: 10px;
+	background-position: -80px -30px;
+	transform: scale(4);
+}
+.male-button {
+	background-position: 0px -50px;
+}
+.female-button {
+	background-position: -14px -50px;
+}
+.left-button {
+	background-position: -28px -50px;
+}
+.right-button {
+	background-position: -40px -50px;
+}
+.left-turn-button {
+	background-position: -52px -50px;
+}
+.right-turn-button {
+	background-position: -72px -50px;
+}

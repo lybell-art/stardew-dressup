@@ -1,0 +1,17 @@
+{
+	"presets": [
+		["@babel/preset-react",
+		{
+			"runtime": "automatic",
+			"targets": {
+				"browsers" : [
+					"Chrome >= 60",
+					"Safari >= 12",
+					"iOS >= 12",
+					"Firefox >= 54",
+					"Edge >= 15"
+				]
+			}
+		}]
+	]
+}

@@ -1,0 +1,18 @@
+[
+	{"name":"pants.name.0","sheetIndex":0,"color":[255,235,203],"dyeable":true,"prismatic":false},
+	{"name":"pants.name.1","sheetIndex":1,"color":[255,235,203],"dyeable":true,"prismatic":false},
+	{"name":"pants.name.2","sheetIndex":2,"color":[255,235,203],"dyeable":true,"prismatic":false},
+	{"name":"pants.name.3","sheetIndex":3,"color":[255,235,203],"dyeable":true,"prismatic":false},
+	{"name":"pants.name.4","sheetIndex":4,"color":[255,235,203],"dyeable":true,"prismatic":false},
+	{"name":"pants.name.5","sheetIndex":5,"color":[255,255,255],"dyeable":false,"prismatic":false},
+	{"name":"pants.name.6","sheetIndex":6,"color":[255,255,255],"dyeable":false,"prismatic":false},
+	{"name":"pants.name.7","sheetIndex":7,"color":[255,255,255],"dyeable":false,"prismatic":false},
+	{"name":"pants.name.8","sheetIndex":8,"color":[255,235,203],"dyeable":true,"prismatic":false},
+	{"name":"pants.name.9","sheetIndex":9,"color":[255,235,203],"dyeable":true,"prismatic":false},
+	{"name":"pants.name.10","sheetIndex":10,"color":[255,235,203],"dyeable":true,"prismatic":false},
+	{"name":"pants.name.11","sheetIndex":11,"color":[255,235,203],"dyeable":true,"prismatic":false},
+	{"name":"pants.name.12","sheetIndex":12,"color":[255,235,203],"dyeable":true,"prismatic":false},
+	{"name":"pants.name.13","sheetIndex":13,"color":[255,235,203],"dyeable":true,"prismatic":false},
+	{"name":"pants.name.15","sheetIndex":15,"color":[255,235,203],"dyeable":false,"prismatic":false},
+	{"name":"pants.name.998","sheetIndex":0,"color":[255,235,203],"dyeable":false,"prismatic":true},
+	{"name":"pants.name.999","sheetIndex":8,"color":[255,235,203],"dyeable":false,"prismatic":true}]
