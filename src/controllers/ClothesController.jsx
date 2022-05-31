@@ -6,7 +6,7 @@ import ItemSelector from "./ItemSelector.jsx";
 //import ColorSlider from "./ColorSlider.jsx";
 import ObtainDescription from "./ObtainDescription.jsx";
 
-const ClothesControllerBase = ({name, selection, children})=>{
+const ClothesControllerBase = ({name, selection, dataSet, children})=>{
 	const langs = React.useContext(LangsContext);
 
 	return (
@@ -15,32 +15,32 @@ const ClothesControllerBase = ({name, selection, children})=>{
 			<h2>{langs.getText(`title.${name}`)}</h2>
 		</div>
 		<div className="itemMain">
-			<ItemSelector name={name} value={selection.value} handleTo={(i)=>{selection.changeSelect(i)}} />
+			<ItemSelector name={name} dataSet={dataSet} handleTo={(i)=>{selection.changeSelect(i)}} />
 			{children}
 		</div>
 	</div>
 	)
 };
 
-const HatsController = observer( ({name, selection})=>{
+const HatsController = observer( ({name, selection, dataSet})=>{
 	return (
-	<ClothesControllerBase name={name} selection={selection}>
+	<ClothesControllerBase name={name} selection={selection} dataSet={dataSet}>
 		<ObtainDescription type={name} selection={selection} />
 	</ClothesControllerBase>
 	)
 } );
 
-const HairstyleController = observer( ({name, selection})=>{
+const HairstyleController = observer( ({name, selection, dataSet})=>{
 	return (
-	<ClothesControllerBase name={name} selection={selection}>
+	<ClothesControllerBase name={name} selection={selection} dataSet={dataSet}>
 		<p></p>
 	</ClothesControllerBase>
 	)
 } );
 
-const ClothesController = observer( ({name, selection})=>{
+const ClothesController = observer( ({name, selection, dataSet})=>{
 	return (
-	<ClothesControllerBase name={name} selection={selection}>
+	<ClothesControllerBase name={name} selection={selection} dataSet={dataSet}>
 		<ObtainDescription type={name} selection={selection} />
 	</ClothesControllerBase>
 	)

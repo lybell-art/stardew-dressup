@@ -35,15 +35,16 @@
 
 .cloth-list {
 	width: 460px;
-	height: 70px;
+	height: 75px;
 	display: flex;
 	gap: 20px;
+	padding: 0px 10px;
 	overflow-x: auto;
 	overflow-y: hidden;
 	flex-direction: row;
 	align-items: center;
 	scroll-snap-type: x mandatory;
-	scroll-padding: 0;
+	scroll-padding: 10px;
 	scroll-behavior: smooth;
 }
 
@@ -73,14 +74,14 @@
 
 .cloth-item-box input[type="radio"] {
 	appearance: none;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    margin: 0px;
-    padding: 0px;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	margin: 0px;
+	padding: 0px;
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
 }
 
 .cloth-item-box input[type="radio"]:checked {
@@ -93,12 +94,43 @@
 	transform: scale(3);
 	display: block;
 	image-rendering: pixelated;
+	position: absolute;
 }
 
 .cloth-item.itemdata-hats {
-	background-image: url("/assets/hats.png");
+	--spritesheet: url("/assets/hats.png");
+	background-image: var(--spritesheet);
+}
+.cloth-item.itemdata-hairstyle {
+	--spritesheet: url("/assets/hairstyles.png");
+	background-image: var(--spritesheet);
+	width: 16px;
+}
+.cloth-item.itemdata-hairstyles2 {
+	--spritesheet: url("/assets/hairstyles2.png");
+	background-image: var(--spritesheet);
+	width: 16px;
+}
+.cloth-item.itemdata-shirts {
+	--spritesheet: url("/assets/shirts.png");
+	background-image: var(--spritesheet);
+	width: 8px;
+    height: 8px;
+}
+.cloth-item.itemdata-pants {
+	--spritesheet: url("/assets/pants.png");
+	background-image: var(--spritesheet);
+	width: 16px;
+    height: 16px;
 }
 
+.cloth-item-colored {
+	-webkit-mask-image: var(--spritesheet);
+}
+
+.blender {
+	mix-blend-mode: multiply;
+}
 
 
 /* UI Icon */

@@ -6,9 +6,10 @@ class ClothStoreBox
 	value=0;
 	color=[255,255,255];
 
-	constructor()
+	constructor(initialValue=0)
 	{
 		makeAutoObservable(this);
+		this.value=initialValue;
 	}
 	changeSelect(value)
 	{

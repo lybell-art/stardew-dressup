@@ -39068,8 +39068,9 @@ class ClothStoreBox {
   value = 0;
   color = [255, 255, 255];
 
-  constructor() {
+  constructor(initialValue = 0) {
     makeAutoObservable(this);
+    this.value = initialValue;
   }
 
   changeSelect(value) {
@@ -39083,7 +39084,7 @@ class ClothStoreBox {
 }
 
 const clothStoreDict = {
-  hats: new ClothStoreBox(),
+  hats: new ClothStoreBox(-1),
   hairstyle: new ClothStoreBox(),
   shirts: new ClothStoreBox(),
   pants: new ClothStoreBox()
@@ -39103,6 +39104,222 @@ var i18n_en = {
 	"hats.4": "Straw Hat",
 	"hats.5": "Official Cap",
 	"hats.6": "Blue Bonnet",
+	"shirts.name.0": "Classic Overalls",
+	"shirts.name.2": "Mint Blouse",
+	"shirts.name.3": "Dark Shirt",
+	"shirts.name.4": "Skull Shirt",
+	"shirts.name.5": "Light Blue Shirt",
+	"shirts.name.6": "Tan Striped Shirt",
+	"shirts.name.7": "Green Overalls",
+	"shirts.name.8": "\"Good Grief\" Shirt",
+	"shirts.name.9": "Aquamarine Shirt",
+	"shirts.name.10": "Suit Top",
+	"shirts.name.11": "Green Belted Shirt",
+	"shirts.name.12": "Lime Green Striped Shirt",
+	"shirts.name.13": "Red Striped Shirt",
+	"shirts.name.14": "Skeleton Shirt",
+	"shirts.name.15": "Orange Shirt",
+	"shirts.name.16": "Night Sky Shirt",
+	"shirts.name.17": "Mayoral Suspenders",
+	"shirts.name.18": "Brown Jacket",
+	"shirts.name.19": "Sailor Shirt",
+	"shirts.name.20": "Green Vest",
+	"shirts.name.21": "Yellow and Green Shirt",
+	"shirts.name.26": "Light Blue Striped Shirt",
+	"shirts.name.27": "Pink Striped Shirt",
+	"shirts.name.28": "Heart Shirt",
+	"shirts.name.29": "Work Shirt",
+	"shirts.name.30": "Store Owner's Jacket",
+	"shirts.name.34": "Green Tunic",
+	"shirts.name.35": "Fancy Red Blouse",
+	"shirts.name.38": "Plain Shirt",
+	"shirts.name.39": "Retro Rainbow Shirt",
+	"shirts.name.42": "Lime Green Tunic",
+	"shirts.name.71": "White Overalls Shirt",
+	"shirts.name.87": "Neat Bow Shirt",
+	"shirts.name.123": "Shirt And Tie",
+	"shirts.name.127": "Emily's Magic Shirt",
+	"shirts.name.128": "Striped Shirt",
+	"shirts.name.129": "Tank Top",
+	"shirts.name.131": "Cowboy Poncho",
+	"shirts.name.132": "Crop Tank Top",
+	"shirts.name.134": "Bikini Top",
+	"shirts.name.135": "Wumbus Shirt",
+	"shirts.name.136": "80's Shirt",
+	"shirts.name.137": "Letterman Jacket",
+	"shirts.name.138": "Black Leather Jacket",
+	"shirts.name.139": "Strapped Top",
+	"shirts.name.140": "Button Down Shirt",
+	"shirts.name.141": "Crop Top Shirt",
+	"shirts.name.142": "Tube Top",
+	"shirts.name.143": "Tye Die Shirt",
+	"shirts.name.148": "Steel Breastplate",
+	"shirts.name.149": "Copper Breastplate",
+	"shirts.name.150": "Gold Breastplate",
+	"shirts.name.151": "Iridium Breastplate",
+	"shirts.name.153": "Fake Muscles Shirt",
+	"shirts.name.154": "Flannel Shirt",
+	"shirts.name.155": "Bomber Jacket",
+	"shirts.name.156": "Caveman Shirt",
+	"shirts.name.157": "Fishing Vest",
+	"shirts.name.158": "Fish Shirt",
+	"shirts.name.159": "Shirt And Belt",
+	"shirts.name.160": "Gray Hoodie",
+	"shirts.name.161": "Blue Hoodie",
+	"shirts.name.162": "Red Hoodie",
+	"shirts.name.163": "Denim Jacket",
+	"shirts.name.164": "Track Jacket",
+	"shirts.name.165": "White Gi",
+	"shirts.name.166": "Orange Gi",
+	"shirts.name.167": "Gray Vest",
+	"shirts.name.168": "Kelp Shirt",
+	"shirts.name.169": "Studded Vest",
+	"shirts.name.170": "Gaudy Shirt",
+	"shirts.name.171": "Oasis Gown",
+	"shirts.name.172": "Blacksmith Apron",
+	"shirts.name.173": "Neat Bow Shirt",
+	"shirts.name.174": "High-Waisted Shirt",
+	"shirts.name.175": "High-Waisted Shirt",
+	"shirts.name.176": "Basic Pullover",
+	"shirts.name.178": "Turtleneck Sweater",
+	"shirts.name.179": "Iridium Energy Shirt",
+	"shirts.name.180": "Tunnelers Jersey",
+	"shirts.name.183": "Gray Suit",
+	"shirts.name.184": "Red Tuxedo",
+	"shirts.name.185": "Navy Tuxedo",
+	"shirts.name.186": "Holiday Shirt",
+	"shirts.name.187": "Leafy Top",
+	"shirts.name.188": "Goodnight Shirt",
+	"shirts.name.189": "Green Belted Shirt",
+	"shirts.name.190": "Happy Shirt",
+	"shirts.name.191": "Shirt with Bow",
+	"shirts.name.192": "Jester Shirt",
+	"shirts.name.193": "Ocean Shirt",
+	"shirts.name.194": "Dark Striped Shirt",
+	"shirts.name.195": "Bandana Shirt",
+	"shirts.name.196": "Backpack Shirt",
+	"shirts.name.197": "Purple Blouse",
+	"shirts.name.198": "Vintage Polo",
+	"shirts.name.199": "Toga Shirt",
+	"shirts.name.200": "Star Shirt",
+	"shirts.name.201": "Classy Top",
+	"shirts.name.203": "Bandana Shirt",
+	"shirts.name.204": "Vacation Shirt",
+	"shirts.name.205": "Green Thumb Shirt",
+	"shirts.name.206": "Bandana Shirt",
+	"shirts.name.207": "Slime Shirt",
+	"shirts.name.208": "Excavator Shirt",
+	"shirts.name.209": "Sports Shirt",
+	"shirts.name.210": "Heart Shirt",
+	"shirts.name.211": "Dark Jacket",
+	"shirts.name.212": "Sunset Shirt",
+	"shirts.name.213": "Chef Coat",
+	"shirts.name.214": "Shirt O' The Sea",
+	"shirts.name.215": "Arcane Shirt",
+	"shirts.name.216": "Plain Overalls",
+	"shirts.name.217": "Sleeveless Overalls",
+	"shirts.name.218": "Cardigan",
+	"shirts.name.219": "Yoba Shirt",
+	"shirts.name.220": "Necklace Shirt",
+	"shirts.name.221": "Belted Coat",
+	"shirts.name.222": "Gold Trimmed Shirt",
+	"shirts.name.223": "Prismatic Shirt",
+	"shirts.name.224": "Pendant Shirt",
+	"shirts.name.225": "High Heat Shirt",
+	"shirts.name.226": "Flames Shirt",
+	"shirts.name.227": "Antiquity Shirt",
+	"shirts.name.228": "Soft Arrow Shirt",
+	"shirts.name.229": "Doll Shirt",
+	"shirts.name.230": "Jewelry Shirt",
+	"shirts.name.231": "Canvas Jacket",
+	"shirts.name.232": "Trash Can Shirt",
+	"shirts.name.233": "Rusty Shirt",
+	"shirts.name.234": "Circuitboard Shirt",
+	"shirts.name.235": "Fluffy Shirt",
+	"shirts.name.236": "Sauce-Stained Shirt",
+	"shirts.name.237": "Brown Suit",
+	"shirts.name.238": "Golden Shirt",
+	"shirts.name.239": "Captain's Uniform",
+	"shirts.name.240": "Officer Uniform",
+	"shirts.name.241": "Ranger Uniform",
+	"shirts.name.242": "Blue Long Vest",
+	"shirts.name.243": "Regal Mantle",
+	"shirts.name.244": "Relic Shirt",
+	"shirts.name.245": "Bobo Shirt",
+	"shirts.name.246": "Fried Egg Shirt",
+	"shirts.name.247": "Burger Shirt",
+	"shirts.name.248": "Collared Shirt",
+	"shirts.name.249": "Toasted Shirt",
+	"shirts.name.250": "Carp Shirt",
+	"shirts.name.251": "Red Flannel Shirt",
+	"shirts.name.252": "Tortilla Shirt",
+	"shirts.name.253": "Warm Flannel Shirt",
+	"shirts.name.254": "Sugar Shirt",
+	"shirts.name.255": "Green Flannel Shirt",
+	"shirts.name.256": "Oil Stained Shirt",
+	"shirts.name.257": "Morel Shirt",
+	"shirts.name.258": "Spring Shirt",
+	"shirts.name.259": "Sailor Shirt",
+	"shirts.name.260": "Rain Coat",
+	"shirts.name.261": "Sailor Shirt",
+	"shirts.name.262": "Dark Bandana Shirt",
+	"shirts.name.263": "Dark Highlight Shirt",
+	"shirts.name.264": "Omni Shirt",
+	"shirts.name.265": "Bridal Shirt",
+	"shirts.name.266": "Brown Overalls",
+	"shirts.name.267": "Orange Bow Shirt",
+	"shirts.name.268": "White Overalls",
+	"shirts.name.269": "Pour-Over Shirt",
+	"shirts.name.270": "Green Jacket Shirt",
+	"shirts.name.271": "Short Jacket",
+	"shirts.name.272": "Polka Dot Shirt",
+	"shirts.name.273": "White Dot Shirt",
+	"shirts.name.274": "Camo Shirt",
+	"shirts.name.275": "Dirt Shirt",
+	"shirts.name.276": "Crab Cake Shirt",
+	"shirts.name.277": "Silky Shirt",
+	"shirts.name.278": "Blue Buttoned Vest",
+	"shirts.name.279": "Faded Denim Shirt",
+	"shirts.name.280": "Red Buttoned Vest",
+	"shirts.name.281": "Green Buttoned Vest",
+	"shirts.name.282": "Tomato Shirt",
+	"shirts.name.283": "Fringed Vest",
+	"shirts.name.284": "Globby Shirt",
+	"shirts.name.285": "Midnight Dog Jacket",
+	"shirts.name.286": "Shrimp Enthusiast Shirt",
+	"shirts.name.287": "Tea Shirt",
+	"shirts.name.288": "Trinket Shirt",
+	"shirts.name.289": "Darkness Suit",
+	"shirts.name.290": "Mineral Dog Jacket",
+	"shirts.name.291": "Magenta Shirt",
+	"shirts.name.292": "Ginger Overalls",
+	"shirts.name.293": "Banana Shirt",
+	"shirts.name.294": "Yellow Suit",
+	"shirts.name.295": "Hot Pink Shirt",
+	"shirts.name.296": "Tropical Sunrise Shirt",
+	"shirts.name.297": "Island Bikini",
+	"shirts.name.997": "Magic Sprinkle Shirt",
+	"shirts.name.998": "Prismatic Shirt",
+	"shirts.name.999": "Prismatic Shirt",
+	"shirts.name.default": "Shirt",
+	"pants.name.0": "Farmer Pants",
+	"pants.name.1": "Shorts",
+	"pants.name.2": "Long Dress",
+	"pants.name.3": "Skirt",
+	"pants.name.4": "Pleated Skirt",
+	"pants.name.5": "Dinosaur Pants",
+	"pants.name.6": "Grass Skirt",
+	"pants.name.7": "Luau Skirt",
+	"pants.name.8": "Genie Pants",
+	"pants.name.9": "Tight Pants",
+	"pants.name.10": "Baggy Pants",
+	"pants.name.11": "Simple Dress",
+	"pants.name.12": "Relaxed Fit Pants",
+	"pants.name.13": "Relaxed Fit Shorts",
+	"pants.name.15": "Trimmed Lucky Purple Shorts",
+	"pants.name.998": "Prismatic Pants",
+	"pants.name.999": "Prismatic Genie Pants",
+	"pants.name.default": "Pants",
 	"hats.desc.0": "Achieve 'A Complete Collection' and purchase for 1,000g in Hat Shop.",
 	"hats.desc.1": "Achieve 'Millionaire' and purchase for 1,000g in Hat Shop.",
 	"hats.desc.2": "Purchase for 8,000 Qi Coins in Qi's Casino.",
@@ -39608,6 +39825,1327 @@ function copyStaticProperties(base, target) {
 
 observerBatching(reactDom.exports.unstable_batchedUpdates);
 
+var jsxRuntime = {exports: {}};
+
+var reactJsxRuntime_development = {};
+
+/**
+ * @license React
+ * react-jsx-runtime.development.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+{
+  (function() {
+
+var React = react.exports;
+
+// -----------------------------------------------------------------------------
+
+var enableScopeAPI = false; // Experimental Create Event Handle API.
+var enableCacheElement = false;
+var enableTransitionTracing = false; // No known bugs, but needs performance testing
+
+var enableLegacyHidden = false; // Enables unstable_avoidThisFallback feature in Fiber
+// stuff. Intended to enable React core members to more easily debug scheduling
+// issues in DEV builds.
+
+var enableDebugTracing = false; // Track which Fiber(s) schedule render work.
+
+// ATTENTION
+
+var REACT_ELEMENT_TYPE =  Symbol.for('react.element');
+var REACT_PORTAL_TYPE =  Symbol.for('react.portal');
+var REACT_FRAGMENT_TYPE =  Symbol.for('react.fragment');
+var REACT_STRICT_MODE_TYPE =  Symbol.for('react.strict_mode');
+var REACT_PROFILER_TYPE =  Symbol.for('react.profiler');
+var REACT_PROVIDER_TYPE =  Symbol.for('react.provider');
+var REACT_CONTEXT_TYPE =  Symbol.for('react.context');
+var REACT_FORWARD_REF_TYPE =  Symbol.for('react.forward_ref');
+var REACT_SUSPENSE_TYPE =  Symbol.for('react.suspense');
+var REACT_SUSPENSE_LIST_TYPE =  Symbol.for('react.suspense_list');
+var REACT_MEMO_TYPE =  Symbol.for('react.memo');
+var REACT_LAZY_TYPE =  Symbol.for('react.lazy');
+var REACT_OFFSCREEN_TYPE =  Symbol.for('react.offscreen');
+var MAYBE_ITERATOR_SYMBOL =  Symbol.iterator;
+var FAUX_ITERATOR_SYMBOL = '@@iterator';
+function getIteratorFn(maybeIterable) {
+  if (maybeIterable === null || typeof maybeIterable !== 'object') {
+    return null;
+  }
+
+  var maybeIterator = MAYBE_ITERATOR_SYMBOL && maybeIterable[MAYBE_ITERATOR_SYMBOL] || maybeIterable[FAUX_ITERATOR_SYMBOL];
+
+  if (typeof maybeIterator === 'function') {
+    return maybeIterator;
+  }
+
+  return null;
+}
+
+var ReactSharedInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+
+function error(format) {
+  {
+    {
+      for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        args[_key2 - 1] = arguments[_key2];
+      }
+
+      printWarning('error', format, args);
+    }
+  }
+}
+
+function printWarning(level, format, args) {
+  // When changing this logic, you might want to also
+  // update consoleWithStackDev.www.js as well.
+  {
+    var ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
+    var stack = ReactDebugCurrentFrame.getStackAddendum();
+
+    if (stack !== '') {
+      format += '%s';
+      args = args.concat([stack]);
+    } // eslint-disable-next-line react-internal/safe-string-coercion
+
+
+    var argsWithFormat = args.map(function (item) {
+      return String(item);
+    }); // Careful: RN currently depends on this prefix
+
+    argsWithFormat.unshift('Warning: ' + format); // We intentionally don't use spread (or .apply) directly because it
+    // breaks IE9: https://github.com/facebook/react/issues/13610
+    // eslint-disable-next-line react-internal/no-production-logging
+
+    Function.prototype.apply.call(console[level], console, argsWithFormat);
+  }
+}
+
+var REACT_MODULE_REFERENCE;
+
+{
+  REACT_MODULE_REFERENCE = Symbol.for('react.module.reference');
+}
+
+function isValidElementType(type) {
+  if (typeof type === 'string' || typeof type === 'function') {
+    return true;
+  } // Note: typeof might be other than 'symbol' or 'number' (e.g. if it's a polyfill).
+
+
+  if (type === REACT_FRAGMENT_TYPE || type === REACT_PROFILER_TYPE || enableDebugTracing  || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || type === REACT_SUSPENSE_LIST_TYPE || enableLegacyHidden  || type === REACT_OFFSCREEN_TYPE || enableScopeAPI  || enableCacheElement  || enableTransitionTracing ) {
+    return true;
+  }
+
+  if (typeof type === 'object' && type !== null) {
+    if (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE || // This needs to include all possible module reference object
+    // types supported by any Flight configuration anywhere since
+    // we don't know which Flight build this will end up being used
+    // with.
+    type.$$typeof === REACT_MODULE_REFERENCE || type.getModuleId !== undefined) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function getWrappedName(outerType, innerType, wrapperName) {
+  var displayName = outerType.displayName;
+
+  if (displayName) {
+    return displayName;
+  }
+
+  var functionName = innerType.displayName || innerType.name || '';
+  return functionName !== '' ? wrapperName + "(" + functionName + ")" : wrapperName;
+} // Keep in sync with react-reconciler/getComponentNameFromFiber
+
+
+function getContextName(type) {
+  return type.displayName || 'Context';
+} // Note that the reconciler package should generally prefer to use getComponentNameFromFiber() instead.
+
+
+function getComponentNameFromType(type) {
+  if (type == null) {
+    // Host root, text node or just invalid type.
+    return null;
+  }
+
+  {
+    if (typeof type.tag === 'number') {
+      error('Received an unexpected object in getComponentNameFromType(). ' + 'This is likely a bug in React. Please file an issue.');
+    }
+  }
+
+  if (typeof type === 'function') {
+    return type.displayName || type.name || null;
+  }
+
+  if (typeof type === 'string') {
+    return type;
+  }
+
+  switch (type) {
+    case REACT_FRAGMENT_TYPE:
+      return 'Fragment';
+
+    case REACT_PORTAL_TYPE:
+      return 'Portal';
+
+    case REACT_PROFILER_TYPE:
+      return 'Profiler';
+
+    case REACT_STRICT_MODE_TYPE:
+      return 'StrictMode';
+
+    case REACT_SUSPENSE_TYPE:
+      return 'Suspense';
+
+    case REACT_SUSPENSE_LIST_TYPE:
+      return 'SuspenseList';
+
+  }
+
+  if (typeof type === 'object') {
+    switch (type.$$typeof) {
+      case REACT_CONTEXT_TYPE:
+        var context = type;
+        return getContextName(context) + '.Consumer';
+
+      case REACT_PROVIDER_TYPE:
+        var provider = type;
+        return getContextName(provider._context) + '.Provider';
+
+      case REACT_FORWARD_REF_TYPE:
+        return getWrappedName(type, type.render, 'ForwardRef');
+
+      case REACT_MEMO_TYPE:
+        var outerName = type.displayName || null;
+
+        if (outerName !== null) {
+          return outerName;
+        }
+
+        return getComponentNameFromType(type.type) || 'Memo';
+
+      case REACT_LAZY_TYPE:
+        {
+          var lazyComponent = type;
+          var payload = lazyComponent._payload;
+          var init = lazyComponent._init;
+
+          try {
+            return getComponentNameFromType(init(payload));
+          } catch (x) {
+            return null;
+          }
+        }
+
+      // eslint-disable-next-line no-fallthrough
+    }
+  }
+
+  return null;
+}
+
+var assign = Object.assign;
+
+// Helpers to patch console.logs to avoid logging during side-effect free
+// replaying on render function. This currently only patches the object
+// lazily which won't cover if the log function was extracted eagerly.
+// We could also eagerly patch the method.
+var disabledDepth = 0;
+var prevLog;
+var prevInfo;
+var prevWarn;
+var prevError;
+var prevGroup;
+var prevGroupCollapsed;
+var prevGroupEnd;
+
+function disabledLog() {}
+
+disabledLog.__reactDisabledLog = true;
+function disableLogs() {
+  {
+    if (disabledDepth === 0) {
+      /* eslint-disable react-internal/no-production-logging */
+      prevLog = console.log;
+      prevInfo = console.info;
+      prevWarn = console.warn;
+      prevError = console.error;
+      prevGroup = console.group;
+      prevGroupCollapsed = console.groupCollapsed;
+      prevGroupEnd = console.groupEnd; // https://github.com/facebook/react/issues/19099
+
+      var props = {
+        configurable: true,
+        enumerable: true,
+        value: disabledLog,
+        writable: true
+      }; // $FlowFixMe Flow thinks console is immutable.
+
+      Object.defineProperties(console, {
+        info: props,
+        log: props,
+        warn: props,
+        error: props,
+        group: props,
+        groupCollapsed: props,
+        groupEnd: props
+      });
+      /* eslint-enable react-internal/no-production-logging */
+    }
+
+    disabledDepth++;
+  }
+}
+function reenableLogs() {
+  {
+    disabledDepth--;
+
+    if (disabledDepth === 0) {
+      /* eslint-disable react-internal/no-production-logging */
+      var props = {
+        configurable: true,
+        enumerable: true,
+        writable: true
+      }; // $FlowFixMe Flow thinks console is immutable.
+
+      Object.defineProperties(console, {
+        log: assign({}, props, {
+          value: prevLog
+        }),
+        info: assign({}, props, {
+          value: prevInfo
+        }),
+        warn: assign({}, props, {
+          value: prevWarn
+        }),
+        error: assign({}, props, {
+          value: prevError
+        }),
+        group: assign({}, props, {
+          value: prevGroup
+        }),
+        groupCollapsed: assign({}, props, {
+          value: prevGroupCollapsed
+        }),
+        groupEnd: assign({}, props, {
+          value: prevGroupEnd
+        })
+      });
+      /* eslint-enable react-internal/no-production-logging */
+    }
+
+    if (disabledDepth < 0) {
+      error('disabledDepth fell below zero. ' + 'This is a bug in React. Please file an issue.');
+    }
+  }
+}
+
+var ReactCurrentDispatcher = ReactSharedInternals.ReactCurrentDispatcher;
+var prefix;
+function describeBuiltInComponentFrame(name, source, ownerFn) {
+  {
+    if (prefix === undefined) {
+      // Extract the VM specific prefix used by each line.
+      try {
+        throw Error();
+      } catch (x) {
+        var match = x.stack.trim().match(/\n( *(at )?)/);
+        prefix = match && match[1] || '';
+      }
+    } // We use the prefix to ensure our stacks line up with native stack frames.
+
+
+    return '\n' + prefix + name;
+  }
+}
+var reentry = false;
+var componentFrameCache;
+
+{
+  var PossiblyWeakMap = typeof WeakMap === 'function' ? WeakMap : Map;
+  componentFrameCache = new PossiblyWeakMap();
+}
+
+function describeNativeComponentFrame(fn, construct) {
+  // If something asked for a stack inside a fake render, it should get ignored.
+  if ( !fn || reentry) {
+    return '';
+  }
+
+  {
+    var frame = componentFrameCache.get(fn);
+
+    if (frame !== undefined) {
+      return frame;
+    }
+  }
+
+  var control;
+  reentry = true;
+  var previousPrepareStackTrace = Error.prepareStackTrace; // $FlowFixMe It does accept undefined.
+
+  Error.prepareStackTrace = undefined;
+  var previousDispatcher;
+
+  {
+    previousDispatcher = ReactCurrentDispatcher.current; // Set the dispatcher in DEV because this might be call in the render function
+    // for warnings.
+
+    ReactCurrentDispatcher.current = null;
+    disableLogs();
+  }
+
+  try {
+    // This should throw.
+    if (construct) {
+      // Something should be setting the props in the constructor.
+      var Fake = function () {
+        throw Error();
+      }; // $FlowFixMe
+
+
+      Object.defineProperty(Fake.prototype, 'props', {
+        set: function () {
+          // We use a throwing setter instead of frozen or non-writable props
+          // because that won't throw in a non-strict mode function.
+          throw Error();
+        }
+      });
+
+      if (typeof Reflect === 'object' && Reflect.construct) {
+        // We construct a different control for this case to include any extra
+        // frames added by the construct call.
+        try {
+          Reflect.construct(Fake, []);
+        } catch (x) {
+          control = x;
+        }
+
+        Reflect.construct(fn, [], Fake);
+      } else {
+        try {
+          Fake.call();
+        } catch (x) {
+          control = x;
+        }
+
+        fn.call(Fake.prototype);
+      }
+    } else {
+      try {
+        throw Error();
+      } catch (x) {
+        control = x;
+      }
+
+      fn();
+    }
+  } catch (sample) {
+    // This is inlined manually because closure doesn't do it for us.
+    if (sample && control && typeof sample.stack === 'string') {
+      // This extracts the first frame from the sample that isn't also in the control.
+      // Skipping one frame that we assume is the frame that calls the two.
+      var sampleLines = sample.stack.split('\n');
+      var controlLines = control.stack.split('\n');
+      var s = sampleLines.length - 1;
+      var c = controlLines.length - 1;
+
+      while (s >= 1 && c >= 0 && sampleLines[s] !== controlLines[c]) {
+        // We expect at least one stack frame to be shared.
+        // Typically this will be the root most one. However, stack frames may be
+        // cut off due to maximum stack limits. In this case, one maybe cut off
+        // earlier than the other. We assume that the sample is longer or the same
+        // and there for cut off earlier. So we should find the root most frame in
+        // the sample somewhere in the control.
+        c--;
+      }
+
+      for (; s >= 1 && c >= 0; s--, c--) {
+        // Next we find the first one that isn't the same which should be the
+        // frame that called our sample function and the control.
+        if (sampleLines[s] !== controlLines[c]) {
+          // In V8, the first line is describing the message but other VMs don't.
+          // If we're about to return the first line, and the control is also on the same
+          // line, that's a pretty good indicator that our sample threw at same line as
+          // the control. I.e. before we entered the sample frame. So we ignore this result.
+          // This can happen if you passed a class to function component, or non-function.
+          if (s !== 1 || c !== 1) {
+            do {
+              s--;
+              c--; // We may still have similar intermediate frames from the construct call.
+              // The next one that isn't the same should be our match though.
+
+              if (c < 0 || sampleLines[s] !== controlLines[c]) {
+                // V8 adds a "new" prefix for native classes. Let's remove it to make it prettier.
+                var _frame = '\n' + sampleLines[s].replace(' at new ', ' at '); // If our component frame is labeled "<anonymous>"
+                // but we have a user-provided "displayName"
+                // splice it in to make the stack more readable.
+
+
+                if (fn.displayName && _frame.includes('<anonymous>')) {
+                  _frame = _frame.replace('<anonymous>', fn.displayName);
+                }
+
+                {
+                  if (typeof fn === 'function') {
+                    componentFrameCache.set(fn, _frame);
+                  }
+                } // Return the line we found.
+
+
+                return _frame;
+              }
+            } while (s >= 1 && c >= 0);
+          }
+
+          break;
+        }
+      }
+    }
+  } finally {
+    reentry = false;
+
+    {
+      ReactCurrentDispatcher.current = previousDispatcher;
+      reenableLogs();
+    }
+
+    Error.prepareStackTrace = previousPrepareStackTrace;
+  } // Fallback to just using the name if we couldn't make it throw.
+
+
+  var name = fn ? fn.displayName || fn.name : '';
+  var syntheticFrame = name ? describeBuiltInComponentFrame(name) : '';
+
+  {
+    if (typeof fn === 'function') {
+      componentFrameCache.set(fn, syntheticFrame);
+    }
+  }
+
+  return syntheticFrame;
+}
+function describeFunctionComponentFrame(fn, source, ownerFn) {
+  {
+    return describeNativeComponentFrame(fn, false);
+  }
+}
+
+function shouldConstruct(Component) {
+  var prototype = Component.prototype;
+  return !!(prototype && prototype.isReactComponent);
+}
+
+function describeUnknownElementTypeFrameInDEV(type, source, ownerFn) {
+
+  if (type == null) {
+    return '';
+  }
+
+  if (typeof type === 'function') {
+    {
+      return describeNativeComponentFrame(type, shouldConstruct(type));
+    }
+  }
+
+  if (typeof type === 'string') {
+    return describeBuiltInComponentFrame(type);
+  }
+
+  switch (type) {
+    case REACT_SUSPENSE_TYPE:
+      return describeBuiltInComponentFrame('Suspense');
+
+    case REACT_SUSPENSE_LIST_TYPE:
+      return describeBuiltInComponentFrame('SuspenseList');
+  }
+
+  if (typeof type === 'object') {
+    switch (type.$$typeof) {
+      case REACT_FORWARD_REF_TYPE:
+        return describeFunctionComponentFrame(type.render);
+
+      case REACT_MEMO_TYPE:
+        // Memo may contain any component type so we recursively resolve it.
+        return describeUnknownElementTypeFrameInDEV(type.type, source, ownerFn);
+
+      case REACT_LAZY_TYPE:
+        {
+          var lazyComponent = type;
+          var payload = lazyComponent._payload;
+          var init = lazyComponent._init;
+
+          try {
+            // Lazy may contain any component type so we recursively resolve it.
+            return describeUnknownElementTypeFrameInDEV(init(payload), source, ownerFn);
+          } catch (x) {}
+        }
+    }
+  }
+
+  return '';
+}
+
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+var loggedTypeFailures = {};
+var ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
+
+function setCurrentlyValidatingElement(element) {
+  {
+    if (element) {
+      var owner = element._owner;
+      var stack = describeUnknownElementTypeFrameInDEV(element.type, element._source, owner ? owner.type : null);
+      ReactDebugCurrentFrame.setExtraStackFrame(stack);
+    } else {
+      ReactDebugCurrentFrame.setExtraStackFrame(null);
+    }
+  }
+}
+
+function checkPropTypes(typeSpecs, values, location, componentName, element) {
+  {
+    // $FlowFixMe This is okay but Flow doesn't know it.
+    var has = Function.call.bind(hasOwnProperty);
+
+    for (var typeSpecName in typeSpecs) {
+      if (has(typeSpecs, typeSpecName)) {
+        var error$1 = void 0; // Prop type validation may throw. In case they do, we don't want to
+        // fail the render phase where it didn't fail before. So we log it.
+        // After these have been cleaned up, we'll let them throw.
+
+        try {
+          // This is intentionally an invariant that gets caught. It's the same
+          // behavior as without this statement except with a better message.
+          if (typeof typeSpecs[typeSpecName] !== 'function') {
+            // eslint-disable-next-line react-internal/prod-error-codes
+            var err = Error((componentName || 'React class') + ': ' + location + ' type `' + typeSpecName + '` is invalid; ' + 'it must be a function, usually from the `prop-types` package, but received `' + typeof typeSpecs[typeSpecName] + '`.' + 'This often happens because of typos such as `PropTypes.function` instead of `PropTypes.func`.');
+            err.name = 'Invariant Violation';
+            throw err;
+          }
+
+          error$1 = typeSpecs[typeSpecName](values, typeSpecName, componentName, location, null, 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED');
+        } catch (ex) {
+          error$1 = ex;
+        }
+
+        if (error$1 && !(error$1 instanceof Error)) {
+          setCurrentlyValidatingElement(element);
+
+          error('%s: type specification of %s' + ' `%s` is invalid; the type checker ' + 'function must return `null` or an `Error` but returned a %s. ' + 'You may have forgotten to pass an argument to the type checker ' + 'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ' + 'shape all require an argument).', componentName || 'React class', location, typeSpecName, typeof error$1);
+
+          setCurrentlyValidatingElement(null);
+        }
+
+        if (error$1 instanceof Error && !(error$1.message in loggedTypeFailures)) {
+          // Only monitor this failure once because there tends to be a lot of the
+          // same error.
+          loggedTypeFailures[error$1.message] = true;
+          setCurrentlyValidatingElement(element);
+
+          error('Failed %s type: %s', location, error$1.message);
+
+          setCurrentlyValidatingElement(null);
+        }
+      }
+    }
+  }
+}
+
+var isArrayImpl = Array.isArray; // eslint-disable-next-line no-redeclare
+
+function isArray(a) {
+  return isArrayImpl(a);
+}
+
+/*
+ * The `'' + value` pattern (used in in perf-sensitive code) throws for Symbol
+ * and Temporal.* types. See https://github.com/facebook/react/pull/22064.
+ *
+ * The functions in this module will throw an easier-to-understand,
+ * easier-to-debug exception with a clear errors message message explaining the
+ * problem. (Instead of a confusing exception thrown inside the implementation
+ * of the `value` object).
+ */
+// $FlowFixMe only called in DEV, so void return is not possible.
+function typeName(value) {
+  {
+    // toStringTag is needed for namespaced types like Temporal.Instant
+    var hasToStringTag = typeof Symbol === 'function' && Symbol.toStringTag;
+    var type = hasToStringTag && value[Symbol.toStringTag] || value.constructor.name || 'Object';
+    return type;
+  }
+} // $FlowFixMe only called in DEV, so void return is not possible.
+
+
+function willCoercionThrow(value) {
+  {
+    try {
+      testStringCoercion(value);
+      return false;
+    } catch (e) {
+      return true;
+    }
+  }
+}
+
+function testStringCoercion(value) {
+  // If you ended up here by following an exception call stack, here's what's
+  // happened: you supplied an object or symbol value to React (as a prop, key,
+  // DOM attribute, CSS property, string ref, etc.) and when React tried to
+  // coerce it to a string using `'' + value`, an exception was thrown.
+  //
+  // The most common types that will cause this exception are `Symbol` instances
+  // and Temporal objects like `Temporal.Instant`. But any object that has a
+  // `valueOf` or `[Symbol.toPrimitive]` method that throws will also cause this
+  // exception. (Library authors do this to prevent users from using built-in
+  // numeric operators like `+` or comparison operators like `>=` because custom
+  // methods are needed to perform accurate arithmetic or comparison.)
+  //
+  // To fix the problem, coerce this object or symbol value to a string before
+  // passing it to React. The most reliable way is usually `String(value)`.
+  //
+  // To find which value is throwing, check the browser or debugger console.
+  // Before this exception was thrown, there should be `console.error` output
+  // that shows the type (Symbol, Temporal.PlainDate, etc.) that caused the
+  // problem and how that type was used: key, atrribute, input value prop, etc.
+  // In most cases, this console output also shows the component and its
+  // ancestor components where the exception happened.
+  //
+  // eslint-disable-next-line react-internal/safe-string-coercion
+  return '' + value;
+}
+function checkKeyStringCoercion(value) {
+  {
+    if (willCoercionThrow(value)) {
+      error('The provided key is an unsupported type %s.' + ' This value must be coerced to a string before before using it here.', typeName(value));
+
+      return testStringCoercion(value); // throw (to help callers find troubleshooting comments)
+    }
+  }
+}
+
+var ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
+var RESERVED_PROPS = {
+  key: true,
+  ref: true,
+  __self: true,
+  __source: true
+};
+var specialPropKeyWarningShown;
+var specialPropRefWarningShown;
+var didWarnAboutStringRefs;
+
+{
+  didWarnAboutStringRefs = {};
+}
+
+function hasValidRef(config) {
+  {
+    if (hasOwnProperty.call(config, 'ref')) {
+      var getter = Object.getOwnPropertyDescriptor(config, 'ref').get;
+
+      if (getter && getter.isReactWarning) {
+        return false;
+      }
+    }
+  }
+
+  return config.ref !== undefined;
+}
+
+function hasValidKey(config) {
+  {
+    if (hasOwnProperty.call(config, 'key')) {
+      var getter = Object.getOwnPropertyDescriptor(config, 'key').get;
+
+      if (getter && getter.isReactWarning) {
+        return false;
+      }
+    }
+  }
+
+  return config.key !== undefined;
+}
+
+function warnIfStringRefCannotBeAutoConverted(config, self) {
+  {
+    if (typeof config.ref === 'string' && ReactCurrentOwner.current && self && ReactCurrentOwner.current.stateNode !== self) {
+      var componentName = getComponentNameFromType(ReactCurrentOwner.current.type);
+
+      if (!didWarnAboutStringRefs[componentName]) {
+        error('Component "%s" contains the string ref "%s". ' + 'Support for string refs will be removed in a future major release. ' + 'This case cannot be automatically converted to an arrow function. ' + 'We ask you to manually fix this case by using useRef() or createRef() instead. ' + 'Learn more about using refs safely here: ' + 'https://reactjs.org/link/strict-mode-string-ref', getComponentNameFromType(ReactCurrentOwner.current.type), config.ref);
+
+        didWarnAboutStringRefs[componentName] = true;
+      }
+    }
+  }
+}
+
+function defineKeyPropWarningGetter(props, displayName) {
+  {
+    var warnAboutAccessingKey = function () {
+      if (!specialPropKeyWarningShown) {
+        specialPropKeyWarningShown = true;
+
+        error('%s: `key` is not a prop. Trying to access it will result ' + 'in `undefined` being returned. If you need to access the same ' + 'value within the child component, you should pass it as a different ' + 'prop. (https://reactjs.org/link/special-props)', displayName);
+      }
+    };
+
+    warnAboutAccessingKey.isReactWarning = true;
+    Object.defineProperty(props, 'key', {
+      get: warnAboutAccessingKey,
+      configurable: true
+    });
+  }
+}
+
+function defineRefPropWarningGetter(props, displayName) {
+  {
+    var warnAboutAccessingRef = function () {
+      if (!specialPropRefWarningShown) {
+        specialPropRefWarningShown = true;
+
+        error('%s: `ref` is not a prop. Trying to access it will result ' + 'in `undefined` being returned. If you need to access the same ' + 'value within the child component, you should pass it as a different ' + 'prop. (https://reactjs.org/link/special-props)', displayName);
+      }
+    };
+
+    warnAboutAccessingRef.isReactWarning = true;
+    Object.defineProperty(props, 'ref', {
+      get: warnAboutAccessingRef,
+      configurable: true
+    });
+  }
+}
+/**
+ * Factory method to create a new React element. This no longer adheres to
+ * the class pattern, so do not use new to call it. Also, instanceof check
+ * will not work. Instead test $$typeof field against Symbol.for('react.element') to check
+ * if something is a React Element.
+ *
+ * @param {*} type
+ * @param {*} props
+ * @param {*} key
+ * @param {string|object} ref
+ * @param {*} owner
+ * @param {*} self A *temporary* helper to detect places where `this` is
+ * different from the `owner` when React.createElement is called, so that we
+ * can warn. We want to get rid of owner and replace string `ref`s with arrow
+ * functions, and as long as `this` and owner are the same, there will be no
+ * change in behavior.
+ * @param {*} source An annotation object (added by a transpiler or otherwise)
+ * indicating filename, line number, and/or other information.
+ * @internal
+ */
+
+
+var ReactElement = function (type, key, ref, self, source, owner, props) {
+  var element = {
+    // This tag allows us to uniquely identify this as a React Element
+    $$typeof: REACT_ELEMENT_TYPE,
+    // Built-in properties that belong on the element
+    type: type,
+    key: key,
+    ref: ref,
+    props: props,
+    // Record the component responsible for creating this element.
+    _owner: owner
+  };
+
+  {
+    // The validation flag is currently mutative. We put it on
+    // an external backing store so that we can freeze the whole object.
+    // This can be replaced with a WeakMap once they are implemented in
+    // commonly used development environments.
+    element._store = {}; // To make comparing ReactElements easier for testing purposes, we make
+    // the validation flag non-enumerable (where possible, which should
+    // include every environment we run tests in), so the test framework
+    // ignores it.
+
+    Object.defineProperty(element._store, 'validated', {
+      configurable: false,
+      enumerable: false,
+      writable: true,
+      value: false
+    }); // self and source are DEV only properties.
+
+    Object.defineProperty(element, '_self', {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: self
+    }); // Two elements created in two different places should be considered
+    // equal for testing purposes and therefore we hide it from enumeration.
+
+    Object.defineProperty(element, '_source', {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: source
+    });
+
+    if (Object.freeze) {
+      Object.freeze(element.props);
+      Object.freeze(element);
+    }
+  }
+
+  return element;
+};
+/**
+ * https://github.com/reactjs/rfcs/pull/107
+ * @param {*} type
+ * @param {object} props
+ * @param {string} key
+ */
+
+function jsxDEV(type, config, maybeKey, source, self) {
+  {
+    var propName; // Reserved names are extracted
+
+    var props = {};
+    var key = null;
+    var ref = null; // Currently, key can be spread in as a prop. This causes a potential
+    // issue if key is also explicitly declared (ie. <div {...props} key="Hi" />
+    // or <div key="Hi" {...props} /> ). We want to deprecate key spread,
+    // but as an intermediary step, we will use jsxDEV for everything except
+    // <div {...props} key="Hi" />, because we aren't currently able to tell if
+    // key is explicitly declared to be undefined or not.
+
+    if (maybeKey !== undefined) {
+      {
+        checkKeyStringCoercion(maybeKey);
+      }
+
+      key = '' + maybeKey;
+    }
+
+    if (hasValidKey(config)) {
+      {
+        checkKeyStringCoercion(config.key);
+      }
+
+      key = '' + config.key;
+    }
+
+    if (hasValidRef(config)) {
+      ref = config.ref;
+      warnIfStringRefCannotBeAutoConverted(config, self);
+    } // Remaining properties are added to a new props object
+
+
+    for (propName in config) {
+      if (hasOwnProperty.call(config, propName) && !RESERVED_PROPS.hasOwnProperty(propName)) {
+        props[propName] = config[propName];
+      }
+    } // Resolve default props
+
+
+    if (type && type.defaultProps) {
+      var defaultProps = type.defaultProps;
+
+      for (propName in defaultProps) {
+        if (props[propName] === undefined) {
+          props[propName] = defaultProps[propName];
+        }
+      }
+    }
+
+    if (key || ref) {
+      var displayName = typeof type === 'function' ? type.displayName || type.name || 'Unknown' : type;
+
+      if (key) {
+        defineKeyPropWarningGetter(props, displayName);
+      }
+
+      if (ref) {
+        defineRefPropWarningGetter(props, displayName);
+      }
+    }
+
+    return ReactElement(type, key, ref, self, source, ReactCurrentOwner.current, props);
+  }
+}
+
+var ReactCurrentOwner$1 = ReactSharedInternals.ReactCurrentOwner;
+var ReactDebugCurrentFrame$1 = ReactSharedInternals.ReactDebugCurrentFrame;
+
+function setCurrentlyValidatingElement$1(element) {
+  {
+    if (element) {
+      var owner = element._owner;
+      var stack = describeUnknownElementTypeFrameInDEV(element.type, element._source, owner ? owner.type : null);
+      ReactDebugCurrentFrame$1.setExtraStackFrame(stack);
+    } else {
+      ReactDebugCurrentFrame$1.setExtraStackFrame(null);
+    }
+  }
+}
+
+var propTypesMisspellWarningShown;
+
+{
+  propTypesMisspellWarningShown = false;
+}
+/**
+ * Verifies the object is a ReactElement.
+ * See https://reactjs.org/docs/react-api.html#isvalidelement
+ * @param {?object} object
+ * @return {boolean} True if `object` is a ReactElement.
+ * @final
+ */
+
+
+function isValidElement(object) {
+  {
+    return typeof object === 'object' && object !== null && object.$$typeof === REACT_ELEMENT_TYPE;
+  }
+}
+
+function getDeclarationErrorAddendum() {
+  {
+    if (ReactCurrentOwner$1.current) {
+      var name = getComponentNameFromType(ReactCurrentOwner$1.current.type);
+
+      if (name) {
+        return '\n\nCheck the render method of `' + name + '`.';
+      }
+    }
+
+    return '';
+  }
+}
+
+function getSourceInfoErrorAddendum(source) {
+  {
+    if (source !== undefined) {
+      var fileName = source.fileName.replace(/^.*[\\\/]/, '');
+      var lineNumber = source.lineNumber;
+      return '\n\nCheck your code at ' + fileName + ':' + lineNumber + '.';
+    }
+
+    return '';
+  }
+}
+/**
+ * Warn if there's no key explicitly set on dynamic arrays of children or
+ * object keys are not valid. This allows us to keep track of children between
+ * updates.
+ */
+
+
+var ownerHasKeyUseWarning = {};
+
+function getCurrentComponentErrorInfo(parentType) {
+  {
+    var info = getDeclarationErrorAddendum();
+
+    if (!info) {
+      var parentName = typeof parentType === 'string' ? parentType : parentType.displayName || parentType.name;
+
+      if (parentName) {
+        info = "\n\nCheck the top-level render call using <" + parentName + ">.";
+      }
+    }
+
+    return info;
+  }
+}
+/**
+ * Warn if the element doesn't have an explicit key assigned to it.
+ * This element is in an array. The array could grow and shrink or be
+ * reordered. All children that haven't already been validated are required to
+ * have a "key" property assigned to it. Error statuses are cached so a warning
+ * will only be shown once.
+ *
+ * @internal
+ * @param {ReactElement} element Element that requires a key.
+ * @param {*} parentType element's parent's type.
+ */
+
+
+function validateExplicitKey(element, parentType) {
+  {
+    if (!element._store || element._store.validated || element.key != null) {
+      return;
+    }
+
+    element._store.validated = true;
+    var currentComponentErrorInfo = getCurrentComponentErrorInfo(parentType);
+
+    if (ownerHasKeyUseWarning[currentComponentErrorInfo]) {
+      return;
+    }
+
+    ownerHasKeyUseWarning[currentComponentErrorInfo] = true; // Usually the current owner is the offender, but if it accepts children as a
+    // property, it may be the creator of the child that's responsible for
+    // assigning it a key.
+
+    var childOwner = '';
+
+    if (element && element._owner && element._owner !== ReactCurrentOwner$1.current) {
+      // Give the component that originally created this child.
+      childOwner = " It was passed a child from " + getComponentNameFromType(element._owner.type) + ".";
+    }
+
+    setCurrentlyValidatingElement$1(element);
+
+    error('Each child in a list should have a unique "key" prop.' + '%s%s See https://reactjs.org/link/warning-keys for more information.', currentComponentErrorInfo, childOwner);
+
+    setCurrentlyValidatingElement$1(null);
+  }
+}
+/**
+ * Ensure that every element either is passed in a static location, in an
+ * array with an explicit keys property defined, or in an object literal
+ * with valid key property.
+ *
+ * @internal
+ * @param {ReactNode} node Statically passed child of any type.
+ * @param {*} parentType node's parent's type.
+ */
+
+
+function validateChildKeys(node, parentType) {
+  {
+    if (typeof node !== 'object') {
+      return;
+    }
+
+    if (isArray(node)) {
+      for (var i = 0; i < node.length; i++) {
+        var child = node[i];
+
+        if (isValidElement(child)) {
+          validateExplicitKey(child, parentType);
+        }
+      }
+    } else if (isValidElement(node)) {
+      // This element was passed in a valid location.
+      if (node._store) {
+        node._store.validated = true;
+      }
+    } else if (node) {
+      var iteratorFn = getIteratorFn(node);
+
+      if (typeof iteratorFn === 'function') {
+        // Entry iterators used to provide implicit keys,
+        // but now we print a separate warning for them later.
+        if (iteratorFn !== node.entries) {
+          var iterator = iteratorFn.call(node);
+          var step;
+
+          while (!(step = iterator.next()).done) {
+            if (isValidElement(step.value)) {
+              validateExplicitKey(step.value, parentType);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+/**
+ * Given an element, validate that its props follow the propTypes definition,
+ * provided by the type.
+ *
+ * @param {ReactElement} element
+ */
+
+
+function validatePropTypes(element) {
+  {
+    var type = element.type;
+
+    if (type === null || type === undefined || typeof type === 'string') {
+      return;
+    }
+
+    var propTypes;
+
+    if (typeof type === 'function') {
+      propTypes = type.propTypes;
+    } else if (typeof type === 'object' && (type.$$typeof === REACT_FORWARD_REF_TYPE || // Note: Memo only checks outer props here.
+    // Inner props are checked in the reconciler.
+    type.$$typeof === REACT_MEMO_TYPE)) {
+      propTypes = type.propTypes;
+    } else {
+      return;
+    }
+
+    if (propTypes) {
+      // Intentionally inside to avoid triggering lazy initializers:
+      var name = getComponentNameFromType(type);
+      checkPropTypes(propTypes, element.props, 'prop', name, element);
+    } else if (type.PropTypes !== undefined && !propTypesMisspellWarningShown) {
+      propTypesMisspellWarningShown = true; // Intentionally inside to avoid triggering lazy initializers:
+
+      var _name = getComponentNameFromType(type);
+
+      error('Component %s declared `PropTypes` instead of `propTypes`. Did you misspell the property assignment?', _name || 'Unknown');
+    }
+
+    if (typeof type.getDefaultProps === 'function' && !type.getDefaultProps.isReactClassApproved) {
+      error('getDefaultProps is only used on classic React.createClass ' + 'definitions. Use a static property named `defaultProps` instead.');
+    }
+  }
+}
+/**
+ * Given a fragment, validate that it can only be provided with fragment props
+ * @param {ReactElement} fragment
+ */
+
+
+function validateFragmentProps(fragment) {
+  {
+    var keys = Object.keys(fragment.props);
+
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+
+      if (key !== 'children' && key !== 'key') {
+        setCurrentlyValidatingElement$1(fragment);
+
+        error('Invalid prop `%s` supplied to `React.Fragment`. ' + 'React.Fragment can only have `key` and `children` props.', key);
+
+        setCurrentlyValidatingElement$1(null);
+        break;
+      }
+    }
+
+    if (fragment.ref !== null) {
+      setCurrentlyValidatingElement$1(fragment);
+
+      error('Invalid attribute `ref` supplied to `React.Fragment`.');
+
+      setCurrentlyValidatingElement$1(null);
+    }
+  }
+}
+
+function jsxWithValidation(type, props, key, isStaticChildren, source, self) {
+  {
+    var validType = isValidElementType(type); // We warn in this case but don't throw. We expect the element creation to
+    // succeed and there will likely be errors in render.
+
+    if (!validType) {
+      var info = '';
+
+      if (type === undefined || typeof type === 'object' && type !== null && Object.keys(type).length === 0) {
+        info += ' You likely forgot to export your component from the file ' + "it's defined in, or you might have mixed up default and named imports.";
+      }
+
+      var sourceInfo = getSourceInfoErrorAddendum(source);
+
+      if (sourceInfo) {
+        info += sourceInfo;
+      } else {
+        info += getDeclarationErrorAddendum();
+      }
+
+      var typeString;
+
+      if (type === null) {
+        typeString = 'null';
+      } else if (isArray(type)) {
+        typeString = 'array';
+      } else if (type !== undefined && type.$$typeof === REACT_ELEMENT_TYPE) {
+        typeString = "<" + (getComponentNameFromType(type.type) || 'Unknown') + " />";
+        info = ' Did you accidentally export a JSX literal instead of a component?';
+      } else {
+        typeString = typeof type;
+      }
+
+      error('React.jsx: type is invalid -- expected a string (for ' + 'built-in components) or a class/function (for composite ' + 'components) but got: %s.%s', typeString, info);
+    }
+
+    var element = jsxDEV(type, props, key, source, self); // The result can be nullish if a mock or a custom function is used.
+    // TODO: Drop this when these are no longer allowed as the type argument.
+
+    if (element == null) {
+      return element;
+    } // Skip key warning if the type isn't valid since our key validation logic
+    // doesn't expect a non-string/function type and can throw confusing errors.
+    // We don't want exception behavior to differ between dev and prod.
+    // (Rendering will throw with a helpful message and as soon as the type is
+    // fixed, the key warnings will appear.)
+
+
+    if (validType) {
+      var children = props.children;
+
+      if (children !== undefined) {
+        if (isStaticChildren) {
+          if (isArray(children)) {
+            for (var i = 0; i < children.length; i++) {
+              validateChildKeys(children[i], type);
+            }
+
+            if (Object.freeze) {
+              Object.freeze(children);
+            }
+          } else {
+            error('React.jsx: Static children should always be an array. ' + 'You are likely explicitly calling React.jsxs or React.jsxDEV. ' + 'Use the Babel transform instead.');
+          }
+        } else {
+          validateChildKeys(children, type);
+        }
+      }
+    }
+
+    if (type === REACT_FRAGMENT_TYPE) {
+      validateFragmentProps(element);
+    } else {
+      validatePropTypes(element);
+    }
+
+    return element;
+  }
+} // These two functions exist to still get child warnings in dev
+// even with the prod transform. This means that jsxDEV is purely
+// opt-in behavior for better messages but that we won't stop
+// giving you warnings if you use production apis.
+
+function jsxWithValidationStatic(type, props, key) {
+  {
+    return jsxWithValidation(type, props, key, true);
+  }
+}
+function jsxWithValidationDynamic(type, props, key) {
+  {
+    return jsxWithValidation(type, props, key, false);
+  }
+}
+
+var jsx =  jsxWithValidationDynamic ; // we may want to special case jsxs internally to take advantage of static children.
+// for now we can ship identical prod functions
+
+var jsxs =  jsxWithValidationStatic ;
+
+reactJsxRuntime_development.Fragment = REACT_FRAGMENT_TYPE;
+reactJsxRuntime_development.jsx = jsx;
+reactJsxRuntime_development.jsxs = jsxs;
+  })();
+}
+
+(function (module) {
+
+	{
+	  module.exports = reactJsxRuntime_development;
+	}
+} (jsxRuntime));
+
 const _Viewer = ({
   selection
 }) => {
@@ -39617,51 +41155,99 @@ const _Viewer = ({
     shirts,
     pants
   } = selection;
-  return /*#__PURE__*/React.createElement("div", {
-    className: "viewer"
-  }, /*#__PURE__*/React.createElement("h2", null, "This is Viewer!"), /*#__PURE__*/React.createElement("p", null, "Hats : ", hats.value), /*#__PURE__*/React.createElement("p", null, "Hairstyle : ", hairstyle.value), /*#__PURE__*/React.createElement("p", null, "Shirts : ", shirts.value), /*#__PURE__*/React.createElement("p", null, "Pants : ", pants.value));
+  return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
+    className: "viewer",
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx("h2", {
+      children: "This is Viewer!"
+    }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
+      children: ["Hats : ", hats.value]
+    }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
+      children: ["Hairstyle : ", hairstyle.value]
+    }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
+      children: ["Shirts : ", shirts.value]
+    }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
+      children: ["Pants : ", pants.value]
+    })]
+  });
 };
 
 const Viewer = observer(_Viewer);
 
-function ClothItem({
+function ClothIcon({
+  index,
   category,
-  x,
-  y
+  positioner,
+  tag
 }) {
+  const spritePosition = positioner(index);
+  if (spritePosition === null) return null;
+  const {
+    x,
+    y,
+    sheet = category
+  } = spritePosition;
+  const position = `${-x}px ${-y}px`;
   const style = {
-    backgroundPosition: `${-x}px ${-y}px`
+    backgroundPosition: position,
+    WebkitMaskPosition: position,
+    maskPosition: position
   };
-  return /*#__PURE__*/React.createElement("div", {
-    className: `cloth-item itemdata-${category}`,
-    style: style
+  return /*#__PURE__*/jsxRuntime.exports.jsx("div", {
+    className: `cloth-item itemdata-${sheet} cloth-item-${tag}`,
+    style: style,
+    children: tag === "colored" && /*#__PURE__*/jsxRuntime.exports.jsx("div", {
+      className: "cloth-item blender"
+    })
   });
 }
 
 function ItemSelector({
   name,
-  value,
-  handleTo
+  handleTo,
+  dataSet
 }) {
+  const omittable = dataSet.constructor.omittable;
+
   const itemMaker = length => Array.from({
     length
-  }, (_, i) => /*#__PURE__*/React.createElement("label", {
-    className: "cloth-item-box",
-    key: i
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "radio",
-    name: `${name}-cloth`,
-    defaultChecked: i === 0,
-    onChange: () => handleTo(i)
-  }), /*#__PURE__*/React.createElement(ClothItem, {
-    category: "hats",
-    x: 0,
-    y: 0
-  })));
+  }, (_, i) => {
+    const key = dataSet.getListItemKey(i);
+    const uncolored = dataSet.getUncoloredSpriteFromIndex;
+    const colored = dataSet.getColoredSpriteFromIndex;
+    return /*#__PURE__*/jsxRuntime.exports.jsxs("label", {
+      className: "cloth-item-box",
+      children: [/*#__PURE__*/jsxRuntime.exports.jsx("input", {
+        type: "radio",
+        name: `${name}-cloth`,
+        defaultChecked: i === (omittable ? -1 : 0),
+        onChange: () => handleTo(i)
+      }), /*#__PURE__*/jsxRuntime.exports.jsx(ClothIcon, {
+        category: name,
+        index: i,
+        positioner: uncolored,
+        tag: "uncolored"
+      }), /*#__PURE__*/jsxRuntime.exports.jsx(ClothIcon, {
+        category: name,
+        index: i,
+        positioner: colored,
+        tag: "colored"
+      })]
+    }, key);
+  });
 
-  return /*#__PURE__*/React.createElement("div", {
-    className: "cloth-list"
-  }, itemMaker(5));
+  console.log(dataSet.count);
+  return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
+    className: "cloth-list",
+    children: [omittable && /*#__PURE__*/jsxRuntime.exports.jsx("label", {
+      className: "cloth-item-box",
+      children: /*#__PURE__*/jsxRuntime.exports.jsx("input", {
+        type: "radio",
+        name: `${name}-cloth`,
+        defaultChecked: true,
+        onChange: () => handleTo(-1)
+      })
+    }), itemMaker(dataSet.count)]
+  });
 }
 
 function ObtainDescription({
@@ -39674,9 +41260,14 @@ function ObtainDescription({
     return langs.getText(`${type}.desc.${index}`);
   }
 
-  return /*#__PURE__*/React.createElement("div", {
-    className: "desc"
-  }, /*#__PURE__*/React.createElement("p", null, "How To Obtain"), /*#__PURE__*/React.createElement("p", null, getI18nDesc(selection.value)));
+  return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
+    className: "desc",
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx("p", {
+      children: "How To Obtain"
+    }), /*#__PURE__*/jsxRuntime.exports.jsx("p", {
+      children: getI18nDesc(selection.value)
+    })]
+  });
 }
 
 var ObtainDescription$1 = observer(ObtainDescription);
@@ -39684,57 +41275,4875 @@ var ObtainDescription$1 = observer(ObtainDescription);
 const ClothesControllerBase = ({
   name,
   selection,
+  dataSet,
   children
 }) => {
   const langs = React.useContext(LangsContext);
-  return /*#__PURE__*/React.createElement("div", {
-    className: "clothesController"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "itemHeader"
-  }, /*#__PURE__*/React.createElement("h2", null, langs.getText(`title.${name}`))), /*#__PURE__*/React.createElement("div", {
-    className: "itemMain"
-  }, /*#__PURE__*/React.createElement(ItemSelector, {
-    name: name,
-    value: selection.value,
-    handleTo: i => {
-      selection.changeSelect(i);
-    }
-  }), children));
+  return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
+    className: "clothesController",
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx("div", {
+      className: "itemHeader",
+      children: /*#__PURE__*/jsxRuntime.exports.jsx("h2", {
+        children: langs.getText(`title.${name}`)
+      })
+    }), /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
+      className: "itemMain",
+      children: [/*#__PURE__*/jsxRuntime.exports.jsx(ItemSelector, {
+        name: name,
+        dataSet: dataSet,
+        handleTo: i => {
+          selection.changeSelect(i);
+        }
+      }), children]
+    })]
+  });
 };
 
 const HatsController = observer(({
   name,
-  selection
+  selection,
+  dataSet
 }) => {
-  return /*#__PURE__*/React.createElement(ClothesControllerBase, {
+  return /*#__PURE__*/jsxRuntime.exports.jsx(ClothesControllerBase, {
     name: name,
-    selection: selection
-  }, /*#__PURE__*/React.createElement(ObtainDescription$1, {
-    type: name,
-    selection: selection
-  }));
+    selection: selection,
+    dataSet: dataSet,
+    children: /*#__PURE__*/jsxRuntime.exports.jsx(ObtainDescription$1, {
+      type: name,
+      selection: selection
+    })
+  });
 });
 const HairstyleController = observer(({
   name,
-  selection
+  selection,
+  dataSet
 }) => {
-  return /*#__PURE__*/React.createElement(ClothesControllerBase, {
+  return /*#__PURE__*/jsxRuntime.exports.jsx(ClothesControllerBase, {
     name: name,
-    selection: selection
-  }, /*#__PURE__*/React.createElement("p", null));
+    selection: selection,
+    dataSet: dataSet,
+    children: /*#__PURE__*/jsxRuntime.exports.jsx("p", {})
+  });
 });
 const ClothesController = observer(({
   name,
-  selection
+  selection,
+  dataSet
 }) => {
-  return /*#__PURE__*/React.createElement(ClothesControllerBase, {
+  return /*#__PURE__*/jsxRuntime.exports.jsx(ClothesControllerBase, {
     name: name,
-    selection: selection
-  }, /*#__PURE__*/React.createElement(ObtainDescription$1, {
-    type: name,
-    selection: selection
-  }));
+    selection: selection,
+    dataSet: dataSet,
+    children: /*#__PURE__*/jsxRuntime.exports.jsx(ObtainDescription$1, {
+      type: name,
+      selection: selection
+    })
+  });
 });
+
+var hatsData = [
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true
+	}
+];
+
+var hairstyleData = {
+	"100": {
+	sheet: "hairstyles2",
+	tileX: 0,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: 100,
+	isBald: false
+},
+	"101": {
+	sheet: "hairstyles2",
+	tileX: 1,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: -101,
+	isBald: false
+},
+	"102": {
+	sheet: "hairstyles2",
+	tileX: 2,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: 102,
+	isBald: false
+},
+	"103": {
+	sheet: "hairstyles2",
+	tileX: 3,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: 103,
+	isBald: false
+},
+	"104": {
+	sheet: "hairstyles2",
+	tileX: 4,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: 103,
+	isBald: false
+},
+	"105": {
+	sheet: "hairstyles2",
+	tileX: 5,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: 105,
+	isBald: false
+},
+	"106": {
+	sheet: "hairstyles2",
+	tileX: 6,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: 105,
+	isBald: false
+},
+	"107": {
+	sheet: "hairstyles2",
+	tileX: 7,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: -111,
+	isBald: false
+},
+	"108": {
+	sheet: "hairstyles2",
+	tileX: 0,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: 116,
+	isBald: false
+},
+	"109": {
+	sheet: "hairstyles2",
+	tileX: 1,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: -111,
+	isBald: false
+},
+	"110": {
+	sheet: "hairstyles2",
+	tileX: 2,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: -110,
+	isBald: false
+},
+	"111": {
+	sheet: "hairstyles2",
+	tileX: 3,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: 112,
+	isBald: false
+},
+	"112": {
+	sheet: "hairstyles2",
+	tileX: 4,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: 112,
+	isBald: false
+},
+	"113": {
+	sheet: "hairstyles2",
+	tileX: 5,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: 113,
+	isBald: false
+},
+	"114": {
+	sheet: "hairstyles2",
+	tileX: 6,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: -114,
+	isBald: false
+},
+	"115": {
+	sheet: "hairstyles2",
+	tileX: 7,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: -115,
+	isBald: false
+},
+	"116": {
+	sheet: "hairstyles2",
+	tileX: 0,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: 116,
+	isBald: false
+},
+	"117": {
+	sheet: "hairstyles2",
+	tileX: 1,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: 112,
+	isBald: false
+},
+	"-101": {
+	sheet: "hairstyles2",
+	tileX: 2,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: -101,
+	isBald: false
+},
+	"-114": {
+	sheet: "hairstyles2",
+	tileX: 3,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: -114,
+	isBald: false
+},
+	"-115": {
+	sheet: "hairstyles2",
+	tileX: 4,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: -115,
+	isBald: false
+},
+	"-110": {
+	sheet: "hairstyles2",
+	tileX: 5,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: -110,
+	isBald: false
+},
+	"-111": {
+	sheet: "hairstyles2",
+	tileX: 6,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: -111,
+	isBald: false
+}
+};
+
+var shirtData = [
+	{
+		name: "shirts.name.0",
+		male: 0,
+		female: 0,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 1,
+		female: 1,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.2",
+		male: 2,
+		female: 2,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.3",
+		male: 3,
+		female: 3,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.4",
+		male: 4,
+		female: 4,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.5",
+		male: 5,
+		female: 5,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.6",
+		male: 6,
+		female: 6,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.7",
+		male: 7,
+		female: 7,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.8",
+		male: 8,
+		female: 8,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.9",
+		male: 9,
+		female: 9,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.10",
+		male: 10,
+		female: 10,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.11",
+		male: 11,
+		female: 11,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.12",
+		male: 12,
+		female: 12,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.13",
+		male: 13,
+		female: 13,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.14",
+		male: 14,
+		female: 14,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.15",
+		male: 15,
+		female: 15,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.16",
+		male: 16,
+		female: 16,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.17",
+		male: 17,
+		female: 17,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.18",
+		male: 18,
+		female: 18,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.19",
+		male: 19,
+		female: 19,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.20",
+		male: 20,
+		female: 20,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.21",
+		male: 21,
+		female: 21,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 22,
+		female: 22,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 23,
+		female: 23,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 24,
+		female: 24,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 25,
+		female: 25,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.26",
+		male: 26,
+		female: 26,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.27",
+		male: 27,
+		female: 27,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.28",
+		male: 28,
+		female: 28,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.29",
+		male: 29,
+		female: 29,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.30",
+		male: 30,
+		female: 30,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 31,
+		female: 31,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 32,
+		female: 32,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 33,
+		female: 33,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.34",
+		male: 34,
+		female: 34,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.35",
+		male: 35,
+		female: 35,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 36,
+		female: 36,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 37,
+		female: 37,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.38",
+		male: 38,
+		female: 41,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.39",
+		male: 39,
+		female: 39,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 40,
+		female: 40,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.42",
+		male: 42,
+		female: 42,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 43,
+		female: 43,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 44,
+		female: 44,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 45,
+		female: 45,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 46,
+		female: 46,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 47,
+		female: 47,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 48,
+		female: 48,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 49,
+		female: 49,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 50,
+		female: 50,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 51,
+		female: 51,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 52,
+		female: 52,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 53,
+		female: 53,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 54,
+		female: 54,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 55,
+		female: 55,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 56,
+		female: 56,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 57,
+		female: 57,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 58,
+		female: 58,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 59,
+		female: 59,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 60,
+		female: 60,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 61,
+		female: 61,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 62,
+		female: 62,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 63,
+		female: 63,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 64,
+		female: 64,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 65,
+		female: 65,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 66,
+		female: 66,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 67,
+		female: 67,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 68,
+		female: 68,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 69,
+		female: 69,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 70,
+		female: 70,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.71",
+		male: 71,
+		female: 71,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 72,
+		female: 72,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 73,
+		female: 73,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 74,
+		female: 74,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 75,
+		female: 75,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 76,
+		female: 76,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 77,
+		female: 77,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 78,
+		female: 78,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 79,
+		female: 79,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 80,
+		female: 80,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 81,
+		female: 81,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 82,
+		female: 82,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 83,
+		female: 83,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 84,
+		female: 84,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 85,
+		female: 85,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 86,
+		female: 86,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.87",
+		male: 87,
+		female: 87,
+		color: [
+			220,
+			48,
+			62
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 88,
+		female: 88,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 89,
+		female: 89,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 90,
+		female: 90,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 91,
+		female: 91,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 92,
+		female: 92,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 93,
+		female: 93,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 94,
+		female: 94,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 95,
+		female: 95,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 96,
+		female: 96,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 97,
+		female: 97,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 98,
+		female: 98,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 99,
+		female: 99,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 100,
+		female: 100,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 101,
+		female: 101,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 102,
+		female: 102,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 103,
+		female: 103,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 104,
+		female: 104,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 105,
+		female: 105,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 106,
+		female: 106,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 107,
+		female: 107,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 108,
+		female: 108,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 109,
+		female: 109,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 110,
+		female: 110,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 111,
+		female: 111,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 112,
+		female: 112,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 113,
+		female: 113,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 114,
+		female: 114,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 115,
+		female: 115,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 116,
+		female: 116,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 117,
+		female: 117,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 118,
+		female: 118,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 119,
+		female: 119,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 120,
+		female: 120,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 121,
+		female: 121,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 122,
+		female: 122,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.123",
+		male: 123,
+		female: 123,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 124,
+		female: 124,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 125,
+		female: 125,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 126,
+		female: 126,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.127",
+		male: 127,
+		female: 127,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.128",
+		male: 128,
+		female: 128,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.129",
+		male: 129,
+		female: 130,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.131",
+		male: 131,
+		female: 131,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.132",
+		male: 132,
+		female: 133,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.134",
+		male: 134,
+		female: 134,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.135",
+		male: 135,
+		female: 135,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.136",
+		male: 152,
+		female: 136,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.137",
+		male: 137,
+		female: 137,
+		color: [
+			207,
+			40,
+			21
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.138",
+		male: 138,
+		female: 138,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.139",
+		male: 139,
+		female: 139,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.140",
+		male: 140,
+		female: 140,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.141",
+		male: 141,
+		female: 141,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.142",
+		male: 142,
+		female: 142,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.143",
+		male: 143,
+		female: 143,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 144,
+		female: 144,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 145,
+		female: 145,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 146,
+		female: 146,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 147,
+		female: 147,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.148",
+		male: 148,
+		female: 148,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.149",
+		male: 149,
+		female: 149,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.150",
+		male: 150,
+		female: 150,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.151",
+		male: 151,
+		female: 151,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.153",
+		male: 153,
+		female: 153,
+		color: [
+			249,
+			174,
+			137
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.154",
+		male: 154,
+		female: 154,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.155",
+		male: 155,
+		female: 155,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.156",
+		male: 156,
+		female: 156,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.157",
+		male: 157,
+		female: 157,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.158",
+		male: 158,
+		female: 158,
+		color: [
+			150,
+			200,
+			100
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.159",
+		male: 159,
+		female: 159,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.160",
+		male: 160,
+		female: 160,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.161",
+		male: 161,
+		female: 161,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.162",
+		male: 162,
+		female: 162,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.163",
+		male: 163,
+		female: 163,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.164",
+		male: 164,
+		female: 164,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.165",
+		male: 165,
+		female: 165,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.166",
+		male: 166,
+		female: 166,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.167",
+		male: 167,
+		female: 167,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.168",
+		male: 168,
+		female: 168,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.169",
+		male: 169,
+		female: 169,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.170",
+		male: 170,
+		female: 170,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.171",
+		male: 171,
+		female: 171,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.172",
+		male: 172,
+		female: 172,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.173",
+		male: 173,
+		female: 173,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.174",
+		male: 174,
+		female: 174,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.175",
+		male: 175,
+		female: 175,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.176",
+		male: 176,
+		female: 177,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.178",
+		male: 178,
+		female: 178,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.179",
+		male: 179,
+		female: 179,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.180",
+		male: 180,
+		female: 180,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 181,
+		female: 181,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 182,
+		female: 182,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.183",
+		male: 183,
+		female: 183,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.184",
+		male: 184,
+		female: 184,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.185",
+		male: 185,
+		female: 185,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.186",
+		male: 186,
+		female: 186,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.187",
+		male: 187,
+		female: 187,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.188",
+		male: 188,
+		female: 188,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.189",
+		male: 189,
+		female: 189,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.190",
+		male: 190,
+		female: 190,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.191",
+		male: 191,
+		female: 191,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.192",
+		male: 192,
+		female: 192,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.193",
+		male: 193,
+		female: 193,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.194",
+		male: 194,
+		female: 194,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.195",
+		male: 195,
+		female: 195,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.196",
+		male: 196,
+		female: 196,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.197",
+		male: 197,
+		female: 197,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.198",
+		male: 198,
+		female: 198,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.199",
+		male: 199,
+		female: 199,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.200",
+		male: 200,
+		female: 200,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.201",
+		male: 201,
+		female: 202,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.203",
+		male: 203,
+		female: 203,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.204",
+		male: 204,
+		female: 204,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.205",
+		male: 205,
+		female: 205,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.206",
+		male: 206,
+		female: 206,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.207",
+		male: 207,
+		female: 207,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.208",
+		male: 208,
+		female: 208,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.209",
+		male: 209,
+		female: 209,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.210",
+		male: 210,
+		female: 210,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.211",
+		male: 211,
+		female: 211,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.212",
+		male: 212,
+		female: 212,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.213",
+		male: 213,
+		female: 213,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.214",
+		male: 214,
+		female: 214,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.215",
+		male: 215,
+		female: 215,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.216",
+		male: 216,
+		female: 216,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.217",
+		male: 217,
+		female: 217,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.218",
+		male: 218,
+		female: 218,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.219",
+		male: 219,
+		female: 219,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.220",
+		male: 220,
+		female: 220,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.221",
+		male: 221,
+		female: 221,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.222",
+		male: 222,
+		female: 222,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.223",
+		male: 223,
+		female: 223,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: true
+	},
+	{
+		name: "shirts.name.224",
+		male: 224,
+		female: 224,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.225",
+		male: 225,
+		female: 225,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.226",
+		male: 226,
+		female: 226,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.227",
+		male: 227,
+		female: 227,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.228",
+		male: 228,
+		female: 228,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.229",
+		male: 229,
+		female: 229,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.230",
+		male: 230,
+		female: 230,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.231",
+		male: 231,
+		female: 231,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.232",
+		male: 232,
+		female: 232,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.233",
+		male: 233,
+		female: 233,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.234",
+		male: 234,
+		female: 234,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.235",
+		male: 235,
+		female: 235,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.236",
+		male: 236,
+		female: 236,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.237",
+		male: 237,
+		female: 237,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.238",
+		male: 238,
+		female: 238,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.239",
+		male: 239,
+		female: 239,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.240",
+		male: 240,
+		female: 240,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.241",
+		male: 241,
+		female: 241,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.242",
+		male: 242,
+		female: 242,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.243",
+		male: 243,
+		female: 243,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.244",
+		male: 244,
+		female: 244,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.245",
+		male: 245,
+		female: 245,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.246",
+		male: 246,
+		female: 246,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.247",
+		male: 247,
+		female: 247,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.248",
+		male: 248,
+		female: 248,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.249",
+		male: 249,
+		female: 249,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.250",
+		male: 250,
+		female: 250,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.251",
+		male: 251,
+		female: 251,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.252",
+		male: 252,
+		female: 252,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.253",
+		male: 253,
+		female: 253,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.254",
+		male: 254,
+		female: 254,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.255",
+		male: 255,
+		female: 255,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.256",
+		male: 256,
+		female: 256,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.257",
+		male: 257,
+		female: 257,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.258",
+		male: 258,
+		female: 258,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.259",
+		male: 259,
+		female: 259,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.260",
+		male: 260,
+		female: 260,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.261",
+		male: 261,
+		female: 261,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.262",
+		male: 262,
+		female: 262,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.263",
+		male: 263,
+		female: 263,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.264",
+		male: 264,
+		female: 264,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.265",
+		male: 265,
+		female: 265,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.266",
+		male: 266,
+		female: 266,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.267",
+		male: 267,
+		female: 267,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.268",
+		male: 268,
+		female: 268,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.269",
+		male: 269,
+		female: 269,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.270",
+		male: 270,
+		female: 270,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.271",
+		male: 271,
+		female: 271,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.272",
+		male: 272,
+		female: 272,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.273",
+		male: 273,
+		female: 273,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.274",
+		male: 274,
+		female: 274,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.275",
+		male: 275,
+		female: 275,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.276",
+		male: 276,
+		female: 276,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.277",
+		male: 277,
+		female: 277,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.278",
+		male: 278,
+		female: 278,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.279",
+		male: 279,
+		female: 279,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.280",
+		male: 280,
+		female: 280,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.281",
+		male: 281,
+		female: 281,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.282",
+		male: 282,
+		female: 282,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.283",
+		male: 283,
+		female: 283,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.284",
+		male: 284,
+		female: 284,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.285",
+		male: 285,
+		female: 285,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.286",
+		male: 286,
+		female: 286,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.287",
+		male: 287,
+		female: 287,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.288",
+		male: 290,
+		female: 290,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.289",
+		male: 291,
+		female: 291,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.290",
+		male: 292,
+		female: 292,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.291",
+		male: 293,
+		female: 293,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.292",
+		male: 294,
+		female: 294,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.293",
+		male: 295,
+		female: 295,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.294",
+		male: 296,
+		female: 296,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.295",
+		male: 297,
+		female: 297,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.296",
+		male: 298,
+		female: 298,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.297",
+		male: 299,
+		female: 299,
+		color: [
+			255,
+			195,
+			0
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.997",
+		male: 272,
+		female: 272,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: true
+	},
+	{
+		name: "shirts.name.998",
+		male: 289,
+		female: 289,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: true
+	},
+	{
+		name: "shirts.name.999",
+		male: 288,
+		female: 288,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		prismatic: true
+	}
+];
+
+var pantsData = [
+	{
+		name: "pants.name.0",
+		sheetIndex: 0,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.1",
+		sheetIndex: 1,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.2",
+		sheetIndex: 2,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.3",
+		sheetIndex: 3,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.4",
+		sheetIndex: 4,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.5",
+		sheetIndex: 5,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "pants.name.6",
+		sheetIndex: 6,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "pants.name.7",
+		sheetIndex: 7,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "pants.name.8",
+		sheetIndex: 8,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.9",
+		sheetIndex: 9,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.10",
+		sheetIndex: 10,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.11",
+		sheetIndex: 11,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.12",
+		sheetIndex: 12,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.13",
+		sheetIndex: 13,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.15",
+		sheetIndex: 15,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "pants.name.998",
+		sheetIndex: 0,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: false,
+		prismatic: true
+	},
+	{
+		name: "pants.name.999",
+		sheetIndex: 8,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: false,
+		prismatic: true
+	}
+];
+
+class FileStoreBox {
+  static id = "base";
+  static columns = 1;
+  static deltaX = 0;
+  static deltaY = 0;
+  static omittable = false;
+  _spritesheet = null;
+  _clothesData = null;
+
+  static getSpriteFromIndex(index, offsetX = 0, offsetY = 0) {
+    let x = index % this.columns * this.deltaX + offsetX;
+    let y = Math.floor(index / this.columns) * this.deltaY + offsetY;
+    return {
+      x,
+      y
+    };
+  }
+
+  setSpritesheet(file) {
+    this._spritesheet = file;
+  }
+
+  setClothesData(file) {
+    this._clothesData = file;
+  }
+
+  get getListItemKey() {
+    return index => `${this.constructor.id}-${index}`;
+  }
+
+  get getDefaultColor() {
+    return index => [255, 255, 255];
+  }
+
+  get getDyeable() {
+    return index => false;
+  }
+
+  get getPrismatic() {
+    return index => false;
+  }
+
+  get getItemNameFromIndex() {
+    return index => `${this.constructor.id}.name.${index}`;
+  }
+
+  get getDescriptionFromIndex() {
+    return index => `${this.constructor.id}.desc.${index}`;
+  }
+
+}
+
+class HatsFileStore extends FileStoreBox {
+  static id = "hats";
+  static columns = 12;
+  static deltaX = 20;
+  static deltaY = 80;
+  static omittable = true;
+  _clothesData = hatsData;
+
+  constructor() {
+    super();
+    makeObservable(this, {
+      _spritesheet: observable,
+      _clothesData: observable,
+      setSpritesheet: action,
+      setClothesData: action,
+      getUncoloredSpriteFromIndex: computed,
+      getColoredSpriteFromIndex: computed,
+      getHairDrawType: computed,
+      getIgnoreHairstyleOffset: computed,
+      count: computed
+    });
+  }
+
+  get getUncoloredSpriteFromIndex() {
+    return index => this.constructor.getSpriteFromIndex(index, 0, 0);
+  }
+
+  get getColoredSpriteFromIndex() {
+    return index => null;
+  }
+
+  get getHairDrawType() {
+    return index => this._clothesData[index]?.hairDrawType ?? 0;
+  }
+
+  get getIgnoreHairstyleOffset() {
+    return index => this._clothesData[index]?.ignoreHairstyleOffset ?? false;
+  }
+
+  get count() {
+    return this._clothesData.length;
+  }
+
+}
+
+class HairstyleFileStore extends FileStoreBox {
+  static id = "hairstyle";
+  static columns = 8;
+  static deltaX = 16;
+  static deltaY = 96;
+  static coveredTable = [7, 1, 7, 11, 7, 5, 6, 7, 7, 9, 7, 11, 7, 7, 7, 7, 30, 17, 23, 23, 20, 23, 30, 23, 24, 25, 30, 27, 28, 29, 30, 23, 32, 33, 34, 30, 36, 30, 30, 39, 30, 41, 46, 43, 44, 45, 46, 47, 6, 52, 50, 51, 52, 53, 54, 55];
+  _clothesData = hairstyleData;
+  _additionalSheet = {
+    "hairstyle2": null
+  };
+
+  constructor() {
+    super();
+    makeObservable(this, {
+      _spritesheet: observable,
+      _clothesData: observable,
+      _additionalSheet: observable,
+      setSpritesheet: action,
+      setClothesData: action,
+      setAdditionalSheet: action,
+      getUncoloredSpriteFromIndex: computed,
+      getColoredSpriteFromIndex: computed,
+      getListItemKey: computed,
+      getInnerIndex: computed,
+      getSpriteFromInnerIndex: computed,
+      getCoveredHairIndex: computed,
+      hasUniqueLeftSprite: computed,
+      isBald: computed,
+      count: computed
+    });
+  }
+
+  setAdditionalSheet(data) {
+    _additionalSheet = { ..._additionalSheet,
+      ...data
+    };
+  }
+
+  get getListItemKey() {
+    return index => `${this.constructor.id}-${this.getInnerIndex(index)}`;
+  }
+
+  get getInnerIndex() {
+    const basicHairCount = (this._spritesheet === null ? 672 : this._spritesheet.height) / 96 * 8;
+    const additionalHairArray = Object.keys(this._clothesData).filter(idx => idx >= 0).sort((a, b) => a - b);
+    return index => {
+      if (index < basicHairCount) return index;
+      return additionalHairArray[index - basicHairCount];
+    };
+  }
+
+  get getSpriteFromInnerIndex() {
+    return index => {
+      if (index in this._clothesData) {
+        let {
+          tileX,
+          tileY,
+          sheet
+        } = this._clothesData[index];
+        return {
+          x: tileX * 16,
+          y: tileY * 16,
+          sheet
+        };
+      }
+
+      return this.constructor.getSpriteFromIndex(index, 0, 0);
+    };
+  }
+
+  get getUncoloredSpriteFromIndex() {
+    return index => null;
+  }
+
+  get getColoredSpriteFromIndex() {
+    return index => {
+      index = this.getInnerIndex(index);
+      return this.getSpriteFromInnerIndex(index);
+    };
+  }
+
+  get getCoveredHairIndex() {
+    return index => {
+      if (index in this._clothesData) {
+        return this._clothesData[index].coveredHair;
+      }
+
+      if (index >= 56) return 30;
+      return this.constructor.coveredTable[index];
+    };
+  }
+
+  get hasUniqueLeftSprite() {
+    return index => {
+      if (index in this._clothesData) {
+        return this._clothesData[index].useUniqueLeft;
+      }
+
+      return false;
+    };
+  }
+
+  get isBald() {
+    return index => {
+      if (index in this._clothesData) {
+        return this._clothesData[index].isBald;
+      }
+
+      return index > 48 && index < 56;
+    };
+  }
+
+  get getDyeable() {
+    return index => true;
+  }
+
+  get count() {
+    const basicHairCount = (this._spritesheet === null ? 672 : this._spritesheet.height) / 96 * 8;
+    const additionalHairCount = Object.keys(this._clothesData).reduce((sum, key) => sum + (key > 0), 0);
+    return basicHairCount + additionalHairCount;
+  }
+
+}
+
+class ShirtsFileStore extends FileStoreBox {
+  static id = "shirts";
+  static columns = 16;
+  static deltaX = 8;
+  static deltaY = 32;
+  _clothesData = shirtData;
+  _gender = "male";
+
+  constructor() {
+    super();
+    makeObservable(this, {
+      _spritesheet: observable,
+      _clothesData: observable,
+      _gender: observable,
+      setSpritesheet: action,
+      setClothesData: action,
+      gender: computed,
+      setGender: action,
+      getUncoloredSpriteFromIndex: computed,
+      getColoredSpriteFromIndex: computed,
+      getDefaultColor: computed,
+      getDyeable: computed,
+      getPrismatic: computed,
+      getItemNameFromIndex: computed,
+      count: computed
+    });
+  }
+
+  get gender() {
+    return this._gender;
+  }
+
+  setGender(value) {
+    this._gender = value;
+  }
+
+  get getUncoloredSpriteFromIndex() {
+    return index => {
+      const data = this._clothesData[index];
+      this.gender === "male" ? data.male : data.female;
+      return this.constructor.getSpriteFromIndex(data.male, 0, 0);
+    };
+  }
+
+  get getColoredSpriteFromIndex() {
+    return index => {
+      const data = this._clothesData[index];
+      this.gender === "male" ? data.male : data.female;
+      return this.constructor.getSpriteFromIndex(data.male, 128, 0);
+    };
+  }
+
+  get getDefaultColor() {
+    return index => [...this._clothesData[index].color];
+  }
+
+  get getDyeable() {
+    return index => this._clothesData[index].dyeable;
+  }
+
+  get getPrismatic() {
+    return index => this._clothesData[index].prismatic;
+  }
+
+  get getItemNameFromIndex() {
+    return index => this._clothesData[index].name;
+  }
+
+  get count() {
+    return this._clothesData.length;
+  }
+
+}
+
+class PantsFileStore extends FileStoreBox {
+  static id = "pants";
+  static columns = 10;
+  static deltaX = 192;
+  static deltaY = 688;
+  _clothesData = pantsData;
+
+  constructor() {
+    super();
+    makeObservable(this, {
+      _spritesheet: observable,
+      _clothesData: observable,
+      setSpritesheet: action,
+      setClothesData: action,
+      getUncoloredSpriteFromIndex: computed,
+      getColoredSpriteFromIndex: computed,
+      getDefaultColor: computed,
+      getDyeable: computed,
+      getPrismatic: computed,
+      getItemNameFromIndex: computed,
+      count: computed
+    });
+  }
+
+  get getUncoloredSpriteFromIndex() {
+    return index => {
+      const data = this._clothesData[index];
+      return data.dyeable ? null : this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672);
+    };
+  }
+
+  get getColoredSpriteFromIndex() {
+    return index => {
+      const data = this._clothesData[index];
+      return data.dyeable ? this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672) : null;
+    };
+  }
+
+  get getDefaultColor() {
+    return index => [...this._clothesData[index].color];
+  }
+
+  get getDyeable() {
+    return index => this._clothesData[index].dyeable;
+  }
+
+  get getPrismatic() {
+    return index => this._clothesData[index].prismatic;
+  }
+
+  get getItemNameFromIndex() {
+    return index => this._clothesData[index].name;
+  }
+
+  get count() {
+    return this._clothesData.length;
+  }
+
+}
+
+/* extract hats data */
+function hatsJsonProcessing(data) {
+  let result = [];
+  let index = 0;
+
+  for (let value of Object.values(data)) {
+    let [,, hairDrawType, ignoreHairstyleOffset] = value.split("/");
+    if (hairDrawType == "true") hairDrawType = 0;else if (hairDrawType == "false") hairDrawType = 1;else hairDrawType = 2;
+    ignoreHairstyleOffset = ignoreHairstyleOffset === "true";
+    result[index++] = {
+      hairDrawType,
+      ignoreHairstyleOffset
+    };
+  }
+
+  return result;
+}
+/* extract hairstyle data */
+
+
+function hairstyleJsonProcessing(data) {
+  let result = {};
+
+  for (let [key, value] of Object.entries(data)) {
+    let [sheet, tileX, tileY, useUniqueLeft, coveredHair, isBald] = value.split("/");
+    [tileX, tileY] = [+tileX, +tileY];
+    useUniqueLeft = useUniqueLeft === "true";
+    isBald = isBald === "true";
+    coveredHair = coveredHair === "-1" ? +key : +coveredHair;
+    result[key] = {
+      sheet,
+      tileX,
+      tileY,
+      useUniqueLeft,
+      coveredHair,
+      isBald
+    };
+  }
+
+  return result;
+}
+/* extract shirts&pants data */
+
+
+function extractRealCloth(data) {
+  const dataEntries = Object.entries(data);
+  const alreadyChecked = new Set();
+  let shirtsAvaliableIndex = dataEntries.filter(([key]) => +key >= 1000).map(([key, value]) => {
+    let [,,, man, woman] = value.split("/");
+    [man, woman] = [+man, +woman];
+    alreadyChecked.add(man);
+    if (woman !== -1) alreadyChecked.add(woman);
+    return +key;
+  });
+  let pantsAvaliableIndex = dataEntries.filter(([key]) => {
+    key = +key;
+    return key < 1000 && key >= 0 && key !== 14;
+  }).map(([key]) => +key);
+  const additionalShirts = Array.from({
+    length: 300
+  }, (_, i) => i).filter(i => !alreadyChecked.has(i)).map(i => i + 1000);
+  shirtsAvaliableIndex = shirtsAvaliableIndex.concat(additionalShirts);
+  shirtsAvaliableIndex.sort((a, b) => a - b);
+  return [shirtsAvaliableIndex, pantsAvaliableIndex];
+}
+
+function extractClothData(str) {
+  let [,,, male, female,, color, dyeable,, prismatic] = str.split("/");
+  [male, female] = [+male, +female];
+  if (female === -1) female = male;
+  color = color.split(" ").map(value => +value);
+  dyeable = dyeable === "true";
+  prismatic = prismatic === "Prismatic";
+  return {
+    name,
+    male,
+    female,
+    color,
+    dyeable,
+    prismatic
+  };
+}
+
+function clothesJsonProcessing(data) {
+  const [shirtsAvaliableIndex, pantsAvaliableIndex] = extractRealCloth(data);
+  const shirtData = shirtsAvaliableIndex.map(i => {
+    const index = data[i] !== undefined ? i : -2;
+    let {
+      male,
+      female,
+      color,
+      dyeable,
+      prismatic
+    } = extractClothData(data[index]);
+    if (index === -2) [male, female] = [i - 1000, i - 1000];
+    let name = `shirts.name.${index !== -2 ? index - 1000 : "default"}`;
+    return {
+      name,
+      male,
+      female,
+      color,
+      dyeable,
+      prismatic
+    };
+  });
+  const pantsData = pantsAvaliableIndex.map(i => {
+    const index = data[i] !== undefined ? i : -1;
+    let {
+      male: sheetIndex,
+      color,
+      dyeable,
+      prismatic
+    } = extractClothData(data[index]);
+    let name = `pants.name.${index}`;
+    return {
+      name,
+      sheetIndex,
+      color,
+      dyeable,
+      prismatic
+    };
+  });
+  return [shirtData, pantsData];
+}
+
+class SpriteSheetFileData {
+  constructor() {
+    this.hats = new HatsFileStore();
+    this.hairstyle = new HairstyleFileStore();
+    this.shirts = new ShirtsFileStore();
+    this.pants = new PantsFileStore();
+  }
+
+  importHatsData(json) {
+    this.hats.clothesData = hatsJsonProcessing(json);
+  }
+
+  importHairstyleData(json) {
+    this.hairstyle.clothesData = hairstyleJsonProcessing(json);
+  }
+
+  importClothesData(json) {
+    [this.shirts.clothesData, this.pants.clothesData] = clothesJsonProcessing(json);
+  }
+
+}
+
+const spriteSheetFileData = new SpriteSheetFileData();
 
 const {
   hats,
@@ -39744,34 +46153,45 @@ const {
 } = clothStoreDict;
 
 const Controller = () => {
-  return /*#__PURE__*/React.createElement("div", {
-    className: "controller"
-  }, /*#__PURE__*/React.createElement("h2", null, "This is Controller!"), /*#__PURE__*/React.createElement(HatsController, {
-    name: "hats",
-    selection: hats
-  }), /*#__PURE__*/React.createElement(HairstyleController, {
-    name: "hairstyle",
-    selection: hairstyle
-  }), /*#__PURE__*/React.createElement(ClothesController, {
-    name: "shirts",
-    selection: shirts
-  }), /*#__PURE__*/React.createElement(ClothesController, {
-    name: "pants",
-    selection: pants
-  }));
+  return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
+    className: "controller",
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx("h2", {
+      children: "This is Controller!"
+    }), /*#__PURE__*/jsxRuntime.exports.jsx(HatsController, {
+      name: "hats",
+      selection: hats,
+      dataSet: spriteSheetFileData.hats
+    }), /*#__PURE__*/jsxRuntime.exports.jsx(HairstyleController, {
+      name: "hairstyle",
+      selection: hairstyle,
+      dataSet: spriteSheetFileData.hairstyle
+    }), /*#__PURE__*/jsxRuntime.exports.jsx(ClothesController, {
+      name: "shirts",
+      selection: shirts,
+      dataSet: spriteSheetFileData.shirts
+    }), /*#__PURE__*/jsxRuntime.exports.jsx(ClothesController, {
+      name: "pants",
+      selection: pants,
+      dataSet: spriteSheetFileData.pants
+    })]
+  });
 };
 
 function App() {
-  return /*#__PURE__*/React.createElement(LangsProvider, null, /*#__PURE__*/React.createElement("h2", null, "Hello, Mobx!"), /*#__PURE__*/React.createElement(Viewer, {
-    selection: clothStoreDict
-  }), /*#__PURE__*/React.createElement(Controller, null));
+  return /*#__PURE__*/jsxRuntime.exports.jsxs(LangsProvider, {
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx("h2", {
+      children: "Hello, Mobx!"
+    }), /*#__PURE__*/jsxRuntime.exports.jsx(Viewer, {
+      selection: clothStoreDict
+    }), /*#__PURE__*/jsxRuntime.exports.jsx(Controller, {})]
+  });
 }
 
 function render() {
   console.log("dimigo!");
   const container = document.getElementById("app");
   const root = createRoot(container);
-  root.render( /*#__PURE__*/React.createElement(App, null));
+  root.render( /*#__PURE__*/jsxRuntime.exports.jsx(App, {}));
 }
 
 export { render as default };

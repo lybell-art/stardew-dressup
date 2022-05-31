@@ -1,7 +1,7 @@
 import ClothStoreBox from "./ClothStoreBox.js";
 
 const clothStoreDict = {
-	hats : new ClothStoreBox(),
+	hats : new ClothStoreBox(-1),
 	hairstyle : new ClothStoreBox(),
 	shirts : new ClothStoreBox(),
 	pants : new ClothStoreBox()
