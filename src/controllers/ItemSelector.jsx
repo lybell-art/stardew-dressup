@@ -1,4 +1,5 @@
 import React from "react";
+import "content-visibility";
 
 function ClothIcon({index, category, positioner, tag})
 {
@@ -10,7 +11,8 @@ function ClothIcon({index, category, positioner, tag})
 	const style = {backgroundPosition: position, WebkitMaskPosition: position, maskPosition: position};
 	return (
 		<div className={`cloth-item itemdata-${sheet} cloth-item-${tag}`} style={style}>
-			{tag==="colored" && <div className="cloth-item blender"></div>}
+			{tag==="colored" && <div className="color-mask blender"></div>}
+			{tag==="prismatic" && <div className="color-mask prismatic"></div>}
 		</div>
 	);
 }
@@ -24,8 +26,9 @@ function ItemSelector({name, handleTo, dataSet})
 			const key = dataSet.getListItemKey(i);
 			const uncolored = dataSet.getUncoloredSpriteFromIndex;
 			const colored = dataSet.getColoredSpriteFromIndex;
+			const prismatic = dataSet.getPrismaticSpriteFromIndex;
 
-			return <label className="cloth-item-box" key={key}>
+			return <content-visibility containIntrinsicSize="60px" key={key}><label className="cloth-item-box">
 				<input 
 					type="radio" 
 					name={`${name}-cloth`} 
@@ -34,7 +37,8 @@ function ItemSelector({name, handleTo, dataSet})
 				/>
 				<ClothIcon category={name} index={i} positioner={uncolored} tag="uncolored"/>
 				<ClothIcon category={name} index={i} positioner={colored} tag="colored"/>
-			</label>;
+				<ClothIcon category={name} index={i} positioner={prismatic} tag="prismatic"/>
+			</label></content-visibility>
 		} )
 	);
 

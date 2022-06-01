@@ -70,6 +70,7 @@
 	justify-content: center;
 	align-items: center;
 	scroll-snap-align: start;
+	cursor: pointer;
 }
 
 .cloth-item-box input[type="radio"] {
@@ -85,7 +86,7 @@
 }
 
 .cloth-item-box input[type="radio"]:checked {
-	outline: 3px solid red;
+	border: 3px solid red;
 }
 
 .cloth-item {
@@ -124,12 +125,24 @@
     height: 16px;
 }
 
-.cloth-item-colored {
+.cloth-item-colored, .cloth-item-prismatic {
 	-webkit-mask-image: var(--spritesheet);
+	mask-image: var(--spritesheet);
 }
 
-.blender {
+.color-mask {
+	width: 100%;
+	height: 100%;
 	mix-blend-mode: multiply;
+}
+
+.prismatic {
+	-webkit-animation: 1.5s linear 0s infinite prismatic-color;
+    animation: 1.5s linear 0s infinite prismatic-color;
+}
+
+.desc-content { 
+	white-space: pre-wrap;
 }
 
 
@@ -221,4 +234,53 @@
 }
 .right-turn-button {
 	background-position: -72px -50px;
+}
+
+/* prismatic animation */
+@-webkit-keyframes prismatic-color {
+	0%{
+		background-color: red;
+	}
+	16.67%{
+		background-color: orange;
+	}
+	33.33%{
+		background-color: yellow;
+	}
+	50%{
+		background-color: lime;
+	}
+	66.67%{
+		background-color: blue;
+	}
+	83.33%{
+		background-color: violet;
+	}
+	100%{
+		background-color: red;
+	}
+}
+
+@keyframes prismatic-color {
+	0%{
+		background-color: red;
+	}
+	16.67%{
+		background-color: rgb(255, 120, 0);
+	}
+	33.33%{
+		background-color: rgb(255, 217, 0);
+	}
+	50%{
+		background-color: lime;
+	}
+	66.67%{
+		background-color: cyan;
+	}
+	83.33%{
+		background-color: violet;
+	}
+	100%{
+		background-color: red;
+	}
 }

@@ -15,6 +15,7 @@
   "dependencies": {
     "@xnb-js/core": "^1.1.0",
     "@xnb-js/readers": "^1.1.0",
+    "content-visibility": "^1.2.2",
     "mobx": "^6.6.0",
     "mobx-react-lite": "^3.4.0",
     "pixi.js": "^6.3.2",

@@ -77,6 +77,7 @@ class HatsFileStore extends FileStoreBox
 			setClothesData: action,
 			getUncoloredSpriteFromIndex: computed,
 			getColoredSpriteFromIndex: computed,
+			getPrismaticSpriteFromIndex: computed,
 			getHairDrawType: computed,
 			getIgnoreHairstyleOffset: computed,
 			count: computed
@@ -88,6 +89,10 @@ class HatsFileStore extends FileStoreBox
 		return (index)=>this.constructor.getSpriteFromIndex(index, 0, 0);
 	}
 	get getColoredSpriteFromIndex()
+	{
+		return (index)=>null;
+	}
+	get getPrismaticSpriteFromIndex()
 	{
 		return (index)=>null;
 	}
@@ -134,6 +139,7 @@ class HairstyleFileStore extends FileStoreBox
 			setAdditionalSheet: action,
 			getUncoloredSpriteFromIndex: computed,
 			getColoredSpriteFromIndex: computed,
+			getPrismaticSpriteFromIndex: computed,
 			getListItemKey: computed,
 			getInnerIndex: computed,
 			getSpriteFromInnerIndex: computed,
@@ -183,6 +189,10 @@ class HairstyleFileStore extends FileStoreBox
 			index = this.getInnerIndex(index);
 			return this.getSpriteFromInnerIndex(index);
 		};
+	}
+	get getPrismaticSpriteFromIndex()
+	{
+		return (index)=>null;
 	}
 	get getCoveredHairIndex()
 	{
@@ -251,8 +261,10 @@ class ShirtsFileStore extends FileStoreBox
 
 			getUncoloredSpriteFromIndex: computed,
 			getColoredSpriteFromIndex: computed,
+			getPrismaticSpriteFromIndex: computed,
 			getDefaultColor: computed,
 			getDyeable: computed,
+			getSleeveless: computed,
 			getPrismatic: computed,
 			getItemNameFromIndex: computed,
 			count: computed
@@ -272,15 +284,27 @@ class ShirtsFileStore extends FileStoreBox
 		return (index)=>{
 			const data = this._clothesData[index];
 			const spriteIndex = this.gender === "male" ? data.male : data.female;
-			return this.constructor.getSpriteFromIndex(data.male, 0, 0);
+			return this.constructor.getSpriteFromIndex(spriteIndex, 0, 0);
 		}
 	}
 	get getColoredSpriteFromIndex()
 	{
 		return (index)=>{
 			const data = this._clothesData[index];
+			if(data.prismatic) return null;
+
 			const spriteIndex = this.gender === "male" ? data.male : data.female;
-			return this.constructor.getSpriteFromIndex(data.male, 128, 0);
+			return this.constructor.getSpriteFromIndex(spriteIndex, 128, 0);
+		}
+	}
+	get getPrismaticSpriteFromIndex()
+	{
+		return (index)=>{
+			const data = this._clothesData[index];
+			if(!data.prismatic) return null;
+
+			const spriteIndex = this.gender === "male" ? data.male : data.female;
+			return this.constructor.getSpriteFromIndex(spriteIndex, 128, 0);
 		}
 	}
 	get getDefaultColor()
@@ -290,6 +314,10 @@ class ShirtsFileStore extends FileStoreBox
 	get getDyeable()
 	{
 		return (index)=>this._clothesData[index].dyeable;
+	}
+	get getSleeveless()
+	{
+		return (index)=>this._clothesData[index].sleeveless;
 	}
 	get getPrismatic()
 	{
@@ -325,6 +353,7 @@ class PantsFileStore extends FileStoreBox
 
 			getUncoloredSpriteFromIndex: computed,
 			getColoredSpriteFromIndex: computed,
+			getPrismaticSpriteFromIndex: computed,
 			getDefaultColor: computed,
 			getDyeable: computed,
 			getPrismatic: computed,
@@ -336,14 +365,25 @@ class PantsFileStore extends FileStoreBox
 	{
 		return (index)=>{
 			const data = this._clothesData[index];
-			return data.dyeable ? null : this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672);
+			if( data.prismatic ) return null;
+			if( !data.dyeable ) return this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672);
+			return null;
 		}
 	}
 	get getColoredSpriteFromIndex()
 	{
 		return (index)=>{
 			const data = this._clothesData[index];
-			return data.dyeable ? this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672) : null;
+			if( data.prismatic ) return null;
+			if( data.dyeable ) return this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672);
+			return null;
+		}
+	}
+	get getPrismaticSpriteFromIndex()
+	{
+		return (index)=>{
+			const data = this._clothesData[index];
+			return data.prismatic ? this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672) : null;
 		}
 	}
 	get getDefaultColor()

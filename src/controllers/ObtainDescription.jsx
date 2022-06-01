@@ -12,7 +12,7 @@ function ObtainDescription({type, selection})
 	return (
 	<div className="desc">
 		<p>How To Obtain</p>
-		<p>{getI18nDesc(selection.value)}</p>
+		<p className="desc-content">{getI18nDesc(selection.value)}</p>
 	</div>
 	)
 }

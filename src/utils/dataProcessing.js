@@ -61,6 +61,8 @@ function extractRealCloth(data)
 	const additionalShirts = Array.from({length:300}, (_,i)=>i)
 		.filter(i=>!alreadyChecked.has(i))
 		.map(i=>i+1000);
+
+	additionalShirts.push(1041); // can exist
 	
 	shirtsAvaliableIndex=shirtsAvaliableIndex.concat(additionalShirts);
 	shirtsAvaliableIndex.sort((a,b)=>a-b);
@@ -70,15 +72,16 @@ function extractRealCloth(data)
 
 function extractClothData(str)
 {
-	let [,,,male, female,,color, dyeable,, prismatic] = str.split("/");
+	let [,,,male, female,,color, dyeable,, additional] = str.split("/");
 	[male, female] = [+male, +female];
 	if(female === -1) female = male;
 	color = color.split(" ").map(value=>+value);
 
 	dyeable = dyeable === "true";
-	prismatic = prismatic === "Prismatic";
+	prismatic = additional === "Prismatic";
+	sleeveless = additional === "Sleeveless";
 
-	return {name, male, female, color, dyeable, prismatic};
+	return {name, male, female, color, dyeable, sleeveless, prismatic};
 }
 
 function clothesJsonProcessing(data)
@@ -92,7 +95,7 @@ function clothesJsonProcessing(data)
 		if(index === -2) [male, female] = [i-1000, i-1000];
 		let name = `shirts.name.${index !== -2 ? index-1000 : "default"}`;
 
-		return {name, male, female, color, dyeable, prismatic};
+		return {name, male, female, color, dyeable, sleeveless, prismatic};
 	});
 
 	const pantsData = pantsAvaliableIndex.map((i)=>{
