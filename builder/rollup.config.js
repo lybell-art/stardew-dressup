@@ -17,7 +17,7 @@ export default {
 	},
 	plugins: [
 		json(),
-		nodeResolve({browser:true, extensions:[".js"]}),
+		nodeResolve({browser:true, extensions:[".js"], preferBuiltins: false}),
 		replace({
 			preventAssignment: true,
 			'process.env.NODE_ENV': JSON.stringify('development')

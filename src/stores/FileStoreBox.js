@@ -12,6 +12,7 @@ class FileStoreBox
 	static deltaX=0;
 	static deltaY=0;
 	static omittable=false;
+	static size={width:20, height:20};
 
 	_spritesheet = null;
 	_clothesData = null;
@@ -116,6 +117,8 @@ class HairstyleFileStore extends FileStoreBox
 	static columns=8;
 	static deltaX=16;
 	static deltaY=96;
+	static size={width:16, height:20};
+
 	static coveredTable = [
 	7, 1, 7, 11, 7, 5, 6, 7, 
 	7, 9, 7, 11, 7, 7, 7, 7, 
@@ -244,6 +247,7 @@ class ShirtsFileStore extends FileStoreBox
 	static columns=16;
 	static deltaX=8;
 	static deltaY=32;
+	static size={width:8, height:8};
 
 	_clothesData = shirtData;
 	_gender = "male";
@@ -339,6 +343,7 @@ class PantsFileStore extends FileStoreBox
 	static columns=10;
 	static deltaX=192;
 	static deltaY=688;
+	static size={width:16, height:16};
 
 	_clothesData = pantsData;
 

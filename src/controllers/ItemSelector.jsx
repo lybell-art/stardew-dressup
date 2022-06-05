@@ -1,63 +1,58 @@
-import React from "react";
-import "content-visibility";
+import { Component, createRef } from "react";
+import ItemListController from "./clothListControllerPixi.js";
 
-function ClothIcon({index, category, positioner, tag})
+class ItemSelector extends Component
 {
-	const spritePosition = positioner(index);
-	if(spritePosition === null) return null;
+	constructor(props)
+	{
+		super(props);
+		const {selection, dataSet, defaultImage, additionalDefaultImage={}} = props;
+		this.hud = new ItemListController({selectBox:selection, defaultImage, additionalDefaultImage});
+		this.hud.initializeRadio(dataSet.constructor.omittable ? -1 : 0);
+		this.hud.initializeSprites(dataSet, defaultImage, additionalDefaultImage);
 
-	const {x, y, sheet=category} = spritePosition;
-	const position = `${-x}px ${-y}px`;
-	const style = {backgroundPosition: position, WebkitMaskPosition: position, maskPosition: position};
-	return (
-		<div className={`cloth-item itemdata-${sheet} cloth-item-${tag}`} style={style}>
-			{tag==="colored" && <div className="color-mask blender"></div>}
-			{tag==="prismatic" && <div className="color-mask prismatic"></div>}
-		</div>
-	);
+		this.canvasDom = createRef();
+
+		this.state = {
+			expanded : false
+		};
+
+		this.toggleExpansion = this.toggleExpansion.bind(this);
+	}
+	componentDidMount() {
+		if(this.canvasDom.current){
+			this.hud.appendParent(this.canvasDom.current);
+			this.hud.initialize(this.props.dataSet);
+		}
+	}
+	componentWillUnmount() {
+		if(this.canvasDom.current){
+			this.hud.halt();
+		}
+	}
+	toggleExpansion()
+	{
+		this.setState((state) => {
+			return {expanded: !state.expanded};
+		});
+	}
+	componentDidUpdate() {
+		this.hud.toggleExpantion(this.state.expaned);
+	}
+	render()
+	{
+		return (
+			<div className="cloth-list-wrapper">
+				<div className={`left-button ${this.state.expanded ? "inactive" : ""}`} onClick={()=>this.hud.slideLeft()}></div>
+				<div className="cloth-list-border">
+					<div className={`hidden ${this.state.expanded ? "expanded" : ""}`} style={{"display":"none"}} />
+					<div className="cloth-list" ref={this.canvasDom} />
+				</div>
+				<div className={`right-button ${this.state.expanded ? "inactive" : ""}`} onClick={()=>this.hud.slideRight()}></div>
+				<div className="expand-button" onClick={this.toggleExpansion}></div>
+			</div>
+		);
+	}
 }
-
-
-function ItemSelector({name, handleTo, dataSet})
-{
-	const omittable = dataSet.constructor.omittable;
-	const itemMaker = (length)=>(
-		Array.from({length}, (_,i)=>{
-			const key = dataSet.getListItemKey(i);
-			const uncolored = dataSet.getUncoloredSpriteFromIndex;
-			const colored = dataSet.getColoredSpriteFromIndex;
-			const prismatic = dataSet.getPrismaticSpriteFromIndex;
-
-			return <content-visibility containIntrinsicSize="60px" key={key}><label className="cloth-item-box">
-				<input 
-					type="radio" 
-					name={`${name}-cloth`} 
-					defaultChecked={i === (omittable ? -1 : 0)}
-					onChange={()=>handleTo(i)}
-				/>
-				<ClothIcon category={name} index={i} positioner={uncolored} tag="uncolored"/>
-				<ClothIcon category={name} index={i} positioner={colored} tag="colored"/>
-				<ClothIcon category={name} index={i} positioner={prismatic} tag="prismatic"/>
-			</label></content-visibility>
-		} )
-	);
-
-	console.log(dataSet.count);
-
-	return (
-		<div className="cloth-list">
-			{omittable && <label className="cloth-item-box">
-				<input 
-					type="radio" 
-					name={`${name}-cloth`} 
-					defaultChecked={true}
-					onChange={()=>handleTo(-1)}
-				/>
-			</label>}
-			{itemMaker(dataSet.count)}
-		</div>
-	)
-}
-
 
 export default ItemSelector;

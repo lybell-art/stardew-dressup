@@ -1,23 +1,48 @@
-import { makeAutoObservable } from "mobx";
+import { makeObservable, observable, action, computed } from "mobx";
 import { HSLtoRGB } from "../utils/utils.js";
 
 class ClothStoreBox
 {
 	value=0;
-	color=[255,255,255];
+	hue=0;
+	saturation=100;
+	lightness=50;
 
 	constructor(initialValue=0)
 	{
-		makeAutoObservable(this);
+		makeObservable(this, {
+			value: observable,
+			hue: observable,
+			saturation: observable,
+			lightness: observable,
+			color: computed,
+			changeSelect: action,
+			changeHue: action,
+			changeSaturation: action,
+			changeLightness: action
+		});
 		this.value=initialValue;
 	}
+	get color()
+	{
+		return HSLtoRGB(this.hue, this.saturation, this.lightness);
+	}
+
 	changeSelect(value)
 	{
 		this.value = value;
 	}
-	changeColor(hue, saturation, lightness)
+	changeHue(hue)
 	{
-		this.color = HSLtoRGB(hue, saturation, lightness);
+		this.hue = +hue;
+	}
+	changeSaturation(saturation)
+	{
+		this.saturation = +saturation;
+	}
+	changeLightness(lightness)
+	{
+		this.lightness = +lightness;
 	}
 }
 

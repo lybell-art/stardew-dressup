@@ -1,10 +1,10 @@
-import React from "react";
+import { useContext } from "react";
 import { LangsContext } from "../stores/Langs.js";
 import { observer } from "mobx-react-lite";
 
 function ObtainDescription({type, selection})
 {
-	const langs = React.useContext(LangsContext);
+	const langs = useContext(LangsContext);
 	function getI18nDesc(index) {
 		return langs.getText(`${type}.desc.${index}`);
 	}
