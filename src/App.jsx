@@ -8,7 +8,6 @@ function App()
 {
 	return (
 		<LangsProvider>
-			<h2>Hello, Pixi!</h2>
 			<Viewer selection={clothStoreDict} />
 			<Controller />
 		</LangsProvider>

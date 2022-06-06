@@ -41,14 +41,14 @@ const ClothesControllerBase = ({name, additionalDefaultImage={}, children})=>{
 	return (
 	<div className={`clothesController clothesController-${name}`}>
 		<ControllerTitle name={name} />
-		<div className="itemMain">
+		<div className="controller-main">
 			<ItemSelector name={name} 
 				selection={selection}
 				dataSet={dataSet}
 				defaultImage={defaultImage}
 				additionalDefaultImage={additionalDefaultImage}
 			/>
-			{children}
+			<div className="controller-sub-box">{children}</div>
 		</div>
 	</div>
 	)
@@ -83,8 +83,8 @@ const ClothesController = ({name})=>{
 
 	return (
 	<ClothesControllerBase name={name}>
-		<ObtainDescription type={name} selection={selection} />
 		<ColorSlider type={name} selection={selection} />
+		<ObtainDescription type={name} selection={selection} />
 	</ClothesControllerBase>
 	)
 };

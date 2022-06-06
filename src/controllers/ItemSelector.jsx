@@ -1,6 +1,11 @@
 import { Component, createRef } from "react";
 import ItemListController from "./clothListControllerPixi.js";
 
+function getScrollDelta(e)
+{
+	return e.deltaY ?? (typeof e.wheelDeltaY === "number" ? -e.wheelDeltaY : e.detail);
+}
+
 class ItemSelector extends Component
 {
 	constructor(props)
@@ -18,16 +23,23 @@ class ItemSelector extends Component
 		};
 
 		this.toggleExpansion = this.toggleExpansion.bind(this);
+		this.scroll = e=>{
+			e.preventDefault();
+			let delta = Math.sign(getScrollDelta(e));
+			this.hud.onWheel(delta);
+		}
 	}
 	componentDidMount() {
 		if(this.canvasDom.current){
 			this.hud.appendParent(this.canvasDom.current);
 			this.hud.initialize(this.props.dataSet);
+			this.canvasDom.current.addEventListener('wheel', this.scroll, {passive:false});
 		}
 	}
 	componentWillUnmount() {
 		if(this.canvasDom.current){
 			this.hud.halt();
+			this.canvasDom.current.removeEventListener('wheel', this.scroll, {passive:false});
 		}
 	}
 	toggleExpansion()
@@ -37,7 +49,7 @@ class ItemSelector extends Component
 		});
 	}
 	componentDidUpdate() {
-		this.hud.toggleExpantion(this.state.expaned);
+		setTimeout(()=>this.hud.toggleExpantion(this.state.expaned), 300);
 	}
 	render()
 	{

@@ -332,9 +332,8 @@ class ItemListController
 		this.ticker = this.ticker.bind(this);
 		this.slideLeft = this.slideLeft.bind(this);
 		this.slideRight = this.slideRight.bind(this);
+		this.onWheel = this.onWheel.bind(this);
 		this.toggleExpantion = this.toggleExpantion.bind(this);
-
-		console.log("miko is baby!");
 	}
 	setContainer(selectBox)
 	{
@@ -358,6 +357,7 @@ class ItemListController
 	appendParent(dom)
 	{
 		dom.appendChild(this.app.view);
+
 		this.app.resizeTo = dom;
 		this.app.screen.height = dom.clientHeight;
 		this.app.view.height = dom.clientHeight;
@@ -434,6 +434,10 @@ class ItemListController
 	{
 		if(this.expanded) return;
 		this.container.slideRight();
+	}
+	onWheel(delta)
+	{
+		this.container.slide(delta);
 	}
 	toggleExpantion(state)
 	{

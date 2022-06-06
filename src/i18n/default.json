@@ -6,6 +6,8 @@
 
 	"UI.language.en" : "English",
 	"UI.language.ko" : "Korean",
+	"UI.color" : "Color",
+	"UI.howToObtain" : "How To Obtain",
 
 	"hats.name.0" : "Cowboy Hat",
 	"hats.name.1" : "Bowler Hat",

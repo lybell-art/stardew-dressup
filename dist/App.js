@@ -39201,6 +39201,8 @@ var i18n_en = {
 	"title.pants": "Pants",
 	"UI.language.en": "English",
 	"UI.language.ko": "Korean",
+	"UI.color": "Color",
+	"UI.howToObtain": "How To Obtain",
 	"hats.name.0": "Cowboy Hat",
 	"hats.name.1": "Bowler Hat",
 	"hats.name.2": "Top Hat",
@@ -87444,8 +87446,8 @@ class ItemListController {
     this.ticker = this.ticker.bind(this);
     this.slideLeft = this.slideLeft.bind(this);
     this.slideRight = this.slideRight.bind(this);
+    this.onWheel = this.onWheel.bind(this);
     this.toggleExpantion = this.toggleExpantion.bind(this);
-    console.log("miko is baby!");
   }
 
   setContainer(selectBox) {
@@ -87544,6 +87546,10 @@ class ItemListController {
     this.container.slideRight();
   }
 
+  onWheel(delta) {
+    this.container.slide(delta);
+  }
+
   toggleExpantion(state) {
     this.app.resize(); // toggle expanded property
 
@@ -87595,6 +87601,10 @@ class ItemListController {
 
 }
 
+function getScrollDelta(e) {
+  return e.deltaY ?? (typeof e.wheelDeltaY === "number" ? -e.wheelDeltaY : e.detail);
+}
+
 class ItemSelector extends react.exports.Component {
   constructor(props) {
     super(props);
@@ -87616,18 +87626,30 @@ class ItemSelector extends react.exports.Component {
       expanded: false
     };
     this.toggleExpansion = this.toggleExpansion.bind(this);
+
+    this.scroll = e => {
+      e.preventDefault();
+      let delta = Math.sign(getScrollDelta(e));
+      this.hud.onWheel(delta);
+    };
   }
 
   componentDidMount() {
     if (this.canvasDom.current) {
       this.hud.appendParent(this.canvasDom.current);
       this.hud.initialize(this.props.dataSet);
+      this.canvasDom.current.addEventListener('wheel', this.scroll, {
+        passive: false
+      });
     }
   }
 
   componentWillUnmount() {
     if (this.canvasDom.current) {
       this.hud.halt();
+      this.canvasDom.current.removeEventListener('wheel', this.scroll, {
+        passive: false
+      });
     }
   }
 
@@ -87640,7 +87662,7 @@ class ItemSelector extends react.exports.Component {
   }
 
   componentDidUpdate() {
-    this.hud.toggleExpantion(this.state.expaned);
+    setTimeout(() => this.hud.toggleExpantion(this.state.expaned), 300);
   }
 
   render() {
@@ -87676,9 +87698,12 @@ function ColorSlider({
   type,
   selection
 }) {
+  const langs = react.exports.useContext(LangsContext);
   return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-    className: "color-slider-wrapper",
-    children: [/*#__PURE__*/jsxRuntime.exports.jsx("input", {
+    className: "color-slider-wrapper box-with-title",
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx("h3", {
+      children: langs.getText("UI.color")
+    }), /*#__PURE__*/jsxRuntime.exports.jsx("input", {
       type: "range",
       min: "0",
       max: "360",
@@ -87716,9 +87741,9 @@ function ObtainDescription({
   }
 
   return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-    className: "desc",
-    children: [/*#__PURE__*/jsxRuntime.exports.jsx("p", {
-      children: "How To Obtain"
+    className: "desc box-with-title",
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx("h3", {
+      children: langs.getText("UI.howToObtain")
     }), /*#__PURE__*/jsxRuntime.exports.jsx("p", {
       className: "desc-content",
       children: getI18nDesc(selection.value)
@@ -87764,14 +87789,17 @@ const ClothesControllerBase = ({
     children: [/*#__PURE__*/jsxRuntime.exports.jsx(ControllerTitle, {
       name: name
     }), /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-      className: "itemMain",
+      className: "controller-main",
       children: [/*#__PURE__*/jsxRuntime.exports.jsx(ItemSelector, {
         name: name,
         selection: selection,
         dataSet: dataSet,
         defaultImage: defaultImage,
         additionalDefaultImage: additionalDefaultImage
-      }), children]
+      }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
+        className: "controller-sub-box",
+        children: children
+      })]
     })]
   });
 };
@@ -87815,10 +87843,10 @@ const ClothesController = ({
   } = getProps(name);
   return /*#__PURE__*/jsxRuntime.exports.jsxs(ClothesControllerBase, {
     name: name,
-    children: [/*#__PURE__*/jsxRuntime.exports.jsx(ObtainDescription$1, {
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx(ColorSlider$1, {
       type: name,
       selection: selection
-    }), /*#__PURE__*/jsxRuntime.exports.jsx(ColorSlider$1, {
+    }), /*#__PURE__*/jsxRuntime.exports.jsx(ObtainDescription$1, {
       type: name,
       selection: selection
     })]
@@ -87840,9 +87868,7 @@ const Controller = () => {
 
 function App() {
   return /*#__PURE__*/jsxRuntime.exports.jsxs(LangsProvider, {
-    children: [/*#__PURE__*/jsxRuntime.exports.jsx("h2", {
-      children: "Hello, Pixi!"
-    }), /*#__PURE__*/jsxRuntime.exports.jsx(Viewer, {
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx(Viewer, {
       selection: clothStoreDict
     }), /*#__PURE__*/jsxRuntime.exports.jsx(Controller, {})]
   });

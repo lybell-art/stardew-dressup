@@ -6,6 +6,8 @@
 
 	"UI.language.en" : "영어",
 	"UI.language.ko" : "한국어",
+	"UI.color" : "색상 선택",
+	"UI.howToObtain" : "획득 방법",
 
 	"hats.name.0": "카우보이 모자",
 	"hats.name.1": "중절모",
