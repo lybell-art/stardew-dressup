@@ -1,31 +1,34 @@
 import { makeObservable, observable, action, computed } from "mobx";
-import { HSLtoRGB } from "../utils/utils.js";
+import { HSBtoRGB } from "../utils/utils.js";
 
 class ClothStoreBox
 {
 	value=0;
 	hue=0;
 	saturation=100;
-	lightness=50;
+	brightness=100;
 
-	constructor(initialValue=0)
+	constructor({value=0, hue=0, saturation=100, brightness=100}={})
 	{
 		makeObservable(this, {
 			value: observable,
 			hue: observable,
 			saturation: observable,
-			lightness: observable,
+			brightness: observable,
 			color: computed,
 			changeSelect: action,
 			changeHue: action,
 			changeSaturation: action,
-			changeLightness: action
+			changeBrightness: action
 		});
-		this.value=initialValue;
+		this.value=value;
+		this.hue=hue;
+		this.saturation=saturation;
+		this.brightness=brightness;
 	}
 	get color()
 	{
-		return HSLtoRGB(this.hue, this.saturation, this.lightness);
+		return HSBtoRGB(this.hue, this.saturation, this.brightness);
 	}
 
 	changeSelect(value)
@@ -40,9 +43,9 @@ class ClothStoreBox
 	{
 		this.saturation = +saturation;
 	}
-	changeLightness(lightness)
+	changeBrightness(brightness)
 	{
-		this.lightness = +lightness;
+		this.brightness = +brightness;
 	}
 }
 

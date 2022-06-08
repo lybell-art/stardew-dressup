@@ -1,20 +1,55 @@
-import { useContext } from "react";
-import { LangsContext } from "../stores/Langs.js";
 import { observer } from "mobx-react-lite";
+import { HSBtoRGB }from "../utils/utils.js";
 
-function ColorSlider({type, selection})
+function HSBToString(hue, saturation, brightness)
 {
-	const langs = useContext(LangsContext);
+	const rgb = HSBtoRGB(hue, saturation, brightness);
+	return `RGB(${rgb.join(", ")})`;
+}
+
+const ColorSliderItem = observer( ({type, selection})=>{
+	
+	const [value, setValue, name] = ( (type, selection)=>{
+		if(type === "H") return [selection.hue, selection.changeHue.bind(selection), "slider-hue"];
+		if(type === "S") return [selection.saturation, selection.changeSaturation.bind(selection), "slider-saturation"];
+		if(type === "B") return [selection.brightness, selection.changeBrightness.bind(selection), "slider-brightness"];
+	} )(type, selection);
+
+	let style={};
+	if(type === "H")
+	{
+		style["--thumb-border-color"] = HSBToString(selection.hue, 100, 100);
+	}
+	else if(type === "S")
+	{
+		style["--thumb-border-color"] = HSBToString(selection.hue, selection.saturation, selection.brightness);
+		style["--left"] = HSBToString(selection.hue, 0, selection.brightness);
+		style["--right"] = HSBToString(selection.hue, 100, selection.brightness);
+	}
+	else if(type === "B")
+	{
+		style["--thumb-border-color"] = HSBToString(selection.hue, selection.saturation, selection.brightness);
+		style["--left"] = HSBToString(selection.hue, selection.saturation, 0);
+		style["--right"] = HSBToString(selection.hue, selection.saturation, 100);
+	}
 
 	return (
-	<div className="slider box-with-title">
-		<h3>{langs.getText("UI.color")}</h3>
-		<input type="range" min="0" max="360" defaultValue={selection.hue} className="hue-slider" 
-			onChange={(e)=>selection.changeHue(+e.target.value)}/>
-		<input type="range" min="0" max="100" defaultValue={selection.saturation} className="saturation-slider" 
-			onChange={(e)=>selection.changeSaturation(+e.target.value)}/>
-		<input type="range" min="0" max="100" defaultValue={selection.lightness} className="lightness-slider" 
-			onChange={(e)=>selection.changeLightness(+e.target.value)}/>
+		<label>
+			<p className="label">{type}</p>
+			<input type="range" min="0" max={type === "H" ? 360 : 100} defaultValue={value} className={name} 
+				onChange={(e)=>setValue(+e.target.value)} style={style}/>
+			<output>{value}</output>
+		</label>
+	)
+} );
+
+function ColorSlider({selection})
+{
+	return (
+	<div className="slider">
+		<ColorSliderItem type="H" selection={selection} />
+		<ColorSliderItem type="S" selection={selection} />
+		<ColorSliderItem type="B" selection={selection} />
 	</div>
 	)
 }

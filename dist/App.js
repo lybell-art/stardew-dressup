@@ -39121,26 +39121,19 @@ function clamp(value, min, max) {
 
 function lerp(a, b, v) {
   return a * (1 - v) + b * v;
-} // stardew valley using HSL color system
-// from decompiled stardew valley code
+} // stardew valley using HSB color system
+// from https://www.30secondsofcode.org/js/s/hsb-to-rgb
 
 
-function QQHtoRGB(q1, q2, hue) {
-  hue = hue % 360 + (hue < 0 ? 360 : 0);
-  if (hue < 60.0) return q1 + (q2 - q1) * hue / 60.0;
-  if (hue < 180.0) return q2;
-  if (hue < 240.0) return q1 + (q2 - q1) * (240.0 - hue) / 60.0;
-  return q1;
-}
-
-function HSLtoRGB(hue, saturation, lightness) {
+function HSBtoRGB(hue, saturation, brightness) {
   const S = saturation / 100;
-  const L = lightness / 100;
-  const P2 = !(L <= 0.5) ? L + S - L * S : L * (1.0 + S);
-  const P = 2.0 * L - P2;
-  let percentRGB;
-  if (saturation === 0) percentRGB = [L, L, L];else percentRGB = [120, 0, -120].map(slider => QQHtoRGB(P, P2, hue + slider));
-  return percentRGB.map(value => Math.round(value * 255));
+  const B = brightness / 100;
+
+  const k = n => (n + hue / 60) % 6;
+
+  const f = n => B * (1 - S * Math.max(0, Math.min(k(n), 4 - k(n), 1)));
+
+  return [5, 3, 1].map(i => Math.floor(255 * f(i)));
 }
 
 function colorArrayToHex(arr) {
@@ -39169,10 +39162,8 @@ function lerpColor(a, b, v) {
 function getPrismaticColor(percent) {
   const prismaticArray = [0xff0000, 0xff7800, 0xffd900, 0x00ff00, 0x00ffff, 0xee82ee];
   const lerp = percent * 6 % 1;
-
-  for (let i = 0; i < 6; i++) {
-    if (percent < (i + 1) / 6) return lerpColor(prismaticArray[i % 6], prismaticArray[(i + 1) % 6], lerp);
-  }
+  const part = Math.floor(percent * 6);
+  return lerpColor(prismaticArray[part % 6], prismaticArray[(part + 1) % 6], lerp);
 }
 
 function easeOut(x) {
@@ -39183,25 +39174,33 @@ class ClothStoreBox {
   value = 0;
   hue = 0;
   saturation = 100;
-  lightness = 50;
+  brightness = 100;
 
-  constructor(initialValue = 0) {
+  constructor({
+    value = 0,
+    hue = 0,
+    saturation = 100,
+    brightness = 100
+  } = {}) {
     makeObservable(this, {
       value: observable,
       hue: observable,
       saturation: observable,
-      lightness: observable,
+      brightness: observable,
       color: computed,
       changeSelect: action,
       changeHue: action,
       changeSaturation: action,
-      changeLightness: action
+      changeBrightness: action
     });
-    this.value = initialValue;
+    this.value = value;
+    this.hue = hue;
+    this.saturation = saturation;
+    this.brightness = brightness;
   }
 
   get color() {
-    return HSLtoRGB(this.hue, this.saturation, this.lightness);
+    return HSBtoRGB(this.hue, this.saturation, this.brightness);
   }
 
   changeSelect(value) {
@@ -39216,17 +39215,27 @@ class ClothStoreBox {
     this.saturation = +saturation;
   }
 
-  changeLightness(lightness) {
-    this.lightness = +lightness;
+  changeBrightness(brightness) {
+    this.brightness = +brightness;
   }
 
 }
 
 const clothStoreDict = {
-  hats: new ClothStoreBox(-1),
-  hairstyle: new ClothStoreBox(),
+  hats: new ClothStoreBox({
+    value: -1
+  }),
+  hairstyle: new ClothStoreBox({
+    hue: 4,
+    saturation: 74,
+    brightness: 75
+  }),
   shirts: new ClothStoreBox(),
-  pants: new ClothStoreBox()
+  pants: new ClothStoreBox({
+    hue: 61,
+    saturation: 74,
+    brightness: 71
+  })
 };
 
 var i18n_en = {
@@ -88197,36 +88206,67 @@ class ItemSelector extends react.exports.Component {
 
 }
 
-function ColorSlider({
+function HSBToString(hue, saturation, brightness) {
+  const rgb = HSBtoRGB(hue, saturation, brightness);
+  return `RGB(${rgb.join(", ")})`;
+}
+
+const ColorSliderItem = observer(({
   type,
   selection
+}) => {
+  const [value, setValue, name] = ((type, selection) => {
+    if (type === "H") return [selection.hue, selection.changeHue.bind(selection), "slider-hue"];
+    if (type === "S") return [selection.saturation, selection.changeSaturation.bind(selection), "slider-saturation"];
+    if (type === "B") return [selection.brightness, selection.changeBrightness.bind(selection), "slider-brightness"];
+  })(type, selection);
+
+  let style = {};
+
+  if (type === "H") {
+    style["--thumb-border-color"] = HSBToString(selection.hue, 100, 100);
+  } else if (type === "S") {
+    style["--thumb-border-color"] = HSBToString(selection.hue, selection.saturation, selection.brightness);
+    style["--left"] = HSBToString(selection.hue, 0, selection.brightness);
+    style["--right"] = HSBToString(selection.hue, 100, selection.brightness);
+  } else if (type === "B") {
+    style["--thumb-border-color"] = HSBToString(selection.hue, selection.saturation, selection.brightness);
+    style["--left"] = HSBToString(selection.hue, selection.saturation, 0);
+    style["--right"] = HSBToString(selection.hue, selection.saturation, 100);
+  }
+
+  return /*#__PURE__*/jsxRuntime.exports.jsxs("label", {
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx("p", {
+      className: "label",
+      children: type
+    }), /*#__PURE__*/jsxRuntime.exports.jsx("input", {
+      type: "range",
+      min: "0",
+      max: type === "H" ? 360 : 100,
+      defaultValue: value,
+      className: name,
+      onChange: e => setValue(+e.target.value),
+      style: style
+    }), /*#__PURE__*/jsxRuntime.exports.jsx("output", {
+      children: value
+    })]
+  });
+});
+
+function ColorSlider({
+  selection
 }) {
-  const langs = react.exports.useContext(LangsContext);
   return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-    className: "slider box-with-title",
-    children: [/*#__PURE__*/jsxRuntime.exports.jsx("h3", {
-      children: langs.getText("UI.color")
-    }), /*#__PURE__*/jsxRuntime.exports.jsx("input", {
-      type: "range",
-      min: "0",
-      max: "360",
-      defaultValue: selection.hue,
-      className: "hue-slider",
-      onChange: e => selection.changeHue(+e.target.value)
-    }), /*#__PURE__*/jsxRuntime.exports.jsx("input", {
-      type: "range",
-      min: "0",
-      max: "100",
-      defaultValue: selection.saturation,
-      className: "saturation-slider",
-      onChange: e => selection.changeSaturation(+e.target.value)
-    }), /*#__PURE__*/jsxRuntime.exports.jsx("input", {
-      type: "range",
-      min: "0",
-      max: "100",
-      defaultValue: selection.lightness,
-      className: "lightness-slider",
-      onChange: e => selection.changeLightness(+e.target.value)
+    className: "slider",
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx(ColorSliderItem, {
+      type: "H",
+      selection: selection
+    }), /*#__PURE__*/jsxRuntime.exports.jsx(ColorSliderItem, {
+      type: "S",
+      selection: selection
+    }), /*#__PURE__*/jsxRuntime.exports.jsx(ColorSliderItem, {
+      type: "B",
+      selection: selection
     })]
   });
 }
