@@ -3,7 +3,6 @@ import {HatsController, HairstyleController, ClothesController} from "./controll
 const Controller = ()=>{
 	return (
 	<div className="controller">
-		<h2>This is Controller!</h2>
 		<HatsController />
 		<HairstyleController />
 		<ClothesController name="shirts" />

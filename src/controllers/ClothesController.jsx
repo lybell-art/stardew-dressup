@@ -26,12 +26,7 @@ function getProps(name)
 // title 
 const ControllerTitle = observer( ({name})=>{
 	const langs = useContext(LangsContext);
-
-	return (
-		<div className="itemHeader">
-			<h2>{langs.getText(`title.${name}`)}</h2>
-		</div>
-	);
+	return <h2>{langs.getText(`title.${name}`)}</h2>;
 } );
 
 
@@ -39,17 +34,17 @@ const ClothesControllerBase = ({name, additionalDefaultImage={}, children})=>{
 	const {selection, dataSet, defaultImage} = getProps(name);
 
 	return (
-	<div className={`clothesController clothesController-${name}`}>
-		<ControllerTitle name={name} />
-		<div className="controller-main">
-			<ItemSelector name={name} 
-				selection={selection}
-				dataSet={dataSet}
-				defaultImage={defaultImage}
-				additionalDefaultImage={additionalDefaultImage}
-			/>
-			<div className="controller-sub-box">{children}</div>
+	<div className={`controller-item controller-item-${name}`}>
+		<div className="controller-header">
+			<ControllerTitle name={name} />
 		</div>
+		<ItemSelector name={name} 
+			selection={selection}
+			dataSet={dataSet}
+			defaultImage={defaultImage}
+			additionalDefaultImage={additionalDefaultImage}
+		/>
+		<div className="controller-sub">{children}</div>
 	</div>
 	)
 };

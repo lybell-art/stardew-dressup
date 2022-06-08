@@ -7,7 +7,7 @@ function ColorSlider({type, selection})
 	const langs = useContext(LangsContext);
 
 	return (
-	<div className="color-slider-wrapper box-with-title">
+	<div className="slider box-with-title">
 		<h3>{langs.getText("UI.color")}</h3>
 		<input type="range" min="0" max="360" defaultValue={selection.hue} className="hue-slider" 
 			onChange={(e)=>selection.changeHue(+e.target.value)}/>

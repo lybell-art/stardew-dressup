@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { reaction } from "mobx";
 import * as PIXI from "pixi.js";
-import { clamp, lerp, easeOut } from "../utils/utils.js";
+import { clamp, lerp, easeOut, isMobileView, ThresholdObserver } from "../utils/utils.js";
 import { tintedContainer, prismaticContainer } from "../utils/coloredContainers.js";
 
 // constant
@@ -11,12 +11,16 @@ const SWIPE_THRESHOLD = 6;
 const EPSILON = 1.5;
 const AXIS_X = Symbol.for('x');
 const AXIS_Y = Symbol.for('y');
+const MOBILE_MAX_SCREEN_WIDTH = 768;
 
-const garvageCollectedFuckingReact = [];
-
-function grid(i)
+function getScaleMultifier(screenWidth)
 {
-	return (i+0.5) * ITEM_GAP;
+	return isMobileView(screenWidth) ? 4/5 : 1;
+}
+
+function grid(i, multiplier=1)
+{
+	return (i+0.5) * ITEM_GAP * multiplier;
 }
 
 class GridedSprite extends PIXI.Sprite
@@ -25,7 +29,10 @@ class GridedSprite extends PIXI.Sprite
 	{
 		super(texture);
 		this.innerIndex = index;
-		this.x = grid(index);
+	}
+	setPosition(multiplier=1)
+	{
+		this.x = grid(this.innerIndex, multiplier);
 		this.y = 0;
 	}
 }
@@ -42,7 +49,7 @@ function makeSheetMap(sheet, additionalSheet={})
 	return {default:new PIXI.BaseTexture(sheet), ...additionalTexture};
 }
 
-function generateItem(i, sheets, parent, sheetPos, size={width:20, height:20})
+function generateItem(i, sheets, sheetPos, size={width:20, height:20}, multiplier=1)
 {
 	if(sheetPos === null) return;
 
@@ -54,23 +61,30 @@ function generateItem(i, sheets, parent, sheetPos, size={width:20, height:20})
 	const clothTexture = new PIXI.Texture(sheets[sheet], rect);
 	const cloth = new GridedSprite(i, clothTexture);
 
+	cloth.setPosition(multiplier);
 	cloth.anchor.set(0.5);
-	cloth.scale.set(3);
+	cloth.scale.set(3 * multiplier);
 
-	parent.addChild(cloth);
+	return cloth;
 }
 
-function arrangeItems(container, itemAmount, axis=AXIS_X, fixedLines=1)
+function arrangeItems(container, columns, axis=AXIS_X, multiplier=1)
 {
-	const columns = axis === AXIS_Y ? fixedLines : Math.ceil(itemAmount / fixedLines);
-
 	for(let child of container.children)
 	{
 		const index = child.innerIndex;
 		const x = index % columns;
 		const y = Math.floor(index / columns);
-		child.x = grid(x);
-		child.y = axis === AXIS_Y ? grid(y) : 0;
+		child.x = grid(x, multiplier);
+		child.y = axis === AXIS_Y ? grid(y, multiplier) : 0;
+	}
+}
+
+function adjustScale(container, scale)
+{
+	for(let child of container.children)
+	{
+		child.scale.set(scale);
 	}
 }
 
@@ -100,7 +114,7 @@ class RadioButtons
 		parent.addChild(this.container);
 		this.parent = parent;
 	}
-	generateButton(i, x)
+	generateButton(i, x, multiplier=1)
 	{
 		const button = new GridedSprite(x);
 		if(i === this.initialValue) button.texture = this.constructor.selectedTexture;
@@ -109,6 +123,8 @@ class RadioButtons
 		button.interactive = true;
 		button.buttonMode = true;
 		button.anchor.set(0.5);
+		button.setPosition(multiplier);
+		button.scale.set(multiplier);
 		button.on('pointertap', this.check(i));
 
 		this.buttons[i] = button;
@@ -150,7 +166,6 @@ class ScrollSnappedContainer extends PIXI.Container
 		// properties for calculate the border
 		this.itemAmount = 0;
 		this.lineCount = 0;
-		this.gap = ITEM_GAP;
 		this.container = container;
 
 		// properties for scroll
@@ -173,6 +188,10 @@ class ScrollSnappedContainer extends PIXI.Container
 			.on('pointermove', (e)=>this.onDragMove(this.mousePos(e)) )
 			.on('pointerup', ()=>this.onDragEnd() )
 			.on('pointerupoutside', ()=>this.onDragEnd() );
+	}
+	get gap()
+	{
+		return ITEM_GAP * getScaleMultifier(document.body.clientWidth);
 	}
 	get containerSize()
 	{
@@ -238,7 +257,7 @@ class ScrollSnappedContainer extends PIXI.Container
 			this.scroll_index = this.getCurrentScrollIndex();
 			this.velocity *= 0.98;
 
-			if(Math.abs(this.velocity) <= EPSILON || this.scroll_pos > ITEM_GAP || this.scroll_pos < -(this.rightBoundary+1) * ITEM_GAP)
+			if(Math.abs(this.velocity) <= EPSILON || this.scroll_pos > this.gap || this.scroll_pos < -(this.rightBoundary+1) * this.gap)
 			{
 				this.velocity = 0;
 				this.slide(0);
@@ -286,7 +305,7 @@ class ScrollSnappedContainer extends PIXI.Container
 
 	getCurrentScrollIndex()
 	{
-		return clamp( Math.round(-this.scroll_pos / ITEM_GAP), 0, this.rightBoundary);
+		return clamp( Math.round(-this.scroll_pos / this.gap), 0, this.rightBoundary);
 	}
 	mousePos(e)
 	{
@@ -324,6 +343,9 @@ class ItemListController
 		// expanding toggler
 		this.expanded = false;
 
+		// mobile adjustment
+		this.screenSizeObserver = new ThresholdObserver(MOBILE_MAX_SCREEN_WIDTH, document.body.clientWidth);
+
 		// mobx reaction
 		this.disposer = ()=>{};
 
@@ -334,6 +356,10 @@ class ItemListController
 		this.slideRight = this.slideRight.bind(this);
 		this.onWheel = this.onWheel.bind(this);
 		this.toggleExpantion = this.toggleExpantion.bind(this);
+	}
+	get multiplier()
+	{
+		return getScaleMultifier(document.body.clientWidth);
 	}
 	setContainer(selectBox)
 	{
@@ -402,13 +428,16 @@ class ItemListController
 		const makeItemArray = [
 			{parent:this.uncolored,		positioner:spritesheetData.getUncoloredSpriteFromIndex},
 			{parent:this.colored,		positioner:spritesheetData.getColoredSpriteFromIndex},
-			{parent:this.prismatic,		positioner:spritesheetData.getPrismaticSpriteFromIndex},
-		].map( ({parent, positioner})=>( (i)=>generateItem(i + shift, sheets, parent, positioner(i), size) ) );
+			{parent:this.prismatic,		positioner:spritesheetData.getPrismaticSpriteFromIndex}
+		].map( ({parent, positioner})=>(i=>{
+			const child=generateItem(i + shift, sheets, positioner(i), size, this.multiplier);
+			if(child) parent.addChild(child);
+		}) );
 
 		// make icons and attach to parent
 		for(let i = -shift; i<spritesheetData.count; i++)
 		{
-			this.radioButton.generateButton(i, i + shift);
+			this.radioButton.generateButton(i, i + shift, this.multiplier);
 			makeItemArray.forEach((makeItem)=>makeItem(i));
 		}
 
@@ -439,27 +468,35 @@ class ItemListController
 	{
 		this.container.slide(delta);
 	}
-	toggleExpantion(state)
+	arrangeContainerItems(multiplier)
 	{
-		this.app.resize();
-		// toggle expanded property
-		this.expanded = state ?? !this.expanded;
-		
 		// calculate axis, itemAmout, lines
 		const axis = this.expanded ? AXIS_Y : AXIS_X;
 		const itemAmount = this.container.itemAmount;
-		const lines = this.expanded ? (this.container.container.width / ITEM_GAP) : 1;
+		const lines = this.expanded ? (this.container.container.width / (ITEM_GAP * multiplier) ) : 1;
+		const columns = axis === AXIS_Y ? lines : Math.ceil(itemAmount / lines);
 
-		const arranger = (container)=>arrangeItems(container, itemAmount, axis, lines);
-
-		// set container's scroll axis
-		this.container.scroll_axis = axis;
+		const arranger = (container)=>arrangeItems(container, columns, axis, multiplier);
 
 		// arrange items
 		arranger(this.radioButton.container);
 		arranger(this.uncolored);
 		arranger(this.colored);
 		arranger(this.prismatic);
+	}
+	toggleExpantion(state)
+	{
+		this.app.resize();
+		// toggle expanded property
+		this.expanded = state ?? !this.expanded;
+
+		const lines = this.expanded ? (this.container.container.width / (ITEM_GAP * this.multiplier) ) : 1;
+		
+		// arrange items
+		this.arrangeContainerItems( this.multiplier );
+
+		// set container's scroll axis
+		this.container.scroll_axis = this.expanded ? AXIS_Y : AXIS_X;
 
 		// fix container's position
 		if(this.expanded) {
@@ -469,11 +506,25 @@ class ItemListController
 		else this.container.y = this.app.screen.height / 2;
 
 		this.container.scroll_index = 0;
-		this.container.lineCount = Math.ceil(itemAmount / lines);
+		this.container.lineCount = Math.ceil(this.container.itemAmount / lines);
 		this.container.resetHitArea();
 
 		const currentLine = Math.floor(this.radioButton.current / lines) - 2;
 		this.container.slide(currentLine, 1);
+	}
+	adjustItemSize(multiplier)
+	{
+		const radioButtonScale = 1 * multiplier;
+		const pixelIconScale = clamp(Math.floor(3 * multiplier), 1, Infinity);
+
+		// adjust scale
+		adjustScale(this.radioButton.container, radioButtonScale);
+		adjustScale(this.uncolored, pixelIconScale);
+		adjustScale(this.colored, pixelIconScale);
+		adjustScale(this.prismatic, pixelIconScale);
+
+		this.arrangeContainerItems(multiplier);
+		this.container.resetHitArea();
 	}
 	
 	flushChildren()
@@ -493,6 +544,10 @@ class ItemListController
 	resize()
 	{
 		this.container.y = this.app.screen.height / 2;
+		this.screenSizeObserver.update(document.body.clientWidth, ()=>{
+			const multiplier = getScaleMultifier(document.body.clientWidth);
+			this.adjustItemSize(multiplier);
+		});
 	}
 }
 

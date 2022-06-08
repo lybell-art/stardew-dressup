@@ -10,9 +10,9 @@ function ObtainDescription({type, selection})
 	}
 
 	return (
-	<div className="desc box-with-title">
+	<div className="description box-with-title">
 		<h3>{langs.getText("UI.howToObtain")}</h3>
-		<p className="desc-content">{getI18nDesc(selection.value)}</p>
+		<p className="description-content">{getI18nDesc(selection.value)}</p>
 	</div>
 	)
 }

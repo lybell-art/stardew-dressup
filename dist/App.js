@@ -33321,11 +33321,11 @@ function isStringish(value) {
 
   return false;
 }
-function isObject(value) {
+function isObject$1(value) {
   return value !== null && typeof value === "object";
 }
 function isPlainObject(value) {
-  if (!isObject(value)) {
+  if (!isObject$1(value)) {
     return false;
   }
 
@@ -33372,7 +33372,7 @@ function createInstanceofPredicate(name, theClass) {
   var propName = "isMobX" + name;
   theClass.prototype[propName] = true;
   return function (x) {
-    return isObject(x) && x[propName] === true;
+    return isObject$1(x) && x[propName] === true;
   };
 }
 function isES6Map(thing) {
@@ -37086,7 +37086,7 @@ function reduceLikeFunc(funcName) {
 
 var isObservableArrayAdministration = /*#__PURE__*/createInstanceofPredicate("ObservableArrayAdministration", ObservableArrayAdministration);
 function isObservableArray(thing) {
-  return isObject(thing) && isObservableArrayAdministration(thing[$mobx]);
+  return isObject$1(thing) && isObservableArrayAdministration(thing[$mobx]);
 }
 
 var _Symbol$iterator, _Symbol$toStringTag;
@@ -38543,7 +38543,7 @@ function getCachedObservablePropDescriptor(key) {
 }
 
 function isObservableObject(thing) {
-  if (isObject(thing)) {
+  if (isObject$1(thing)) {
     return isObservableObjectAdministration(thing[$mobx]);
   }
 
@@ -39076,6 +39076,41 @@ if (typeof __MOBX_DEVTOOLS_GLOBAL_HOOK__ === "object") {
     },
     $mobx: $mobx
   });
+}
+
+function isMobileView(screenWidth) {
+  const TABLET_MIN_SCREEN_WIDTH = 768;
+  return screenWidth < TABLET_MIN_SCREEN_WIDTH;
+}
+
+class ThresholdObserver {
+  constructor(threshold, _default = 0) {
+    this.prev = _default;
+    this.threshold = threshold;
+  }
+
+  checkEach(current, threshold) {
+    if (this.prev >= threshold && current < threshold) return -1;
+    if (this.prev <= threshold && current > threshold) return 1;
+    return 0;
+  }
+
+  update(current, callback) {
+    if (typeof this.threshold === "number") {
+      const res = this.checkEach(current, this.threshold);
+      if (res === 1) callback(1);else if (res === -1) callback(0);
+    }
+
+    if (Array.isArray(this.threshold)) {
+      for (let i = 0; i < this.threshold.length; i++) {
+        const res = this.checkEach(current, this.threshold[i]);
+        if (res === 1) callback((i << 1) + 1);else if (res === -1) callback((i << 1) + 0);
+      }
+    }
+
+    this.prev = current;
+  }
+
 }
 
 function clamp(value, min, max) {
@@ -41711,19 +41746,22 @@ const _Viewer = ({
     shirts,
     pants
   } = selection;
-  return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
+  return /*#__PURE__*/jsxRuntime.exports.jsx("div", {
     className: "viewer",
-    children: [/*#__PURE__*/jsxRuntime.exports.jsx("h2", {
-      children: "This is Viewer!"
-    }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
-      children: ["Hats : ", hats.value]
-    }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
-      children: ["Hairstyle : ", hairstyle.value]
-    }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
-      children: ["Shirts : ", shirts.value]
-    }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
-      children: ["Pants : ", pants.value]
-    })]
+    children: /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
+      className: "viewer-wrapper",
+      children: [/*#__PURE__*/jsxRuntime.exports.jsx("h2", {
+        children: "This is Viewer!"
+      }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
+        children: ["Hats : ", hats.value]
+      }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
+        children: ["Hairstyle : ", hairstyle.value]
+      }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
+        children: ["Shirts : ", shirts.value]
+      }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
+        children: ["Pants : ", pants.value]
+      })]
+    })
   });
 };
 
@@ -87153,16 +87191,24 @@ const SWIPE_THRESHOLD = 6;
 const EPSILON = 1.5;
 const AXIS_X = Symbol.for('x');
 const AXIS_Y = Symbol.for('y');
+const MOBILE_MAX_SCREEN_WIDTH = 768;
 
-function grid(i) {
-  return (i + 0.5) * ITEM_GAP;
+function getScaleMultifier(screenWidth) {
+  return isMobileView(screenWidth) ? 4 / 5 : 1;
+}
+
+function grid(i, multiplier = 1) {
+  return (i + 0.5) * ITEM_GAP * multiplier;
 }
 
 class GridedSprite extends Sprite {
   constructor(index, texture) {
     super(texture);
     this.innerIndex = index;
-    this.x = grid(index);
+  }
+
+  setPosition(multiplier = 1) {
+    this.x = grid(this.innerIndex, multiplier);
     this.y = 0;
   }
 
@@ -87181,10 +87227,10 @@ function makeSheetMap(sheet, additionalSheet = {}) {
   };
 }
 
-function generateItem(i, sheets, parent, sheetPos, size = {
+function generateItem(i, sheets, sheetPos, size = {
   width: 20,
   height: 20
-}) {
+}, multiplier = 1) {
   if (sheetPos === null) return;
   const {
     x,
@@ -87199,20 +87245,25 @@ function generateItem(i, sheets, parent, sheetPos, size = {
   const rect = new Rectangle(x, y, width, height);
   const clothTexture = new Texture(sheets[sheet], rect);
   const cloth = new GridedSprite(i, clothTexture);
+  cloth.setPosition(multiplier);
   cloth.anchor.set(0.5);
-  cloth.scale.set(3);
-  parent.addChild(cloth);
+  cloth.scale.set(3 * multiplier);
+  return cloth;
 }
 
-function arrangeItems(container, itemAmount, axis = AXIS_X, fixedLines = 1) {
-  const columns = axis === AXIS_Y ? fixedLines : Math.ceil(itemAmount / fixedLines);
-
+function arrangeItems(container, columns, axis = AXIS_X, multiplier = 1) {
   for (let child of container.children) {
     const index = child.innerIndex;
     const x = index % columns;
     const y = Math.floor(index / columns);
-    child.x = grid(x);
-    child.y = axis === AXIS_Y ? grid(y) : 0;
+    child.x = grid(x, multiplier);
+    child.y = axis === AXIS_Y ? grid(y, multiplier) : 0;
+  }
+}
+
+function adjustScale(container, scale) {
+  for (let child of container.children) {
+    child.scale.set(scale);
   }
 }
 
@@ -87239,12 +87290,14 @@ class RadioButtons {
     this.parent = parent;
   }
 
-  generateButton(i, x) {
+  generateButton(i, x, multiplier = 1) {
     const button = new GridedSprite(x);
     if (i === this.initialValue) button.texture = this.constructor.selectedTexture;else button.texture = this.constructor.deselectedTexture;
     button.interactive = true;
     button.buttonMode = true;
     button.anchor.set(0.5);
+    button.setPosition(multiplier);
+    button.scale.set(multiplier);
     button.on('pointertap', this.check(i));
     this.buttons[i] = button;
     this.container.addChild(button);
@@ -87285,7 +87338,6 @@ class ScrollSnappedContainer extends Container {
 
     this.itemAmount = 0;
     this.lineCount = 0;
-    this.gap = ITEM_GAP;
     this.container = container; // properties for scroll
 
     this.scroll_index = 0;
@@ -87301,6 +87353,10 @@ class ScrollSnappedContainer extends Container {
     this.interactive = true; // add event listeners
 
     this.on('pointerdown', e => this.onDragStart(this.mousePos(e))).on('pointermove', e => this.onDragMove(this.mousePos(e))).on('pointerup', () => this.onDragEnd()).on('pointerupoutside', () => this.onDragEnd());
+  }
+
+  get gap() {
+    return ITEM_GAP * getScaleMultifier(document.body.clientWidth);
   }
 
   get containerSize() {
@@ -87362,7 +87418,7 @@ class ScrollSnappedContainer extends Container {
       this.scroll_index = this.getCurrentScrollIndex();
       this.velocity *= 0.98;
 
-      if (Math.abs(this.velocity) <= EPSILON || this.scroll_pos > ITEM_GAP || this.scroll_pos < -(this.rightBoundary + 1) * ITEM_GAP) {
+      if (Math.abs(this.velocity) <= EPSILON || this.scroll_pos > this.gap || this.scroll_pos < -(this.rightBoundary + 1) * this.gap) {
         this.velocity = 0;
         this.slide(0);
       }
@@ -87402,7 +87458,7 @@ class ScrollSnappedContainer extends Container {
   }
 
   getCurrentScrollIndex() {
-    return clamp(Math.round(-this.scroll_pos / ITEM_GAP), 0, this.rightBoundary);
+    return clamp(Math.round(-this.scroll_pos / this.gap), 0, this.rightBoundary);
   }
 
   mousePos(e) {
@@ -87437,7 +87493,9 @@ class ItemListController {
     this.defaultImage = defaultImage;
     this.additionalDefaultImage = additionalDefaultImage; // expanding toggler
 
-    this.expanded = false; // mobx reaction
+    this.expanded = false; // mobile adjustment
+
+    this.screenSizeObserver = new ThresholdObserver(MOBILE_MAX_SCREEN_WIDTH, document.body.clientWidth); // mobx reaction
 
     this.disposer = () => {}; // event dispatcher
 
@@ -87448,6 +87506,10 @@ class ItemListController {
     this.slideRight = this.slideRight.bind(this);
     this.onWheel = this.onWheel.bind(this);
     this.toggleExpantion = this.toggleExpantion.bind(this);
+  }
+
+  get multiplier() {
+    return getScaleMultifier(document.body.clientWidth);
   }
 
   setContainer(selectBox) {
@@ -87516,10 +87578,13 @@ class ItemListController {
     }].map(({
       parent,
       positioner
-    }) => i => generateItem(i + shift, sheets, parent, positioner(i), size)); // make icons and attach to parent
+    }) => i => {
+      const child = generateItem(i + shift, sheets, positioner(i), size, this.multiplier);
+      if (child) parent.addChild(child);
+    }); // make icons and attach to parent
 
     for (let i = -shift; i < spritesheetData.count; i++) {
-      this.radioButton.generateButton(i, i + shift);
+      this.radioButton.generateButton(i, i + shift, this.multiplier);
       makeItemArray.forEach(makeItem => makeItem(i));
     } // reset container's item amount & hit area
 
@@ -87550,24 +87615,31 @@ class ItemListController {
     this.container.slide(delta);
   }
 
-  toggleExpantion(state) {
-    this.app.resize(); // toggle expanded property
-
-    this.expanded = state ?? !this.expanded; // calculate axis, itemAmout, lines
-
+  arrangeContainerItems(multiplier) {
+    // calculate axis, itemAmout, lines
     const axis = this.expanded ? AXIS_Y : AXIS_X;
     const itemAmount = this.container.itemAmount;
-    const lines = this.expanded ? this.container.container.width / ITEM_GAP : 1;
+    const lines = this.expanded ? this.container.container.width / (ITEM_GAP * multiplier) : 1;
+    const columns = axis === AXIS_Y ? lines : Math.ceil(itemAmount / lines);
 
-    const arranger = container => arrangeItems(container, itemAmount, axis, lines); // set container's scroll axis
+    const arranger = container => arrangeItems(container, columns, axis, multiplier); // arrange items
 
-
-    this.container.scroll_axis = axis; // arrange items
 
     arranger(this.radioButton.container);
     arranger(this.uncolored);
     arranger(this.colored);
-    arranger(this.prismatic); // fix container's position
+    arranger(this.prismatic);
+  }
+
+  toggleExpantion(state) {
+    this.app.resize(); // toggle expanded property
+
+    this.expanded = state ?? !this.expanded;
+    const lines = this.expanded ? this.container.container.width / (ITEM_GAP * this.multiplier) : 1; // arrange items
+
+    this.arrangeContainerItems(this.multiplier); // set container's scroll axis
+
+    this.container.scroll_axis = this.expanded ? AXIS_Y : AXIS_X; // fix container's position
 
     if (this.expanded) {
       this.container.x = 0;
@@ -87575,10 +87647,22 @@ class ItemListController {
     } else this.container.y = this.app.screen.height / 2;
 
     this.container.scroll_index = 0;
-    this.container.lineCount = Math.ceil(itemAmount / lines);
+    this.container.lineCount = Math.ceil(this.container.itemAmount / lines);
     this.container.resetHitArea();
     const currentLine = Math.floor(this.radioButton.current / lines) - 2;
     this.container.slide(currentLine, 1);
+  }
+
+  adjustItemSize(multiplier) {
+    const radioButtonScale = 1 * multiplier;
+    const pixelIconScale = clamp(Math.floor(3 * multiplier), 1, Infinity); // adjust scale
+
+    adjustScale(this.radioButton.container, radioButtonScale);
+    adjustScale(this.uncolored, pixelIconScale);
+    adjustScale(this.colored, pixelIconScale);
+    adjustScale(this.prismatic, pixelIconScale);
+    this.arrangeContainerItems(multiplier);
+    this.container.resetHitArea();
   }
 
   flushChildren() {
@@ -87597,9 +87681,395 @@ class ItemListController {
 
   resize() {
     this.container.y = this.app.screen.height / 2;
+    this.screenSizeObserver.update(document.body.clientWidth, () => {
+      const multiplier = getScaleMultifier(document.body.clientWidth);
+      this.adjustItemSize(multiplier);
+    });
   }
 
 }
+
+/**
+ * lodash (Custom Build) <https://lodash.com/>
+ * Build: `lodash modularize exports="npm" -o ./`
+ * Copyright jQuery Foundation and other contributors <https://jquery.org/>
+ * Released under MIT license <https://lodash.com/license>
+ * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+ * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ */
+
+/** Used as the `TypeError` message for "Functions" methods. */
+var FUNC_ERROR_TEXT = 'Expected a function';
+
+/** Used as references for various `Number` constants. */
+var NAN = 0 / 0;
+
+/** `Object#toString` result references. */
+var symbolTag = '[object Symbol]';
+
+/** Used to match leading and trailing whitespace. */
+var reTrim = /^\s+|\s+$/g;
+
+/** Used to detect bad signed hexadecimal string values. */
+var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
+
+/** Used to detect binary string values. */
+var reIsBinary = /^0b[01]+$/i;
+
+/** Used to detect octal string values. */
+var reIsOctal = /^0o[0-7]+$/i;
+
+/** Built-in method references without a dependency on `root`. */
+var freeParseInt = parseInt;
+
+/** Detect free variable `global` from Node.js. */
+var freeGlobal = typeof commonjsGlobal == 'object' && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
+
+/** Detect free variable `self`. */
+var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
+
+/** Used as a reference to the global object. */
+var root = freeGlobal || freeSelf || Function('return this')();
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/**
+ * Used to resolve the
+ * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var objectToString = objectProto.toString;
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeMax = Math.max,
+    nativeMin = Math.min;
+
+/**
+ * Gets the timestamp of the number of milliseconds that have elapsed since
+ * the Unix epoch (1 January 1970 00:00:00 UTC).
+ *
+ * @static
+ * @memberOf _
+ * @since 2.4.0
+ * @category Date
+ * @returns {number} Returns the timestamp.
+ * @example
+ *
+ * _.defer(function(stamp) {
+ *   console.log(_.now() - stamp);
+ * }, _.now());
+ * // => Logs the number of milliseconds it took for the deferred invocation.
+ */
+var now = function() {
+  return root.Date.now();
+};
+
+/**
+ * Creates a debounced function that delays invoking `func` until after `wait`
+ * milliseconds have elapsed since the last time the debounced function was
+ * invoked. The debounced function comes with a `cancel` method to cancel
+ * delayed `func` invocations and a `flush` method to immediately invoke them.
+ * Provide `options` to indicate whether `func` should be invoked on the
+ * leading and/or trailing edge of the `wait` timeout. The `func` is invoked
+ * with the last arguments provided to the debounced function. Subsequent
+ * calls to the debounced function return the result of the last `func`
+ * invocation.
+ *
+ * **Note:** If `leading` and `trailing` options are `true`, `func` is
+ * invoked on the trailing edge of the timeout only if the debounced function
+ * is invoked more than once during the `wait` timeout.
+ *
+ * If `wait` is `0` and `leading` is `false`, `func` invocation is deferred
+ * until to the next tick, similar to `setTimeout` with a timeout of `0`.
+ *
+ * See [David Corbacho's article](https://css-tricks.com/debouncing-throttling-explained-examples/)
+ * for details over the differences between `_.debounce` and `_.throttle`.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Function
+ * @param {Function} func The function to debounce.
+ * @param {number} [wait=0] The number of milliseconds to delay.
+ * @param {Object} [options={}] The options object.
+ * @param {boolean} [options.leading=false]
+ *  Specify invoking on the leading edge of the timeout.
+ * @param {number} [options.maxWait]
+ *  The maximum time `func` is allowed to be delayed before it's invoked.
+ * @param {boolean} [options.trailing=true]
+ *  Specify invoking on the trailing edge of the timeout.
+ * @returns {Function} Returns the new debounced function.
+ * @example
+ *
+ * // Avoid costly calculations while the window size is in flux.
+ * jQuery(window).on('resize', _.debounce(calculateLayout, 150));
+ *
+ * // Invoke `sendMail` when clicked, debouncing subsequent calls.
+ * jQuery(element).on('click', _.debounce(sendMail, 300, {
+ *   'leading': true,
+ *   'trailing': false
+ * }));
+ *
+ * // Ensure `batchLog` is invoked once after 1 second of debounced calls.
+ * var debounced = _.debounce(batchLog, 250, { 'maxWait': 1000 });
+ * var source = new EventSource('/stream');
+ * jQuery(source).on('message', debounced);
+ *
+ * // Cancel the trailing debounced invocation.
+ * jQuery(window).on('popstate', debounced.cancel);
+ */
+function debounce(func, wait, options) {
+  var lastArgs,
+      lastThis,
+      maxWait,
+      result,
+      timerId,
+      lastCallTime,
+      lastInvokeTime = 0,
+      leading = false,
+      maxing = false,
+      trailing = true;
+
+  if (typeof func != 'function') {
+    throw new TypeError(FUNC_ERROR_TEXT);
+  }
+  wait = toNumber(wait) || 0;
+  if (isObject(options)) {
+    leading = !!options.leading;
+    maxing = 'maxWait' in options;
+    maxWait = maxing ? nativeMax(toNumber(options.maxWait) || 0, wait) : maxWait;
+    trailing = 'trailing' in options ? !!options.trailing : trailing;
+  }
+
+  function invokeFunc(time) {
+    var args = lastArgs,
+        thisArg = lastThis;
+
+    lastArgs = lastThis = undefined;
+    lastInvokeTime = time;
+    result = func.apply(thisArg, args);
+    return result;
+  }
+
+  function leadingEdge(time) {
+    // Reset any `maxWait` timer.
+    lastInvokeTime = time;
+    // Start the timer for the trailing edge.
+    timerId = setTimeout(timerExpired, wait);
+    // Invoke the leading edge.
+    return leading ? invokeFunc(time) : result;
+  }
+
+  function remainingWait(time) {
+    var timeSinceLastCall = time - lastCallTime,
+        timeSinceLastInvoke = time - lastInvokeTime,
+        result = wait - timeSinceLastCall;
+
+    return maxing ? nativeMin(result, maxWait - timeSinceLastInvoke) : result;
+  }
+
+  function shouldInvoke(time) {
+    var timeSinceLastCall = time - lastCallTime,
+        timeSinceLastInvoke = time - lastInvokeTime;
+
+    // Either this is the first call, activity has stopped and we're at the
+    // trailing edge, the system time has gone backwards and we're treating
+    // it as the trailing edge, or we've hit the `maxWait` limit.
+    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+      (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait));
+  }
+
+  function timerExpired() {
+    var time = now();
+    if (shouldInvoke(time)) {
+      return trailingEdge(time);
+    }
+    // Restart the timer.
+    timerId = setTimeout(timerExpired, remainingWait(time));
+  }
+
+  function trailingEdge(time) {
+    timerId = undefined;
+
+    // Only invoke if we have `lastArgs` which means `func` has been
+    // debounced at least once.
+    if (trailing && lastArgs) {
+      return invokeFunc(time);
+    }
+    lastArgs = lastThis = undefined;
+    return result;
+  }
+
+  function cancel() {
+    if (timerId !== undefined) {
+      clearTimeout(timerId);
+    }
+    lastInvokeTime = 0;
+    lastArgs = lastCallTime = lastThis = timerId = undefined;
+  }
+
+  function flush() {
+    return timerId === undefined ? result : trailingEdge(now());
+  }
+
+  function debounced() {
+    var time = now(),
+        isInvoking = shouldInvoke(time);
+
+    lastArgs = arguments;
+    lastThis = this;
+    lastCallTime = time;
+
+    if (isInvoking) {
+      if (timerId === undefined) {
+        return leadingEdge(lastCallTime);
+      }
+      if (maxing) {
+        // Handle invocations in a tight loop.
+        timerId = setTimeout(timerExpired, wait);
+        return invokeFunc(lastCallTime);
+      }
+    }
+    if (timerId === undefined) {
+      timerId = setTimeout(timerExpired, wait);
+    }
+    return result;
+  }
+  debounced.cancel = cancel;
+  debounced.flush = flush;
+  return debounced;
+}
+
+/**
+ * Checks if `value` is the
+ * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
+ * of `Object`. (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an object, else `false`.
+ * @example
+ *
+ * _.isObject({});
+ * // => true
+ *
+ * _.isObject([1, 2, 3]);
+ * // => true
+ *
+ * _.isObject(_.noop);
+ * // => true
+ *
+ * _.isObject(null);
+ * // => false
+ */
+function isObject(value) {
+  var type = typeof value;
+  return !!value && (type == 'object' || type == 'function');
+}
+
+/**
+ * Checks if `value` is object-like. A value is object-like if it's not `null`
+ * and has a `typeof` result of "object".
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+ * @example
+ *
+ * _.isObjectLike({});
+ * // => true
+ *
+ * _.isObjectLike([1, 2, 3]);
+ * // => true
+ *
+ * _.isObjectLike(_.noop);
+ * // => false
+ *
+ * _.isObjectLike(null);
+ * // => false
+ */
+function isObjectLike(value) {
+  return !!value && typeof value == 'object';
+}
+
+/**
+ * Checks if `value` is classified as a `Symbol` primitive or object.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a symbol, else `false`.
+ * @example
+ *
+ * _.isSymbol(Symbol.iterator);
+ * // => true
+ *
+ * _.isSymbol('abc');
+ * // => false
+ */
+function isSymbol(value) {
+  return typeof value == 'symbol' ||
+    (isObjectLike(value) && objectToString.call(value) == symbolTag);
+}
+
+/**
+ * Converts `value` to a number.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to process.
+ * @returns {number} Returns the number.
+ * @example
+ *
+ * _.toNumber(3.2);
+ * // => 3.2
+ *
+ * _.toNumber(Number.MIN_VALUE);
+ * // => 5e-324
+ *
+ * _.toNumber(Infinity);
+ * // => Infinity
+ *
+ * _.toNumber('3.2');
+ * // => 3.2
+ */
+function toNumber(value) {
+  if (typeof value == 'number') {
+    return value;
+  }
+  if (isSymbol(value)) {
+    return NAN;
+  }
+  if (isObject(value)) {
+    var other = typeof value.valueOf == 'function' ? value.valueOf() : value;
+    value = isObject(other) ? (other + '') : other;
+  }
+  if (typeof value != 'string') {
+    return value === 0 ? value : +value;
+  }
+  value = value.replace(reTrim, '');
+  var isBinary = reIsBinary.test(value);
+  return (isBinary || reIsOctal.test(value))
+    ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
+    : (reIsBadHex.test(value) ? NAN : +value);
+}
+
+var lodash_debounce = debounce;
+
+const APP_DOM = document.getElementById("app");
+const MOBILE_SCREEN = 768;
+const TABLET_SCREEN = 1366;
 
 function getScrollDelta(e) {
   return e.deltaY ?? (typeof e.wheelDeltaY === "number" ? -e.wheelDeltaY : e.detail);
@@ -87625,32 +88095,65 @@ class ItemSelector extends react.exports.Component {
     this.state = {
       expanded: false
     };
+    this.resizeObserver = new ThresholdObserver([MOBILE_SCREEN, TABLET_SCREEN], document.body.clientWidth);
     this.toggleExpansion = this.toggleExpansion.bind(this);
+    this.screenResize = lodash_debounce(this.screenResize.bind(this), 100);
+    this.mobileScrollToggle = lodash_debounce(this.mobileScrollToggle.bind(this), 100);
 
-    this.scroll = e => {
+    this.canvasScroll = e => {
       e.preventDefault();
       let delta = Math.sign(getScrollDelta(e));
       this.hud.onWheel(delta);
     };
   }
 
+  mobileScrollToggle(e) {
+    if (document.body.clientWidth >= MOBILE_SCREEN) return;
+    const {
+      scrollTop
+    } = e.target;
+    this.setState(state => {
+      if (scrollTop < 1) return {
+        expanded: false
+      };
+      return {
+        expanded: true
+      };
+    });
+  }
+
+  screenResize() {
+    this.resizeObserver.update(document.body.clientWidth, () => {
+      APP_DOM.scrollTop = 0;
+      this.setState({
+        expanded: false
+      });
+    });
+  }
+
   componentDidMount() {
     if (this.canvasDom.current) {
       this.hud.appendParent(this.canvasDom.current);
       this.hud.initialize(this.props.dataSet);
-      this.canvasDom.current.addEventListener('wheel', this.scroll, {
+      this.canvasDom.current.addEventListener('wheel', this.canvasScroll, {
         passive: false
       });
     }
+
+    window.addEventListener('resize', this.screenResize);
+    APP_DOM.addEventListener('scroll', this.mobileScrollToggle);
   }
 
   componentWillUnmount() {
     if (this.canvasDom.current) {
       this.hud.halt();
-      this.canvasDom.current.removeEventListener('wheel', this.scroll, {
+      this.canvasDom.current.removeEventListener('wheel', this.canvasScroll, {
         passive: false
       });
     }
+
+    window.removeEventListener('resize', this.screenResize);
+    APP_DOM.removeEventListener('scroll', this.mobileScrollToggle);
   }
 
   toggleExpansion() {
@@ -87662,24 +88165,24 @@ class ItemSelector extends react.exports.Component {
   }
 
   componentDidUpdate() {
-    setTimeout(() => this.hud.toggleExpantion(this.state.expaned), 300);
+    setTimeout(() => this.hud.toggleExpantion(this.state.expanded), 310);
   }
 
   render() {
     return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-      className: "cloth-list-wrapper",
+      className: "selector",
       children: [/*#__PURE__*/jsxRuntime.exports.jsx("div", {
         className: `left-button ${this.state.expanded ? "inactive" : ""}`,
         onClick: () => this.hud.slideLeft()
       }), /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-        className: "cloth-list-border",
+        className: "selector-border",
         children: [/*#__PURE__*/jsxRuntime.exports.jsx("div", {
           className: `hidden ${this.state.expanded ? "expanded" : ""}`,
           style: {
             "display": "none"
           }
         }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
-          className: "cloth-list",
+          className: "selector-canvas",
           ref: this.canvasDom
         })]
       }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
@@ -87700,7 +88203,7 @@ function ColorSlider({
 }) {
   const langs = react.exports.useContext(LangsContext);
   return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-    className: "color-slider-wrapper box-with-title",
+    className: "slider box-with-title",
     children: [/*#__PURE__*/jsxRuntime.exports.jsx("h3", {
       children: langs.getText("UI.color")
     }), /*#__PURE__*/jsxRuntime.exports.jsx("input", {
@@ -87741,11 +88244,11 @@ function ObtainDescription({
   }
 
   return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-    className: "desc box-with-title",
+    className: "description box-with-title",
     children: [/*#__PURE__*/jsxRuntime.exports.jsx("h3", {
       children: langs.getText("UI.howToObtain")
     }), /*#__PURE__*/jsxRuntime.exports.jsx("p", {
-      className: "desc-content",
+      className: "description-content",
       children: getI18nDesc(selection.value)
     })]
   });
@@ -87766,11 +88269,8 @@ const ControllerTitle = observer(({
   name
 }) => {
   const langs = react.exports.useContext(LangsContext);
-  return /*#__PURE__*/jsxRuntime.exports.jsx("div", {
-    className: "itemHeader",
-    children: /*#__PURE__*/jsxRuntime.exports.jsx("h2", {
-      children: langs.getText(`title.${name}`)
-    })
+  return /*#__PURE__*/jsxRuntime.exports.jsx("h2", {
+    children: langs.getText(`title.${name}`)
   });
 });
 
@@ -87785,21 +88285,21 @@ const ClothesControllerBase = ({
     defaultImage
   } = getProps(name);
   return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-    className: `clothesController clothesController-${name}`,
-    children: [/*#__PURE__*/jsxRuntime.exports.jsx(ControllerTitle, {
-      name: name
-    }), /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-      className: "controller-main",
-      children: [/*#__PURE__*/jsxRuntime.exports.jsx(ItemSelector, {
-        name: name,
-        selection: selection,
-        dataSet: dataSet,
-        defaultImage: defaultImage,
-        additionalDefaultImage: additionalDefaultImage
-      }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
-        className: "controller-sub-box",
-        children: children
-      })]
+    className: `controller-item controller-item-${name}`,
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx("div", {
+      className: "controller-header",
+      children: /*#__PURE__*/jsxRuntime.exports.jsx(ControllerTitle, {
+        name: name
+      })
+    }), /*#__PURE__*/jsxRuntime.exports.jsx(ItemSelector, {
+      name: name,
+      selection: selection,
+      dataSet: dataSet,
+      defaultImage: defaultImage,
+      additionalDefaultImage: additionalDefaultImage
+    }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
+      className: "controller-sub",
+      children: children
     })]
   });
 };
@@ -87856,9 +88356,7 @@ const ClothesController = ({
 const Controller = () => {
   return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
     className: "controller",
-    children: [/*#__PURE__*/jsxRuntime.exports.jsx("h2", {
-      children: "This is Controller!"
-    }), /*#__PURE__*/jsxRuntime.exports.jsx(HatsController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(HairstyleController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(ClothesController, {
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx(HatsController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(HairstyleController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(ClothesController, {
       name: "shirts"
     }), /*#__PURE__*/jsxRuntime.exports.jsx(ClothesController, {
       name: "pants"
