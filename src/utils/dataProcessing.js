@@ -5,14 +5,19 @@ function hatsJsonProcessing(data)
 	let index = 0;
 	for(let value of Object.values(data) )
 	{
-		let [,,hairDrawType, ignoreHairstyleOffset] = value.split("/");
-		if(hairDrawType == "true") hairDrawType = 0;
-		else if(hairDrawType == "false") hairDrawType = 1;
-		else hairDrawType = 2;
+		let [name,,hairDrawType, ignoreHairstyleOffset, additional] = value.split("/");
+		if(hairDrawType == "true") hairDrawType = 0; // original
+		else if(hairDrawType == "false") hairDrawType = 1; // cover
+		else hairDrawType = 2; // hide
+
+		let isMask = false;
+		if(hairDrawType !== 2 && name.includes("Mask")) isMask = true;
 
 		ignoreHairstyleOffset = (ignoreHairstyleOffset === "true");
 
-		result[index++] = {hairDrawType, ignoreHairstyleOffset};
+		let prismatic = (additional === "Prismatic");
+
+		result[index++] = {hairDrawType, ignoreHairstyleOffset, isMask, prismatic};
 	}
 
 	return result;
@@ -78,8 +83,8 @@ function extractClothData(str)
 	color = color.split(" ").map(value=>+value);
 
 	dyeable = dyeable === "true";
-	prismatic = additional === "Prismatic";
-	sleeveless = additional === "Sleeveless";
+	let prismatic = additional === "Prismatic";
+	let sleeveless = additional === "Sleeveless";
 
 	return {name, male, female, color, dyeable, sleeveless, prismatic};
 }

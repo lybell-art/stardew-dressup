@@ -1,9 +1,9 @@
 import { useContext } from "react";
 import { observer } from "mobx-react-lite";
+import { useSwiper } from "swiper/react";
 
 // stores
-import clothStoreDict from "../stores/clothStoreDict.js";
-import spriteSheetFileData from "../stores/SpriteSheetFileData.js";
+import characterStore from "../stores/CharacterStore.js";
 import { LangsContext } from "../stores/Langs.js";
 
 // sub-containers
@@ -11,17 +11,8 @@ import ItemSelector from "./ItemSelector.jsx";
 import ColorSlider from "./ColorSlider.jsx";
 import ObtainDescription from "./ObtainDescription.jsx";
 
-const { hats, hairstyle, shirts, pants } = clothStoreDict;
-
 // extract selection mobx box, dataset mobx box, default image url from name
-function getProps(name)
-{
-	return {
-		selection : clothStoreDict[name],
-		dataSet : spriteSheetFileData[name],
-		defaultImage : `assets/${name}.png`
-	}
-}
+const getProps = characterStore.getProps.bind(characterStore);
 
 // title 
 const ControllerTitle = observer( ({name})=>{
@@ -32,6 +23,7 @@ const ControllerTitle = observer( ({name})=>{
 
 const ClothesControllerBase = ({name, additionalDefaultImage={}, children})=>{
 	const {selection, dataSet, defaultImage} = getProps(name);
+	const swiper = useSwiper();
 
 	return (
 	<div className={`controller-item controller-item-${name}`}>
@@ -43,6 +35,7 @@ const ClothesControllerBase = ({name, additionalDefaultImage={}, children})=>{
 			dataSet={dataSet}
 			defaultImage={defaultImage}
 			additionalDefaultImage={additionalDefaultImage}
+			swiper={swiper}
 		/>
 		<div className="controller-sub">{children}</div>
 	</div>

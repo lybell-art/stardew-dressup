@@ -1,6 +1,6 @@
 {
   "name": "stardew_dressup",
-  "version": "0.0.2",
+  "version": "0.3.0",
   "description": "Stardew Valley Clothing Simulator (with react)",
   "main": "index.js",
   "scripts": {
@@ -15,13 +15,13 @@
   "dependencies": {
     "@xnb-js/core": "^1.1.0",
     "@xnb-js/readers": "^1.1.0",
-    "content-visibility": "^1.2.2",
     "lodash.debounce": "^4.0.8",
     "mobx": "^6.6.0",
     "mobx-react-lite": "^3.4.0",
     "pixi.js": "^6.3.2",
     "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+    "react-dom": "^18.1.0",
+    "swiper": "^8.2.3"
   },
   "devDependencies": {
     "@babel/core": "^7.18.2",

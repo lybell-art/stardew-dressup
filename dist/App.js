@@ -33145,15 +33145,3016 @@ var createRoot;
 
 var m = reactDom.exports;
 {
-  var i = m.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+  var i$1 = m.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
   createRoot = function(c, o) {
-    i.usingClientEntryPoint = true;
+    i$1.usingClientEntryPoint = true;
     try {
       return m.createRoot(c, o);
     } finally {
-      i.usingClientEntryPoint = false;
+      i$1.usingClientEntryPoint = false;
     }
   };
+}
+
+/** 
+ * xnb.js 1.1.0
+ * made by Lybell( https://github.com/lybell-art/ )
+ * This library is based on the XnbCli made by Leonblade.
+ * 
+ * xnb.js is licensed under the LGPL 3.0 License.
+ * 
+*/
+
+Promise.allSettled !== undefined ? Promise.allSettled.bind(Promise) : function (promises) {
+	let mappedPromises = promises.map(p => {
+		return p.then(value => {
+			return {
+				status: 'fulfilled',
+				value
+			};
+		}).catch(reason => {
+			return {
+				status: 'rejected',
+				reason
+			};
+		});
+	});
+	return Promise.all(mappedPromises);
+};
+
+function ownKeys$1(object, enumerableOnly) {
+	var keys = Object.keys(object);
+
+	if (Object.getOwnPropertySymbols) {
+		var symbols = Object.getOwnPropertySymbols(object);
+		enumerableOnly && (symbols = symbols.filter(function (sym) {
+			return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+		})), keys.push.apply(keys, symbols);
+	}
+
+	return keys;
+}
+
+function _objectSpread2(target) {
+	for (var i = 1; i < arguments.length; i++) {
+		var source = null != arguments[i] ? arguments[i] : {};
+		i % 2 ? ownKeys$1(Object(source), !0).forEach(function (key) {
+			_defineProperty(target, key, source[key]);
+		}) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$1(Object(source)).forEach(function (key) {
+			Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+		});
+	}
+
+	return target;
+}
+
+function _defineProperty(obj, key, value) {
+	if (key in obj) {
+		Object.defineProperty(obj, key, {
+			value: value,
+			enumerable: true,
+			configurable: true,
+			writable: true
+		});
+	} else {
+		obj[key] = value;
+	}
+
+	return obj;
+}
+
+class XnbError extends Error {
+	constructor() {
+		let message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+		super(message);
+		this.name = "XnbError";
+		this.message = message;
+		Error.captureStackTrace(this, XnbError);
+	}
+
+}
+
+function removeExternBracket(str) {
+	let bracketStack = [];
+	let result = [];
+
+	for (let i = 0; i < str.length; i++) {
+		let c = str[i];
+		if (c === "[") bracketStack.push(i);else if (c === "]") {
+			let startPoint = bracketStack.pop();
+			if (startPoint === undefined) throw new Error("Invalid Bracket Form!");
+			if (bracketStack.length === 0) result.push(str.slice(startPoint + 1, i));
+		}
+	}
+
+	return result;
+}
+
+class TypeReader {
+	static setReaders(readers) {
+		TypeReader.readers = _objectSpread2({}, readers);
+	}
+
+	static addReaders(readers) {
+		TypeReader.readers = _objectSpread2(_objectSpread2({}, TypeReader.readers), readers);
+	}
+
+	static makeSimplied(type, reader) {
+		let simple = type.split(/`|,/)[0];
+
+		if (reader.isTypeOf(simple)) {
+			if (reader.hasSubType()) {
+				let subtypes = TypeReader.parseSubtypes(type).map(TypeReader.simplifyType.bind(TypeReader));
+				return "".concat(reader.type(), "<").concat(subtypes.join(","), ">");
+			} else return reader.type();
+		}
+
+		return null;
+	}
+
+	static simplifyType(type) {
+		let simple = type.split(/`|,/)[0];
+		let isArray = simple.endsWith('[]');
+		if (isArray) return "Array<".concat(simplifyType(simple.slice(0, -2)), ">");
+
+		if (simple === 'Microsoft.Xna.Framework.Content.ReflectiveReader') {
+				let reflectiveType = TypeReader.parseSubtypes(type).map(TypeReader.simplifyType.bind(TypeReader));
+				return "".concat(reflectiveType);
+			}
+
+		for (let reader of Object.values(TypeReader.readers)) {
+			let result = TypeReader.makeSimplied(type, reader);
+			if (result !== null) return result;
+		}
+
+		throw new XnbError("Non-implemented type found, cannot resolve type \"".concat(simple, "\", \"").concat(type, "\"."));
+	}
+
+	static parseSubtypes(type) {
+		let subtype = type.slice(type.search("`") + 1);
+		subtype[0];
+		subtype = removeExternBracket(subtype)[0];
+		let matches = removeExternBracket(subtype);
+		return matches;
+	}
+
+	static getTypeInfo(type) {
+		let mainType = type.match(/[^<]+/)[0];
+		let subtypes = type.match(/<(.+)>/);
+		subtypes = subtypes ? subtypes[1].split(',').map(type => type.trim()) : [];
+		return {
+			type: mainType,
+			subtypes
+		};
+	}
+
+	static getReaderTypeList(typeString) {
+		let reader = TypeReader.getReader(typeString);
+		return reader.parseTypeList();
+	}
+
+	static getReader(typeString) {
+		let {
+			type,
+			subtypes
+		} = TypeReader.getTypeInfo(typeString);
+		subtypes = subtypes.map(TypeReader.getReader.bind(TypeReader));
+		if (TypeReader.readers.hasOwnProperty("".concat(type, "Reader"))) return new TypeReader.readers["".concat(type, "Reader")](...subtypes);
+		throw new XnbError("Invalid reader type \"".concat(typeString, "\" passed, unable to resolve!"));
+	}
+
+	static getReaderFromRaw(typeString) {
+		const simplified = TypeReader.simplifyType(typeString);
+		return TypeReader.getReader(simplified);
+	}
+
+}
+
+_defineProperty(TypeReader, "readers", {});
+const hashSize = 1 << 16;
+makeBuffer(5 << 20);
+makeHashTable();
+
+function makeHashTable() {
+	try {
+		return new Uint32Array(hashSize);
+	} catch (error) {
+		const hashTable = new Array(hashSize);
+
+		for (var i = 0; i < hashSize; i++) {
+			hashTable[i] = 0;
+		}
+
+		return hashTable;
+	}
+}
+
+function makeBuffer(size) {
+	try {
+		return new Uint8Array(size);
+	} catch (error) {
+		var buf = new Array(size);
+
+		for (var i = 0; i < size; i++) {
+			buf[i] = 0;
+		}
+
+		return buf;
+	}
+}
+
+var t = {
+	396: function _() {
+		!function (t) {
+			if (t.TextEncoder && t.TextDecoder) return !1;
+
+			function e() {
+				let t = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "utf-8";
+				if ("utf-8" !== t) throw new RangeError("Failed to construct 'TextEncoder': The encoding label provided ('".concat(t, "') is invalid."));
+			}
+
+			function i() {
+				let t = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "utf-8";
+				let e = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
+					fatal: !1
+				};
+				if ("utf-8" !== t) throw new RangeError("Failed to construct 'TextDecoder': The encoding label provided ('".concat(t, "') is invalid."));
+				if (e.fatal) throw new Error("Failed to construct 'TextDecoder': the 'fatal' option is unsupported.");
+			}
+
+			Object.defineProperty(e.prototype, "encoding", {
+				value: "utf-8"
+			}), e.prototype.encode = function (t) {
+				let e = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
+					stream: !1
+				};
+				if (e.stream) throw new Error("Failed to encode: the 'stream' option is unsupported.");
+				let i = 0;
+				const n = t.length;
+				let r = 0,
+						s = Math.max(32, n + (n >> 1) + 7),
+						a = new Uint8Array(s >> 3 << 3);
+
+				for (; i < n;) {
+					let e = t.charCodeAt(i++);
+
+					if (e >= 55296 && e <= 56319) {
+						if (i < n) {
+							const n = t.charCodeAt(i);
+							56320 == (64512 & n) && (++i, e = ((1023 & e) << 10) + (1023 & n) + 65536);
+						}
+
+						if (e >= 55296 && e <= 56319) continue;
+					}
+
+					if (r + 4 > a.length) {
+						s += 8, s *= 1 + i / t.length * 2, s = s >> 3 << 3;
+						const e = new Uint8Array(s);
+						e.set(a), a = e;
+					}
+
+					if (0 != (4294967168 & e)) {
+						if (0 == (4294965248 & e)) a[r++] = e >> 6 & 31 | 192;else if (0 == (4294901760 & e)) a[r++] = e >> 12 & 15 | 224, a[r++] = e >> 6 & 63 | 128;else {
+							if (0 != (4292870144 & e)) continue;
+							a[r++] = e >> 18 & 7 | 240, a[r++] = e >> 12 & 63 | 128, a[r++] = e >> 6 & 63 | 128;
+						}
+						a[r++] = 63 & e | 128;
+					} else a[r++] = e;
+				}
+
+				return a.slice(0, r);
+			}, Object.defineProperty(i.prototype, "encoding", {
+				value: "utf-8"
+			}), Object.defineProperty(i.prototype, "fatal", {
+				value: !1
+			}), Object.defineProperty(i.prototype, "ignoreBOM", {
+				value: !1
+			}), i.prototype.decode = function (t) {
+				let e = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
+					stream: !1
+				};
+				if (e.stream) throw new Error("Failed to decode: the 'stream' option is unsupported.");
+				const i = new Uint8Array(t);
+				let n = 0;
+				const r = i.length,
+							s = [];
+
+				for (; n < r;) {
+					const t = i[n++];
+					if (0 === t) break;
+					if (0 == (128 & t)) s.push(t);else if (192 == (224 & t)) {
+						const e = 63 & i[n++];
+						s.push((31 & t) << 6 | e);
+					} else if (224 == (240 & t)) {
+						const e = 63 & i[n++],
+									r = 63 & i[n++];
+						s.push((31 & t) << 12 | e << 6 | r);
+					} else if (240 == (248 & t)) {
+						let e = (7 & t) << 18 | (63 & i[n++]) << 12 | (63 & i[n++]) << 6 | 63 & i[n++];
+						e > 65535 && (e -= 65536, s.push(e >>> 10 & 1023 | 55296), e = 56320 | 1023 & e), s.push(e);
+					}
+				}
+
+				return String.fromCharCode.apply(null, s);
+			}, t.TextEncoder = e, t.TextDecoder = i;
+		}("undefined" != typeof window ? window : "undefined" != typeof self ? self : this);
+	}
+},
+		e = {};
+
+function i(n) {
+	var r = e[n];
+	if (void 0 !== r) return r.exports;
+	var s = e[n] = {
+		exports: {}
+	};
+	return t[n].call(s.exports, s, s.exports, i), s.exports;
+}
+
+i.d = (t, e) => {
+	for (var n in e) i.o(e, n) && !i.o(t, n) && Object.defineProperty(t, n, {
+		enumerable: !0,
+		get: e[n]
+	});
+}, i.o = (t, e) => Object.prototype.hasOwnProperty.call(t, e);
+var n = {};
+
+(() => {
+	i.d(n, {
+		P: () => Mi,
+		m: () => Fi
+	}), i(396);
+	const t = new TextDecoder("utf-8"),
+				e = new TextEncoder();
+
+	class r {
+		constructor() {
+			let t = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 8192;
+			let e = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+			let i = !1;
+			"number" == typeof t ? t = new ArrayBuffer(t) : (i = !0, this.lastWrittenByte = t.byteLength);
+			const n = e.offset ? e.offset >>> 0 : 0,
+						s = t.byteLength - n;
+			let a = n;
+			(ArrayBuffer.isView(t) || t instanceof r) && (t.byteLength !== t.buffer.byteLength && (a = t.byteOffset + n), t = t.buffer), this.lastWrittenByte = i ? s : 0, this.buffer = t, this.length = s, this.byteLength = s, this.byteOffset = a, this.offset = 0, this.littleEndian = !0, this._data = new DataView(this.buffer, a, s), this._mark = 0, this._marks = [];
+		}
+
+		available() {
+			let t = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+			return this.offset + t <= this.length;
+		}
+
+		isLittleEndian() {
+			return this.littleEndian;
+		}
+
+		setLittleEndian() {
+			return this.littleEndian = !0, this;
+		}
+
+		isBigEndian() {
+			return !this.littleEndian;
+		}
+
+		setBigEndian() {
+			return this.littleEndian = !1, this;
+		}
+
+		skip() {
+			let t = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+			return this.offset += t, this;
+		}
+
+		seek(t) {
+			return this.offset = t, this;
+		}
+
+		mark() {
+			return this._mark = this.offset, this;
+		}
+
+		reset() {
+			return this.offset = this._mark, this;
+		}
+
+		pushMark() {
+			return this._marks.push(this.offset), this;
+		}
+
+		popMark() {
+			const t = this._marks.pop();
+
+			if (void 0 === t) throw new Error("Mark stack empty");
+			return this.seek(t), this;
+		}
+
+		rewind() {
+			return this.offset = 0, this;
+		}
+
+		ensureAvailable() {
+			let t = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+
+			if (!this.available(t)) {
+				const e = 2 * (this.offset + t),
+							i = new Uint8Array(e);
+				i.set(new Uint8Array(this.buffer)), this.buffer = i.buffer, this.length = this.byteLength = e, this._data = new DataView(this.buffer);
+			}
+
+			return this;
+		}
+
+		readBoolean() {
+			return 0 !== this.readUint8();
+		}
+
+		readInt8() {
+			return this._data.getInt8(this.offset++);
+		}
+
+		readUint8() {
+			return this._data.getUint8(this.offset++);
+		}
+
+		readByte() {
+			return this.readUint8();
+		}
+
+		readBytes() {
+			let t = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+			const e = new Uint8Array(t);
+
+			for (let i = 0; i < t; i++) e[i] = this.readByte();
+
+			return e;
+		}
+
+		readInt16() {
+			const t = this._data.getInt16(this.offset, this.littleEndian);
+
+			return this.offset += 2, t;
+		}
+
+		readUint16() {
+			const t = this._data.getUint16(this.offset, this.littleEndian);
+
+			return this.offset += 2, t;
+		}
+
+		readInt32() {
+			const t = this._data.getInt32(this.offset, this.littleEndian);
+
+			return this.offset += 4, t;
+		}
+
+		readUint32() {
+			const t = this._data.getUint32(this.offset, this.littleEndian);
+
+			return this.offset += 4, t;
+		}
+
+		readFloat32() {
+			const t = this._data.getFloat32(this.offset, this.littleEndian);
+
+			return this.offset += 4, t;
+		}
+
+		readFloat64() {
+			const t = this._data.getFloat64(this.offset, this.littleEndian);
+
+			return this.offset += 8, t;
+		}
+
+		readBigInt64() {
+			const t = this._data.getBigInt64(this.offset, this.littleEndian);
+
+			return this.offset += 8, t;
+		}
+
+		readBigUint64() {
+			const t = this._data.getBigUint64(this.offset, this.littleEndian);
+
+			return this.offset += 8, t;
+		}
+
+		readChar() {
+			return String.fromCharCode(this.readInt8());
+		}
+
+		readChars() {
+			let t = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+			let e = "";
+
+			for (let i = 0; i < t; i++) e += this.readChar();
+
+			return e;
+		}
+
+		readUtf8() {
+			let e = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+			return i = this.readBytes(e), t.decode(i);
+			var i;
+		}
+
+		writeBoolean(t) {
+			return this.writeUint8(t ? 255 : 0), this;
+		}
+
+		writeInt8(t) {
+			return this.ensureAvailable(1), this._data.setInt8(this.offset++, t), this._updateLastWrittenByte(), this;
+		}
+
+		writeUint8(t) {
+			return this.ensureAvailable(1), this._data.setUint8(this.offset++, t), this._updateLastWrittenByte(), this;
+		}
+
+		writeByte(t) {
+			return this.writeUint8(t);
+		}
+
+		writeBytes(t) {
+			this.ensureAvailable(t.length);
+
+			for (let e = 0; e < t.length; e++) this._data.setUint8(this.offset++, t[e]);
+
+			return this._updateLastWrittenByte(), this;
+		}
+
+		writeInt16(t) {
+			return this.ensureAvailable(2), this._data.setInt16(this.offset, t, this.littleEndian), this.offset += 2, this._updateLastWrittenByte(), this;
+		}
+
+		writeUint16(t) {
+			return this.ensureAvailable(2), this._data.setUint16(this.offset, t, this.littleEndian), this.offset += 2, this._updateLastWrittenByte(), this;
+		}
+
+		writeInt32(t) {
+			return this.ensureAvailable(4), this._data.setInt32(this.offset, t, this.littleEndian), this.offset += 4, this._updateLastWrittenByte(), this;
+		}
+
+		writeUint32(t) {
+			return this.ensureAvailable(4), this._data.setUint32(this.offset, t, this.littleEndian), this.offset += 4, this._updateLastWrittenByte(), this;
+		}
+
+		writeFloat32(t) {
+			return this.ensureAvailable(4), this._data.setFloat32(this.offset, t, this.littleEndian), this.offset += 4, this._updateLastWrittenByte(), this;
+		}
+
+		writeFloat64(t) {
+			return this.ensureAvailable(8), this._data.setFloat64(this.offset, t, this.littleEndian), this.offset += 8, this._updateLastWrittenByte(), this;
+		}
+
+		writeBigInt64(t) {
+			return this.ensureAvailable(8), this._data.setBigInt64(this.offset, t, this.littleEndian), this.offset += 8, this._updateLastWrittenByte(), this;
+		}
+
+		writeBigUint64(t) {
+			return this.ensureAvailable(8), this._data.setBigUint64(this.offset, t, this.littleEndian), this.offset += 8, this._updateLastWrittenByte(), this;
+		}
+
+		writeChar(t) {
+			return this.writeUint8(t.charCodeAt(0));
+		}
+
+		writeChars(t) {
+			for (let e = 0; e < t.length; e++) this.writeUint8(t.charCodeAt(e));
+
+			return this;
+		}
+
+		writeUtf8(t) {
+			return this.writeBytes(function (t) {
+				return e.encode(t);
+			}(t));
+		}
+
+		toArray() {
+			return new Uint8Array(this.buffer, this.byteOffset, this.lastWrittenByte);
+		}
+
+		_updateLastWrittenByte() {
+			this.offset > this.lastWrittenByte && (this.lastWrittenByte = this.offset);
+		}
+
+	}
+
+	function s(t) {
+		let e = t.length;
+
+		for (; --e >= 0;) t[e] = 0;
+	}
+
+	const a = new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0]),
+				o = new Uint8Array([0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13]),
+				h = new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 7]),
+				l = new Uint8Array([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]),
+				d = new Array(576);
+	s(d);
+
+	const _ = new Array(60);
+
+	s(_);
+	const f = new Array(512);
+	s(f);
+	const c = new Array(256);
+	s(c);
+	const u = new Array(29);
+	s(u);
+	const w = new Array(30);
+
+	function p(t, e, i, n, r) {
+		this.static_tree = t, this.extra_bits = e, this.extra_base = i, this.elems = n, this.max_length = r, this.has_stree = t && t.length;
+	}
+
+	let g, b, m;
+
+	function k(t, e) {
+		this.dyn_tree = t, this.max_code = 0, this.stat_desc = e;
+	}
+
+	s(w);
+
+	const y = t => t < 256 ? f[t] : f[256 + (t >>> 7)],
+				v = (t, e) => {
+		t.pending_buf[t.pending++] = 255 & e, t.pending_buf[t.pending++] = e >>> 8 & 255;
+	},
+				E = (t, e, i) => {
+		t.bi_valid > 16 - i ? (t.bi_buf |= e << t.bi_valid & 65535, v(t, t.bi_buf), t.bi_buf = e >> 16 - t.bi_valid, t.bi_valid += i - 16) : (t.bi_buf |= e << t.bi_valid & 65535, t.bi_valid += i);
+	},
+				A = (t, e, i) => {
+		E(t, i[2 * e], i[2 * e + 1]);
+	},
+				x = (t, e) => {
+		let i = 0;
+
+		do {
+			i |= 1 & t, t >>>= 1, i <<= 1;
+		} while (--e > 0);
+
+		return i >>> 1;
+	},
+				U = (t, e, i) => {
+		const n = new Array(16);
+		let r,
+				s,
+				a = 0;
+
+		for (r = 1; r <= 15; r++) n[r] = a = a + i[r - 1] << 1;
+
+		for (s = 0; s <= e; s++) {
+			let e = t[2 * s + 1];
+			0 !== e && (t[2 * s] = x(n[e]++, e));
+		}
+	},
+				z = t => {
+		let e;
+
+		for (e = 0; e < 286; e++) t.dyn_ltree[2 * e] = 0;
+
+		for (e = 0; e < 30; e++) t.dyn_dtree[2 * e] = 0;
+
+		for (e = 0; e < 19; e++) t.bl_tree[2 * e] = 0;
+
+		t.dyn_ltree[512] = 1, t.opt_len = t.static_len = 0, t.last_lit = t.matches = 0;
+	},
+				R = t => {
+		t.bi_valid > 8 ? v(t, t.bi_buf) : t.bi_valid > 0 && (t.pending_buf[t.pending++] = t.bi_buf), t.bi_buf = 0, t.bi_valid = 0;
+	},
+				N = (t, e, i, n) => {
+		const r = 2 * e,
+					s = 2 * i;
+		return t[r] < t[s] || t[r] === t[s] && n[e] <= n[i];
+	},
+				T = (t, e, i) => {
+		const n = t.heap[i];
+		let r = i << 1;
+
+		for (; r <= t.heap_len && (r < t.heap_len && N(e, t.heap[r + 1], t.heap[r], t.depth) && r++, !N(e, n, t.heap[r], t.depth));) t.heap[i] = t.heap[r], i = r, r <<= 1;
+
+		t.heap[i] = n;
+	},
+				O = (t, e, i) => {
+		let n,
+				r,
+				s,
+				h,
+				l = 0;
+		if (0 !== t.last_lit) do {
+			n = t.pending_buf[t.d_buf + 2 * l] << 8 | t.pending_buf[t.d_buf + 2 * l + 1], r = t.pending_buf[t.l_buf + l], l++, 0 === n ? A(t, r, e) : (s = c[r], A(t, s + 256 + 1, e), h = a[s], 0 !== h && (r -= u[s], E(t, r, h)), n--, s = y(n), A(t, s, i), h = o[s], 0 !== h && (n -= w[s], E(t, n, h)));
+		} while (l < t.last_lit);
+		A(t, 256, e);
+	},
+				L = (t, e) => {
+		const i = e.dyn_tree,
+					n = e.stat_desc.static_tree,
+					r = e.stat_desc.has_stree,
+					s = e.stat_desc.elems;
+		let a,
+				o,
+				h,
+				l = -1;
+
+		for (t.heap_len = 0, t.heap_max = 573, a = 0; a < s; a++) 0 !== i[2 * a] ? (t.heap[++t.heap_len] = l = a, t.depth[a] = 0) : i[2 * a + 1] = 0;
+
+		for (; t.heap_len < 2;) h = t.heap[++t.heap_len] = l < 2 ? ++l : 0, i[2 * h] = 1, t.depth[h] = 0, t.opt_len--, r && (t.static_len -= n[2 * h + 1]);
+
+		for (e.max_code = l, a = t.heap_len >> 1; a >= 1; a--) T(t, i, a);
+
+		h = s;
+
+		do {
+			a = t.heap[1], t.heap[1] = t.heap[t.heap_len--], T(t, i, 1), o = t.heap[1], t.heap[--t.heap_max] = a, t.heap[--t.heap_max] = o, i[2 * h] = i[2 * a] + i[2 * o], t.depth[h] = (t.depth[a] >= t.depth[o] ? t.depth[a] : t.depth[o]) + 1, i[2 * a + 1] = i[2 * o + 1] = h, t.heap[1] = h++, T(t, i, 1);
+		} while (t.heap_len >= 2);
+
+		t.heap[--t.heap_max] = t.heap[1], ((t, e) => {
+			const i = e.dyn_tree,
+						n = e.max_code,
+						r = e.stat_desc.static_tree,
+						s = e.stat_desc.has_stree,
+						a = e.stat_desc.extra_bits,
+						o = e.stat_desc.extra_base,
+						h = e.stat_desc.max_length;
+
+			let l,
+					d,
+					_,
+					f,
+					c,
+					u,
+					w = 0;
+
+			for (f = 0; f <= 15; f++) t.bl_count[f] = 0;
+
+			for (i[2 * t.heap[t.heap_max] + 1] = 0, l = t.heap_max + 1; l < 573; l++) d = t.heap[l], f = i[2 * i[2 * d + 1] + 1] + 1, f > h && (f = h, w++), i[2 * d + 1] = f, d > n || (t.bl_count[f]++, c = 0, d >= o && (c = a[d - o]), u = i[2 * d], t.opt_len += u * (f + c), s && (t.static_len += u * (r[2 * d + 1] + c)));
+
+			if (0 !== w) {
+				do {
+					for (f = h - 1; 0 === t.bl_count[f];) f--;
+
+					t.bl_count[f]--, t.bl_count[f + 1] += 2, t.bl_count[h]--, w -= 2;
+				} while (w > 0);
+
+				for (f = h; 0 !== f; f--) for (d = t.bl_count[f]; 0 !== d;) _ = t.heap[--l], _ > n || (i[2 * _ + 1] !== f && (t.opt_len += (f - i[2 * _ + 1]) * i[2 * _], i[2 * _ + 1] = f), d--);
+			}
+		})(t, e), U(i, l, t.bl_count);
+	},
+				B = (t, e, i) => {
+		let n,
+				r,
+				s = -1,
+				a = e[1],
+				o = 0,
+				h = 7,
+				l = 4;
+
+		for (0 === a && (h = 138, l = 3), e[2 * (i + 1) + 1] = 65535, n = 0; n <= i; n++) r = a, a = e[2 * (n + 1) + 1], ++o < h && r === a || (o < l ? t.bl_tree[2 * r] += o : 0 !== r ? (r !== s && t.bl_tree[2 * r]++, t.bl_tree[32]++) : o <= 10 ? t.bl_tree[34]++ : t.bl_tree[36]++, o = 0, s = r, 0 === a ? (h = 138, l = 3) : r === a ? (h = 6, l = 3) : (h = 7, l = 4));
+	},
+				C = (t, e, i) => {
+		let n,
+				r,
+				s = -1,
+				a = e[1],
+				o = 0,
+				h = 7,
+				l = 4;
+
+		for (0 === a && (h = 138, l = 3), n = 0; n <= i; n++) if (r = a, a = e[2 * (n + 1) + 1], !(++o < h && r === a)) {
+			if (o < l) do {
+				A(t, r, t.bl_tree);
+			} while (0 != --o);else 0 !== r ? (r !== s && (A(t, r, t.bl_tree), o--), A(t, 16, t.bl_tree), E(t, o - 3, 2)) : o <= 10 ? (A(t, 17, t.bl_tree), E(t, o - 3, 3)) : (A(t, 18, t.bl_tree), E(t, o - 11, 7));
+			o = 0, s = r, 0 === a ? (h = 138, l = 3) : r === a ? (h = 6, l = 3) : (h = 7, l = 4);
+		}
+	};
+
+	let D = !1;
+
+	const I = (t, e, i, n) => {
+		E(t, 0 + (n ? 1 : 0), 3), ((t, e, i, n) => {
+			R(t), v(t, i), v(t, ~i), t.pending_buf.set(t.window.subarray(e, e + i), t.pending), t.pending += i;
+		})(t, e, i);
+	};
+
+	var S = {
+		_tr_init: t => {
+			D || ((() => {
+				let t, e, i, n, r;
+				const s = new Array(16);
+
+				for (i = 0, n = 0; n < 28; n++) for (u[n] = i, t = 0; t < 1 << a[n]; t++) c[i++] = n;
+
+				for (c[i - 1] = n, r = 0, n = 0; n < 16; n++) for (w[n] = r, t = 0; t < 1 << o[n]; t++) f[r++] = n;
+
+				for (r >>= 7; n < 30; n++) for (w[n] = r << 7, t = 0; t < 1 << o[n] - 7; t++) f[256 + r++] = n;
+
+				for (e = 0; e <= 15; e++) s[e] = 0;
+
+				for (t = 0; t <= 143;) d[2 * t + 1] = 8, t++, s[8]++;
+
+				for (; t <= 255;) d[2 * t + 1] = 9, t++, s[9]++;
+
+				for (; t <= 279;) d[2 * t + 1] = 7, t++, s[7]++;
+
+				for (; t <= 287;) d[2 * t + 1] = 8, t++, s[8]++;
+
+				for (U(d, 287, s), t = 0; t < 30; t++) _[2 * t + 1] = 5, _[2 * t] = x(t, 5);
+
+				g = new p(d, a, 257, 286, 15), b = new p(_, o, 0, 30, 15), m = new p(new Array(0), h, 0, 19, 7);
+			})(), D = !0), t.l_desc = new k(t.dyn_ltree, g), t.d_desc = new k(t.dyn_dtree, b), t.bl_desc = new k(t.bl_tree, m), t.bi_buf = 0, t.bi_valid = 0, z(t);
+		},
+		_tr_stored_block: I,
+		_tr_flush_block: (t, e, i, n) => {
+			let r,
+					s,
+					a = 0;
+			t.level > 0 ? (2 === t.strm.data_type && (t.strm.data_type = (t => {
+				let e,
+						i = 4093624447;
+
+				for (e = 0; e <= 31; e++, i >>>= 1) if (1 & i && 0 !== t.dyn_ltree[2 * e]) return 0;
+
+				if (0 !== t.dyn_ltree[18] || 0 !== t.dyn_ltree[20] || 0 !== t.dyn_ltree[26]) return 1;
+
+				for (e = 32; e < 256; e++) if (0 !== t.dyn_ltree[2 * e]) return 1;
+
+				return 0;
+			})(t)), L(t, t.l_desc), L(t, t.d_desc), a = (t => {
+				let e;
+
+				for (B(t, t.dyn_ltree, t.l_desc.max_code), B(t, t.dyn_dtree, t.d_desc.max_code), L(t, t.bl_desc), e = 18; e >= 3 && 0 === t.bl_tree[2 * l[e] + 1]; e--);
+
+				return t.opt_len += 3 * (e + 1) + 5 + 5 + 4, e;
+			})(t), r = t.opt_len + 3 + 7 >>> 3, s = t.static_len + 3 + 7 >>> 3, s <= r && (r = s)) : r = s = i + 5, i + 4 <= r && -1 !== e ? I(t, e, i, n) : 4 === t.strategy || s === r ? (E(t, 2 + (n ? 1 : 0), 3), O(t, d, _)) : (E(t, 4 + (n ? 1 : 0), 3), ((t, e, i, n) => {
+				let r;
+
+				for (E(t, e - 257, 5), E(t, i - 1, 5), E(t, n - 4, 4), r = 0; r < n; r++) E(t, t.bl_tree[2 * l[r] + 1], 3);
+
+				C(t, t.dyn_ltree, e - 1), C(t, t.dyn_dtree, i - 1);
+			})(t, t.l_desc.max_code + 1, t.d_desc.max_code + 1, a + 1), O(t, t.dyn_ltree, t.dyn_dtree)), z(t), n && R(t);
+		},
+		_tr_tally: (t, e, i) => (t.pending_buf[t.d_buf + 2 * t.last_lit] = e >>> 8 & 255, t.pending_buf[t.d_buf + 2 * t.last_lit + 1] = 255 & e, t.pending_buf[t.l_buf + t.last_lit] = 255 & i, t.last_lit++, 0 === e ? t.dyn_ltree[2 * i]++ : (t.matches++, e--, t.dyn_ltree[2 * (c[i] + 256 + 1)]++, t.dyn_dtree[2 * y(e)]++), t.last_lit === t.lit_bufsize - 1),
+		_tr_align: t => {
+			E(t, 2, 3), A(t, 256, d), (t => {
+				16 === t.bi_valid ? (v(t, t.bi_buf), t.bi_buf = 0, t.bi_valid = 0) : t.bi_valid >= 8 && (t.pending_buf[t.pending++] = 255 & t.bi_buf, t.bi_buf >>= 8, t.bi_valid -= 8);
+			})(t);
+		}
+	},
+			Z = (t, e, i, n) => {
+		let r = 65535 & t | 0,
+				s = t >>> 16 & 65535 | 0,
+				a = 0;
+
+		for (; 0 !== i;) {
+			a = i > 2e3 ? 2e3 : i, i -= a;
+
+			do {
+				r = r + e[n++] | 0, s = s + r | 0;
+			} while (--a);
+
+			r %= 65521, s %= 65521;
+		}
+
+		return r | s << 16 | 0;
+	};
+
+	const F = new Uint32Array((() => {
+		let t,
+				e = [];
+
+		for (var i = 0; i < 256; i++) {
+			t = i;
+
+			for (var n = 0; n < 8; n++) t = 1 & t ? 3988292384 ^ t >>> 1 : t >>> 1;
+
+			e[i] = t;
+		}
+
+		return e;
+	})());
+
+	var M = (t, e, i, n) => {
+		const r = F,
+					s = n + i;
+		t ^= -1;
+
+		for (let i = n; i < s; i++) t = t >>> 8 ^ r[255 & (t ^ e[i])];
+
+		return -1 ^ t;
+	},
+			P = {
+		2: "need dictionary",
+		1: "stream end",
+		0: "",
+		"-1": "file error",
+		"-2": "stream error",
+		"-3": "data error",
+		"-4": "insufficient memory",
+		"-5": "buffer error",
+		"-6": "incompatible version"
+	},
+			H = {
+		Z_NO_FLUSH: 0,
+		Z_PARTIAL_FLUSH: 1,
+		Z_SYNC_FLUSH: 2,
+		Z_FULL_FLUSH: 3,
+		Z_FINISH: 4,
+		Z_BLOCK: 5,
+		Z_TREES: 6,
+		Z_OK: 0,
+		Z_STREAM_END: 1,
+		Z_NEED_DICT: 2,
+		Z_ERRNO: -1,
+		Z_STREAM_ERROR: -2,
+		Z_DATA_ERROR: -3,
+		Z_MEM_ERROR: -4,
+		Z_BUF_ERROR: -5,
+		Z_NO_COMPRESSION: 0,
+		Z_BEST_SPEED: 1,
+		Z_BEST_COMPRESSION: 9,
+		Z_DEFAULT_COMPRESSION: -1,
+		Z_FILTERED: 1,
+		Z_HUFFMAN_ONLY: 2,
+		Z_RLE: 3,
+		Z_FIXED: 4,
+		Z_DEFAULT_STRATEGY: 0,
+		Z_BINARY: 0,
+		Z_TEXT: 1,
+		Z_UNKNOWN: 2,
+		Z_DEFLATED: 8
+	};
+
+	const {
+		_tr_init: W,
+		_tr_stored_block: K,
+		_tr_flush_block: $,
+		_tr_tally: Y,
+		_tr_align: j
+	} = S,
+				{
+		Z_NO_FLUSH: G,
+		Z_PARTIAL_FLUSH: X,
+		Z_FULL_FLUSH: V,
+		Z_FINISH: q,
+		Z_BLOCK: J,
+		Z_OK: Q,
+		Z_STREAM_END: tt,
+		Z_STREAM_ERROR: et,
+		Z_DATA_ERROR: it,
+		Z_BUF_ERROR: nt,
+		Z_DEFAULT_COMPRESSION: rt,
+		Z_FILTERED: st,
+		Z_HUFFMAN_ONLY: at,
+		Z_RLE: ot,
+		Z_FIXED: ht,
+		Z_DEFAULT_STRATEGY: lt,
+		Z_UNKNOWN: dt,
+		Z_DEFLATED: _t
+	} = H,
+				ft = 258,
+				ct = 262,
+				ut = 103,
+				wt = 113,
+				pt = 666,
+				gt = (t, e) => (t.msg = P[e], e),
+				bt = t => (t << 1) - (t > 4 ? 9 : 0),
+				mt = t => {
+		let e = t.length;
+
+		for (; --e >= 0;) t[e] = 0;
+	};
+
+	let kt = (t, e, i) => (e << t.hash_shift ^ i) & t.hash_mask;
+
+	const yt = t => {
+		const e = t.state;
+		let i = e.pending;
+		i > t.avail_out && (i = t.avail_out), 0 !== i && (t.output.set(e.pending_buf.subarray(e.pending_out, e.pending_out + i), t.next_out), t.next_out += i, e.pending_out += i, t.total_out += i, t.avail_out -= i, e.pending -= i, 0 === e.pending && (e.pending_out = 0));
+	},
+				vt = (t, e) => {
+		$(t, t.block_start >= 0 ? t.block_start : -1, t.strstart - t.block_start, e), t.block_start = t.strstart, yt(t.strm);
+	},
+				Et = (t, e) => {
+		t.pending_buf[t.pending++] = e;
+	},
+				At = (t, e) => {
+		t.pending_buf[t.pending++] = e >>> 8 & 255, t.pending_buf[t.pending++] = 255 & e;
+	},
+				xt = (t, e, i, n) => {
+		let r = t.avail_in;
+		return r > n && (r = n), 0 === r ? 0 : (t.avail_in -= r, e.set(t.input.subarray(t.next_in, t.next_in + r), i), 1 === t.state.wrap ? t.adler = Z(t.adler, e, r, i) : 2 === t.state.wrap && (t.adler = M(t.adler, e, r, i)), t.next_in += r, t.total_in += r, r);
+	},
+				Ut = (t, e) => {
+		let i,
+				n,
+				r = t.max_chain_length,
+				s = t.strstart,
+				a = t.prev_length,
+				o = t.nice_match;
+		const h = t.strstart > t.w_size - ct ? t.strstart - (t.w_size - ct) : 0,
+					l = t.window,
+					d = t.w_mask,
+					_ = t.prev,
+					f = t.strstart + ft;
+		let c = l[s + a - 1],
+				u = l[s + a];
+		t.prev_length >= t.good_match && (r >>= 2), o > t.lookahead && (o = t.lookahead);
+
+		do {
+			if (i = e, l[i + a] === u && l[i + a - 1] === c && l[i] === l[s] && l[++i] === l[s + 1]) {
+				s += 2, i++;
+
+				do {} while (l[++s] === l[++i] && l[++s] === l[++i] && l[++s] === l[++i] && l[++s] === l[++i] && l[++s] === l[++i] && l[++s] === l[++i] && l[++s] === l[++i] && l[++s] === l[++i] && s < f);
+
+				if (n = ft - (f - s), s = f - ft, n > a) {
+					if (t.match_start = e, a = n, n >= o) break;
+					c = l[s + a - 1], u = l[s + a];
+				}
+			}
+		} while ((e = _[e & d]) > h && 0 != --r);
+
+		return a <= t.lookahead ? a : t.lookahead;
+	},
+				zt = t => {
+		const e = t.w_size;
+		let i, n, r, s, a;
+
+		do {
+			if (s = t.window_size - t.lookahead - t.strstart, t.strstart >= e + (e - ct)) {
+				t.window.set(t.window.subarray(e, e + e), 0), t.match_start -= e, t.strstart -= e, t.block_start -= e, n = t.hash_size, i = n;
+
+				do {
+					r = t.head[--i], t.head[i] = r >= e ? r - e : 0;
+				} while (--n);
+
+				n = e, i = n;
+
+				do {
+					r = t.prev[--i], t.prev[i] = r >= e ? r - e : 0;
+				} while (--n);
+
+				s += e;
+			}
+
+			if (0 === t.strm.avail_in) break;
+			if (n = xt(t.strm, t.window, t.strstart + t.lookahead, s), t.lookahead += n, t.lookahead + t.insert >= 3) for (a = t.strstart - t.insert, t.ins_h = t.window[a], t.ins_h = kt(t, t.ins_h, t.window[a + 1]); t.insert && (t.ins_h = kt(t, t.ins_h, t.window[a + 3 - 1]), t.prev[a & t.w_mask] = t.head[t.ins_h], t.head[t.ins_h] = a, a++, t.insert--, !(t.lookahead + t.insert < 3)););
+		} while (t.lookahead < ct && 0 !== t.strm.avail_in);
+	},
+				Rt = (t, e) => {
+		let i, n;
+
+		for (;;) {
+			if (t.lookahead < ct) {
+				if (zt(t), t.lookahead < ct && e === G) return 1;
+				if (0 === t.lookahead) break;
+			}
+
+			if (i = 0, t.lookahead >= 3 && (t.ins_h = kt(t, t.ins_h, t.window[t.strstart + 3 - 1]), i = t.prev[t.strstart & t.w_mask] = t.head[t.ins_h], t.head[t.ins_h] = t.strstart), 0 !== i && t.strstart - i <= t.w_size - ct && (t.match_length = Ut(t, i)), t.match_length >= 3) {
+				if (n = Y(t, t.strstart - t.match_start, t.match_length - 3), t.lookahead -= t.match_length, t.match_length <= t.max_lazy_match && t.lookahead >= 3) {
+					t.match_length--;
+
+					do {
+						t.strstart++, t.ins_h = kt(t, t.ins_h, t.window[t.strstart + 3 - 1]), i = t.prev[t.strstart & t.w_mask] = t.head[t.ins_h], t.head[t.ins_h] = t.strstart;
+					} while (0 != --t.match_length);
+
+					t.strstart++;
+				} else t.strstart += t.match_length, t.match_length = 0, t.ins_h = t.window[t.strstart], t.ins_h = kt(t, t.ins_h, t.window[t.strstart + 1]);
+			} else n = Y(t, 0, t.window[t.strstart]), t.lookahead--, t.strstart++;
+			if (n && (vt(t, !1), 0 === t.strm.avail_out)) return 1;
+		}
+
+		return t.insert = t.strstart < 2 ? t.strstart : 2, e === q ? (vt(t, !0), 0 === t.strm.avail_out ? 3 : 4) : t.last_lit && (vt(t, !1), 0 === t.strm.avail_out) ? 1 : 2;
+	},
+				Nt = (t, e) => {
+		let i, n, r;
+
+		for (;;) {
+			if (t.lookahead < ct) {
+				if (zt(t), t.lookahead < ct && e === G) return 1;
+				if (0 === t.lookahead) break;
+			}
+
+			if (i = 0, t.lookahead >= 3 && (t.ins_h = kt(t, t.ins_h, t.window[t.strstart + 3 - 1]), i = t.prev[t.strstart & t.w_mask] = t.head[t.ins_h], t.head[t.ins_h] = t.strstart), t.prev_length = t.match_length, t.prev_match = t.match_start, t.match_length = 2, 0 !== i && t.prev_length < t.max_lazy_match && t.strstart - i <= t.w_size - ct && (t.match_length = Ut(t, i), t.match_length <= 5 && (t.strategy === st || 3 === t.match_length && t.strstart - t.match_start > 4096) && (t.match_length = 2)), t.prev_length >= 3 && t.match_length <= t.prev_length) {
+				r = t.strstart + t.lookahead - 3, n = Y(t, t.strstart - 1 - t.prev_match, t.prev_length - 3), t.lookahead -= t.prev_length - 1, t.prev_length -= 2;
+
+				do {
+					++t.strstart <= r && (t.ins_h = kt(t, t.ins_h, t.window[t.strstart + 3 - 1]), i = t.prev[t.strstart & t.w_mask] = t.head[t.ins_h], t.head[t.ins_h] = t.strstart);
+				} while (0 != --t.prev_length);
+
+				if (t.match_available = 0, t.match_length = 2, t.strstart++, n && (vt(t, !1), 0 === t.strm.avail_out)) return 1;
+			} else if (t.match_available) {
+				if (n = Y(t, 0, t.window[t.strstart - 1]), n && vt(t, !1), t.strstart++, t.lookahead--, 0 === t.strm.avail_out) return 1;
+			} else t.match_available = 1, t.strstart++, t.lookahead--;
+		}
+
+		return t.match_available && (n = Y(t, 0, t.window[t.strstart - 1]), t.match_available = 0), t.insert = t.strstart < 2 ? t.strstart : 2, e === q ? (vt(t, !0), 0 === t.strm.avail_out ? 3 : 4) : t.last_lit && (vt(t, !1), 0 === t.strm.avail_out) ? 1 : 2;
+	};
+
+	function Tt(t, e, i, n, r) {
+		this.good_length = t, this.max_lazy = e, this.nice_length = i, this.max_chain = n, this.func = r;
+	}
+
+	const Ot = [new Tt(0, 0, 0, 0, (t, e) => {
+		let i = 65535;
+
+		for (i > t.pending_buf_size - 5 && (i = t.pending_buf_size - 5);;) {
+			if (t.lookahead <= 1) {
+				if (zt(t), 0 === t.lookahead && e === G) return 1;
+				if (0 === t.lookahead) break;
+			}
+
+			t.strstart += t.lookahead, t.lookahead = 0;
+			const n = t.block_start + i;
+			if ((0 === t.strstart || t.strstart >= n) && (t.lookahead = t.strstart - n, t.strstart = n, vt(t, !1), 0 === t.strm.avail_out)) return 1;
+			if (t.strstart - t.block_start >= t.w_size - ct && (vt(t, !1), 0 === t.strm.avail_out)) return 1;
+		}
+
+		return t.insert = 0, e === q ? (vt(t, !0), 0 === t.strm.avail_out ? 3 : 4) : (t.strstart > t.block_start && (vt(t, !1), t.strm.avail_out), 1);
+	}), new Tt(4, 4, 8, 4, Rt), new Tt(4, 5, 16, 8, Rt), new Tt(4, 6, 32, 32, Rt), new Tt(4, 4, 16, 16, Nt), new Tt(8, 16, 32, 32, Nt), new Tt(8, 16, 128, 128, Nt), new Tt(8, 32, 128, 256, Nt), new Tt(32, 128, 258, 1024, Nt), new Tt(32, 258, 258, 4096, Nt)];
+
+	function Lt() {
+		this.strm = null, this.status = 0, this.pending_buf = null, this.pending_buf_size = 0, this.pending_out = 0, this.pending = 0, this.wrap = 0, this.gzhead = null, this.gzindex = 0, this.method = _t, this.last_flush = -1, this.w_size = 0, this.w_bits = 0, this.w_mask = 0, this.window = null, this.window_size = 0, this.prev = null, this.head = null, this.ins_h = 0, this.hash_size = 0, this.hash_bits = 0, this.hash_mask = 0, this.hash_shift = 0, this.block_start = 0, this.match_length = 0, this.prev_match = 0, this.match_available = 0, this.strstart = 0, this.match_start = 0, this.lookahead = 0, this.prev_length = 0, this.max_chain_length = 0, this.max_lazy_match = 0, this.level = 0, this.strategy = 0, this.good_match = 0, this.nice_match = 0, this.dyn_ltree = new Uint16Array(1146), this.dyn_dtree = new Uint16Array(122), this.bl_tree = new Uint16Array(78), mt(this.dyn_ltree), mt(this.dyn_dtree), mt(this.bl_tree), this.l_desc = null, this.d_desc = null, this.bl_desc = null, this.bl_count = new Uint16Array(16), this.heap = new Uint16Array(573), mt(this.heap), this.heap_len = 0, this.heap_max = 0, this.depth = new Uint16Array(573), mt(this.depth), this.l_buf = 0, this.lit_bufsize = 0, this.last_lit = 0, this.d_buf = 0, this.opt_len = 0, this.static_len = 0, this.matches = 0, this.insert = 0, this.bi_buf = 0, this.bi_valid = 0;
+	}
+
+	const Bt = t => {
+		if (!t || !t.state) return gt(t, et);
+		t.total_in = t.total_out = 0, t.data_type = dt;
+		const e = t.state;
+		return e.pending = 0, e.pending_out = 0, e.wrap < 0 && (e.wrap = -e.wrap), e.status = e.wrap ? 42 : wt, t.adler = 2 === e.wrap ? 0 : 1, e.last_flush = G, W(e), Q;
+	},
+				Ct = t => {
+		const e = Bt(t);
+		var i;
+		return e === Q && ((i = t.state).window_size = 2 * i.w_size, mt(i.head), i.max_lazy_match = Ot[i.level].max_lazy, i.good_match = Ot[i.level].good_length, i.nice_match = Ot[i.level].nice_length, i.max_chain_length = Ot[i.level].max_chain, i.strstart = 0, i.block_start = 0, i.lookahead = 0, i.insert = 0, i.match_length = i.prev_length = 2, i.match_available = 0, i.ins_h = 0), e;
+	},
+				Dt = (t, e, i, n, r, s) => {
+		if (!t) return et;
+		let a = 1;
+		if (e === rt && (e = 6), n < 0 ? (a = 0, n = -n) : n > 15 && (a = 2, n -= 16), r < 1 || r > 9 || i !== _t || n < 8 || n > 15 || e < 0 || e > 9 || s < 0 || s > ht) return gt(t, et);
+		8 === n && (n = 9);
+		const o = new Lt();
+		return t.state = o, o.strm = t, o.wrap = a, o.gzhead = null, o.w_bits = n, o.w_size = 1 << o.w_bits, o.w_mask = o.w_size - 1, o.hash_bits = r + 7, o.hash_size = 1 << o.hash_bits, o.hash_mask = o.hash_size - 1, o.hash_shift = ~~((o.hash_bits + 3 - 1) / 3), o.window = new Uint8Array(2 * o.w_size), o.head = new Uint16Array(o.hash_size), o.prev = new Uint16Array(o.w_size), o.lit_bufsize = 1 << r + 6, o.pending_buf_size = 4 * o.lit_bufsize, o.pending_buf = new Uint8Array(o.pending_buf_size), o.d_buf = 1 * o.lit_bufsize, o.l_buf = 3 * o.lit_bufsize, o.level = e, o.strategy = s, o.method = i, Ct(t);
+	};
+
+	var It = Dt,
+			St = (t, e) => t && t.state ? 2 !== t.state.wrap ? et : (t.state.gzhead = e, Q) : et,
+			Zt = (t, e) => {
+		let i, n;
+		if (!t || !t.state || e > J || e < 0) return t ? gt(t, et) : et;
+		const r = t.state;
+		if (!t.output || !t.input && 0 !== t.avail_in || r.status === pt && e !== q) return gt(t, 0 === t.avail_out ? nt : et);
+		r.strm = t;
+		const s = r.last_flush;
+		if (r.last_flush = e, 42 === r.status) if (2 === r.wrap) t.adler = 0, Et(r, 31), Et(r, 139), Et(r, 8), r.gzhead ? (Et(r, (r.gzhead.text ? 1 : 0) + (r.gzhead.hcrc ? 2 : 0) + (r.gzhead.extra ? 4 : 0) + (r.gzhead.name ? 8 : 0) + (r.gzhead.comment ? 16 : 0)), Et(r, 255 & r.gzhead.time), Et(r, r.gzhead.time >> 8 & 255), Et(r, r.gzhead.time >> 16 & 255), Et(r, r.gzhead.time >> 24 & 255), Et(r, 9 === r.level ? 2 : r.strategy >= at || r.level < 2 ? 4 : 0), Et(r, 255 & r.gzhead.os), r.gzhead.extra && r.gzhead.extra.length && (Et(r, 255 & r.gzhead.extra.length), Et(r, r.gzhead.extra.length >> 8 & 255)), r.gzhead.hcrc && (t.adler = M(t.adler, r.pending_buf, r.pending, 0)), r.gzindex = 0, r.status = 69) : (Et(r, 0), Et(r, 0), Et(r, 0), Et(r, 0), Et(r, 0), Et(r, 9 === r.level ? 2 : r.strategy >= at || r.level < 2 ? 4 : 0), Et(r, 3), r.status = wt);else {
+			let e = _t + (r.w_bits - 8 << 4) << 8,
+					i = -1;
+			i = r.strategy >= at || r.level < 2 ? 0 : r.level < 6 ? 1 : 6 === r.level ? 2 : 3, e |= i << 6, 0 !== r.strstart && (e |= 32), e += 31 - e % 31, r.status = wt, At(r, e), 0 !== r.strstart && (At(r, t.adler >>> 16), At(r, 65535 & t.adler)), t.adler = 1;
+		}
+		if (69 === r.status) if (r.gzhead.extra) {
+			for (i = r.pending; r.gzindex < (65535 & r.gzhead.extra.length) && (r.pending !== r.pending_buf_size || (r.gzhead.hcrc && r.pending > i && (t.adler = M(t.adler, r.pending_buf, r.pending - i, i)), yt(t), i = r.pending, r.pending !== r.pending_buf_size));) Et(r, 255 & r.gzhead.extra[r.gzindex]), r.gzindex++;
+
+			r.gzhead.hcrc && r.pending > i && (t.adler = M(t.adler, r.pending_buf, r.pending - i, i)), r.gzindex === r.gzhead.extra.length && (r.gzindex = 0, r.status = 73);
+		} else r.status = 73;
+		if (73 === r.status) if (r.gzhead.name) {
+			i = r.pending;
+
+			do {
+				if (r.pending === r.pending_buf_size && (r.gzhead.hcrc && r.pending > i && (t.adler = M(t.adler, r.pending_buf, r.pending - i, i)), yt(t), i = r.pending, r.pending === r.pending_buf_size)) {
+					n = 1;
+					break;
+				}
+
+				n = r.gzindex < r.gzhead.name.length ? 255 & r.gzhead.name.charCodeAt(r.gzindex++) : 0, Et(r, n);
+			} while (0 !== n);
+
+			r.gzhead.hcrc && r.pending > i && (t.adler = M(t.adler, r.pending_buf, r.pending - i, i)), 0 === n && (r.gzindex = 0, r.status = 91);
+		} else r.status = 91;
+		if (91 === r.status) if (r.gzhead.comment) {
+			i = r.pending;
+
+			do {
+				if (r.pending === r.pending_buf_size && (r.gzhead.hcrc && r.pending > i && (t.adler = M(t.adler, r.pending_buf, r.pending - i, i)), yt(t), i = r.pending, r.pending === r.pending_buf_size)) {
+					n = 1;
+					break;
+				}
+
+				n = r.gzindex < r.gzhead.comment.length ? 255 & r.gzhead.comment.charCodeAt(r.gzindex++) : 0, Et(r, n);
+			} while (0 !== n);
+
+			r.gzhead.hcrc && r.pending > i && (t.adler = M(t.adler, r.pending_buf, r.pending - i, i)), 0 === n && (r.status = ut);
+		} else r.status = ut;
+
+		if (r.status === ut && (r.gzhead.hcrc ? (r.pending + 2 > r.pending_buf_size && yt(t), r.pending + 2 <= r.pending_buf_size && (Et(r, 255 & t.adler), Et(r, t.adler >> 8 & 255), t.adler = 0, r.status = wt)) : r.status = wt), 0 !== r.pending) {
+			if (yt(t), 0 === t.avail_out) return r.last_flush = -1, Q;
+		} else if (0 === t.avail_in && bt(e) <= bt(s) && e !== q) return gt(t, nt);
+
+		if (r.status === pt && 0 !== t.avail_in) return gt(t, nt);
+
+		if (0 !== t.avail_in || 0 !== r.lookahead || e !== G && r.status !== pt) {
+			let i = r.strategy === at ? ((t, e) => {
+				let i;
+
+				for (;;) {
+					if (0 === t.lookahead && (zt(t), 0 === t.lookahead)) {
+						if (e === G) return 1;
+						break;
+					}
+
+					if (t.match_length = 0, i = Y(t, 0, t.window[t.strstart]), t.lookahead--, t.strstart++, i && (vt(t, !1), 0 === t.strm.avail_out)) return 1;
+				}
+
+				return t.insert = 0, e === q ? (vt(t, !0), 0 === t.strm.avail_out ? 3 : 4) : t.last_lit && (vt(t, !1), 0 === t.strm.avail_out) ? 1 : 2;
+			})(r, e) : r.strategy === ot ? ((t, e) => {
+				let i, n, r, s;
+				const a = t.window;
+
+				for (;;) {
+					if (t.lookahead <= ft) {
+						if (zt(t), t.lookahead <= ft && e === G) return 1;
+						if (0 === t.lookahead) break;
+					}
+
+					if (t.match_length = 0, t.lookahead >= 3 && t.strstart > 0 && (r = t.strstart - 1, n = a[r], n === a[++r] && n === a[++r] && n === a[++r])) {
+						s = t.strstart + ft;
+
+						do {} while (n === a[++r] && n === a[++r] && n === a[++r] && n === a[++r] && n === a[++r] && n === a[++r] && n === a[++r] && n === a[++r] && r < s);
+
+						t.match_length = ft - (s - r), t.match_length > t.lookahead && (t.match_length = t.lookahead);
+					}
+
+					if (t.match_length >= 3 ? (i = Y(t, 1, t.match_length - 3), t.lookahead -= t.match_length, t.strstart += t.match_length, t.match_length = 0) : (i = Y(t, 0, t.window[t.strstart]), t.lookahead--, t.strstart++), i && (vt(t, !1), 0 === t.strm.avail_out)) return 1;
+				}
+
+				return t.insert = 0, e === q ? (vt(t, !0), 0 === t.strm.avail_out ? 3 : 4) : t.last_lit && (vt(t, !1), 0 === t.strm.avail_out) ? 1 : 2;
+			})(r, e) : Ot[r.level].func(r, e);
+			if (3 !== i && 4 !== i || (r.status = pt), 1 === i || 3 === i) return 0 === t.avail_out && (r.last_flush = -1), Q;
+			if (2 === i && (e === X ? j(r) : e !== J && (K(r, 0, 0, !1), e === V && (mt(r.head), 0 === r.lookahead && (r.strstart = 0, r.block_start = 0, r.insert = 0))), yt(t), 0 === t.avail_out)) return r.last_flush = -1, Q;
+		}
+
+		return e !== q ? Q : r.wrap <= 0 ? tt : (2 === r.wrap ? (Et(r, 255 & t.adler), Et(r, t.adler >> 8 & 255), Et(r, t.adler >> 16 & 255), Et(r, t.adler >> 24 & 255), Et(r, 255 & t.total_in), Et(r, t.total_in >> 8 & 255), Et(r, t.total_in >> 16 & 255), Et(r, t.total_in >> 24 & 255)) : (At(r, t.adler >>> 16), At(r, 65535 & t.adler)), yt(t), r.wrap > 0 && (r.wrap = -r.wrap), 0 !== r.pending ? Q : tt);
+	},
+			Ft = t => {
+		if (!t || !t.state) return et;
+		const e = t.state.status;
+		return 42 !== e && 69 !== e && 73 !== e && 91 !== e && e !== ut && e !== wt && e !== pt ? gt(t, et) : (t.state = null, e === wt ? gt(t, it) : Q);
+	},
+			Mt = (t, e) => {
+		let i = e.length;
+		if (!t || !t.state) return et;
+		const n = t.state,
+					r = n.wrap;
+		if (2 === r || 1 === r && 42 !== n.status || n.lookahead) return et;
+
+		if (1 === r && (t.adler = Z(t.adler, e, i, 0)), n.wrap = 0, i >= n.w_size) {
+			0 === r && (mt(n.head), n.strstart = 0, n.block_start = 0, n.insert = 0);
+			let t = new Uint8Array(n.w_size);
+			t.set(e.subarray(i - n.w_size, i), 0), e = t, i = n.w_size;
+		}
+
+		const s = t.avail_in,
+					a = t.next_in,
+					o = t.input;
+
+		for (t.avail_in = i, t.next_in = 0, t.input = e, zt(n); n.lookahead >= 3;) {
+			let t = n.strstart,
+					e = n.lookahead - 2;
+
+			do {
+				n.ins_h = kt(n, n.ins_h, n.window[t + 3 - 1]), n.prev[t & n.w_mask] = n.head[n.ins_h], n.head[n.ins_h] = t, t++;
+			} while (--e);
+
+			n.strstart = t, n.lookahead = 2, zt(n);
+		}
+
+		return n.strstart += n.lookahead, n.block_start = n.strstart, n.insert = n.lookahead, n.lookahead = 0, n.match_length = n.prev_length = 2, n.match_available = 0, t.next_in = a, t.input = o, t.avail_in = s, n.wrap = r, Q;
+	};
+
+	const Pt = (t, e) => Object.prototype.hasOwnProperty.call(t, e);
+
+	var Ht = function Ht(t) {
+		const e = Array.prototype.slice.call(arguments, 1);
+
+		for (; e.length;) {
+			const i = e.shift();
+
+			if (i) {
+				if ("object" != typeof i) throw new TypeError(i + "must be non-object");
+
+				for (const e in i) Pt(i, e) && (t[e] = i[e]);
+			}
+		}
+
+		return t;
+	},
+			Wt = t => {
+		let e = 0;
+
+		for (let i = 0, n = t.length; i < n; i++) e += t[i].length;
+
+		const i = new Uint8Array(e);
+
+		for (let e = 0, n = 0, r = t.length; e < r; e++) {
+			let r = t[e];
+			i.set(r, n), n += r.length;
+		}
+
+		return i;
+	};
+
+	let Kt = !0;
+
+	try {
+		String.fromCharCode.apply(null, new Uint8Array(1));
+	} catch (t) {
+		Kt = !1;
+	}
+
+	const $t = new Uint8Array(256);
+
+	for (let t = 0; t < 256; t++) $t[t] = t >= 252 ? 6 : t >= 248 ? 5 : t >= 240 ? 4 : t >= 224 ? 3 : t >= 192 ? 2 : 1;
+
+	$t[254] = $t[254] = 1;
+
+	var Yt = t => {
+		if ("function" == typeof TextEncoder && TextEncoder.prototype.encode) return new TextEncoder().encode(t);
+		let e,
+				i,
+				n,
+				r,
+				s,
+				a = t.length,
+				o = 0;
+
+		for (r = 0; r < a; r++) i = t.charCodeAt(r), 55296 == (64512 & i) && r + 1 < a && (n = t.charCodeAt(r + 1), 56320 == (64512 & n) && (i = 65536 + (i - 55296 << 10) + (n - 56320), r++)), o += i < 128 ? 1 : i < 2048 ? 2 : i < 65536 ? 3 : 4;
+
+		for (e = new Uint8Array(o), s = 0, r = 0; s < o; r++) i = t.charCodeAt(r), 55296 == (64512 & i) && r + 1 < a && (n = t.charCodeAt(r + 1), 56320 == (64512 & n) && (i = 65536 + (i - 55296 << 10) + (n - 56320), r++)), i < 128 ? e[s++] = i : i < 2048 ? (e[s++] = 192 | i >>> 6, e[s++] = 128 | 63 & i) : i < 65536 ? (e[s++] = 224 | i >>> 12, e[s++] = 128 | i >>> 6 & 63, e[s++] = 128 | 63 & i) : (e[s++] = 240 | i >>> 18, e[s++] = 128 | i >>> 12 & 63, e[s++] = 128 | i >>> 6 & 63, e[s++] = 128 | 63 & i);
+
+		return e;
+	},
+			jt = (t, e) => {
+		const i = e || t.length;
+		if ("function" == typeof TextDecoder && TextDecoder.prototype.decode) return new TextDecoder().decode(t.subarray(0, e));
+		let n, r;
+		const s = new Array(2 * i);
+
+		for (r = 0, n = 0; n < i;) {
+			let e = t[n++];
+
+			if (e < 128) {
+				s[r++] = e;
+				continue;
+			}
+
+			let a = $t[e];
+			if (a > 4) s[r++] = 65533, n += a - 1;else {
+				for (e &= 2 === a ? 31 : 3 === a ? 15 : 7; a > 1 && n < i;) e = e << 6 | 63 & t[n++], a--;
+
+				a > 1 ? s[r++] = 65533 : e < 65536 ? s[r++] = e : (e -= 65536, s[r++] = 55296 | e >> 10 & 1023, s[r++] = 56320 | 1023 & e);
+			}
+		}
+
+		return ((t, e) => {
+			if (e < 65534 && t.subarray && Kt) return String.fromCharCode.apply(null, t.length === e ? t : t.subarray(0, e));
+			let i = "";
+
+			for (let n = 0; n < e; n++) i += String.fromCharCode(t[n]);
+
+			return i;
+		})(s, r);
+	},
+			Gt = (t, e) => {
+		(e = e || t.length) > t.length && (e = t.length);
+		let i = e - 1;
+
+		for (; i >= 0 && 128 == (192 & t[i]);) i--;
+
+		return i < 0 || 0 === i ? e : i + $t[t[i]] > e ? i : e;
+	},
+			Xt = function Xt() {
+		this.input = null, this.next_in = 0, this.avail_in = 0, this.total_in = 0, this.output = null, this.next_out = 0, this.avail_out = 0, this.total_out = 0, this.msg = "", this.state = null, this.data_type = 2, this.adler = 0;
+	};
+
+	const Vt = Object.prototype.toString,
+				{
+		Z_NO_FLUSH: qt,
+		Z_SYNC_FLUSH: Jt,
+		Z_FULL_FLUSH: Qt,
+		Z_FINISH: te,
+		Z_OK: ee,
+		Z_STREAM_END: ie,
+		Z_DEFAULT_COMPRESSION: ne,
+		Z_DEFAULT_STRATEGY: re,
+		Z_DEFLATED: se
+	} = H;
+
+	function ae(t) {
+		this.options = Ht({
+			level: ne,
+			method: se,
+			chunkSize: 16384,
+			windowBits: 15,
+			memLevel: 8,
+			strategy: re
+		}, t || {});
+		let e = this.options;
+		e.raw && e.windowBits > 0 ? e.windowBits = -e.windowBits : e.gzip && e.windowBits > 0 && e.windowBits < 16 && (e.windowBits += 16), this.err = 0, this.msg = "", this.ended = !1, this.chunks = [], this.strm = new Xt(), this.strm.avail_out = 0;
+		let i = It(this.strm, e.level, e.method, e.windowBits, e.memLevel, e.strategy);
+		if (i !== ee) throw new Error(P[i]);
+
+		if (e.header && St(this.strm, e.header), e.dictionary) {
+			let t;
+			if (t = "string" == typeof e.dictionary ? Yt(e.dictionary) : "[object ArrayBuffer]" === Vt.call(e.dictionary) ? new Uint8Array(e.dictionary) : e.dictionary, i = Mt(this.strm, t), i !== ee) throw new Error(P[i]);
+			this._dict_set = !0;
+		}
+	}
+
+	function oe(t, e) {
+		const i = new ae(e);
+		if (i.push(t, !0), i.err) throw i.msg || P[i.err];
+		return i.result;
+	}
+
+	ae.prototype.push = function (t, e) {
+		const i = this.strm,
+					n = this.options.chunkSize;
+		let r, s;
+		if (this.ended) return !1;
+
+		for (s = e === ~~e ? e : !0 === e ? te : qt, "string" == typeof t ? i.input = Yt(t) : "[object ArrayBuffer]" === Vt.call(t) ? i.input = new Uint8Array(t) : i.input = t, i.next_in = 0, i.avail_in = i.input.length;;) if (0 === i.avail_out && (i.output = new Uint8Array(n), i.next_out = 0, i.avail_out = n), (s === Jt || s === Qt) && i.avail_out <= 6) this.onData(i.output.subarray(0, i.next_out)), i.avail_out = 0;else {
+			if (r = Zt(i, s), r === ie) return i.next_out > 0 && this.onData(i.output.subarray(0, i.next_out)), r = Ft(this.strm), this.onEnd(r), this.ended = !0, r === ee;
+
+			if (0 !== i.avail_out) {
+				if (s > 0 && i.next_out > 0) this.onData(i.output.subarray(0, i.next_out)), i.avail_out = 0;else if (0 === i.avail_in) break;
+			} else this.onData(i.output);
+		}
+
+		return !0;
+	}, ae.prototype.onData = function (t) {
+		this.chunks.push(t);
+	}, ae.prototype.onEnd = function (t) {
+		t === ee && (this.result = Wt(this.chunks)), this.chunks = [], this.err = t, this.msg = this.strm.msg;
+	};
+
+	var he = {
+		Deflate: ae,
+		deflate: oe,
+		deflateRaw: function deflateRaw(t, e) {
+			return (e = e || {}).raw = !0, oe(t, e);
+		},
+		gzip: function gzip(t, e) {
+			return (e = e || {}).gzip = !0, oe(t, e);
+		},
+		constants: H
+	},
+			le = function le(t, e) {
+		let i, n, r, s, a, o, h, l, d, _, f, c, u, w, p, g, b, m, k, y, v, E, A, x;
+
+		const U = t.state;
+		i = t.next_in, A = t.input, n = i + (t.avail_in - 5), r = t.next_out, x = t.output, s = r - (e - t.avail_out), a = r + (t.avail_out - 257), o = U.dmax, h = U.wsize, l = U.whave, d = U.wnext, _ = U.window, f = U.hold, c = U.bits, u = U.lencode, w = U.distcode, p = (1 << U.lenbits) - 1, g = (1 << U.distbits) - 1;
+
+		t: do {
+			c < 15 && (f += A[i++] << c, c += 8, f += A[i++] << c, c += 8), b = u[f & p];
+
+			e: for (;;) {
+				if (m = b >>> 24, f >>>= m, c -= m, m = b >>> 16 & 255, 0 === m) x[r++] = 65535 & b;else {
+					if (!(16 & m)) {
+						if (0 == (64 & m)) {
+							b = u[(65535 & b) + (f & (1 << m) - 1)];
+							continue e;
+						}
+
+						if (32 & m) {
+							U.mode = 12;
+							break t;
+						}
+
+						t.msg = "invalid literal/length code", U.mode = 30;
+						break t;
+					}
+
+					k = 65535 & b, m &= 15, m && (c < m && (f += A[i++] << c, c += 8), k += f & (1 << m) - 1, f >>>= m, c -= m), c < 15 && (f += A[i++] << c, c += 8, f += A[i++] << c, c += 8), b = w[f & g];
+
+					i: for (;;) {
+						if (m = b >>> 24, f >>>= m, c -= m, m = b >>> 16 & 255, !(16 & m)) {
+							if (0 == (64 & m)) {
+								b = w[(65535 & b) + (f & (1 << m) - 1)];
+								continue i;
+							}
+
+							t.msg = "invalid distance code", U.mode = 30;
+							break t;
+						}
+
+						if (y = 65535 & b, m &= 15, c < m && (f += A[i++] << c, c += 8, c < m && (f += A[i++] << c, c += 8)), y += f & (1 << m) - 1, y > o) {
+							t.msg = "invalid distance too far back", U.mode = 30;
+							break t;
+						}
+
+						if (f >>>= m, c -= m, m = r - s, y > m) {
+							if (m = y - m, m > l && U.sane) {
+								t.msg = "invalid distance too far back", U.mode = 30;
+								break t;
+							}
+
+							if (v = 0, E = _, 0 === d) {
+								if (v += h - m, m < k) {
+									k -= m;
+
+									do {
+										x[r++] = _[v++];
+									} while (--m);
+
+									v = r - y, E = x;
+								}
+							} else if (d < m) {
+								if (v += h + d - m, m -= d, m < k) {
+									k -= m;
+
+									do {
+										x[r++] = _[v++];
+									} while (--m);
+
+									if (v = 0, d < k) {
+										m = d, k -= m;
+
+										do {
+											x[r++] = _[v++];
+										} while (--m);
+
+										v = r - y, E = x;
+									}
+								}
+							} else if (v += d - m, m < k) {
+								k -= m;
+
+								do {
+									x[r++] = _[v++];
+								} while (--m);
+
+								v = r - y, E = x;
+							}
+
+							for (; k > 2;) x[r++] = E[v++], x[r++] = E[v++], x[r++] = E[v++], k -= 3;
+
+							k && (x[r++] = E[v++], k > 1 && (x[r++] = E[v++]));
+						} else {
+							v = r - y;
+
+							do {
+								x[r++] = x[v++], x[r++] = x[v++], x[r++] = x[v++], k -= 3;
+							} while (k > 2);
+
+							k && (x[r++] = x[v++], k > 1 && (x[r++] = x[v++]));
+						}
+
+						break;
+					}
+				}
+				break;
+			}
+		} while (i < n && r < a);
+
+		k = c >> 3, i -= k, c -= k << 3, f &= (1 << c) - 1, t.next_in = i, t.next_out = r, t.avail_in = i < n ? n - i + 5 : 5 - (i - n), t.avail_out = r < a ? a - r + 257 : 257 - (r - a), U.hold = f, U.bits = c;
+	};
+
+	const de = new Uint16Array([3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0]),
+				_e = new Uint8Array([16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 72, 78]),
+				fe = new Uint16Array([1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577, 0, 0]),
+				ce = new Uint8Array([16, 16, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 24, 25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 64, 64]);
+
+	var ue = (t, e, i, n, r, s, a, o) => {
+		const h = o.bits;
+
+		let l,
+				d,
+				_,
+				f,
+				c,
+				u,
+				w = 0,
+				p = 0,
+				g = 0,
+				b = 0,
+				m = 0,
+				k = 0,
+				y = 0,
+				v = 0,
+				E = 0,
+				A = 0,
+				x = null,
+				U = 0;
+
+		const z = new Uint16Array(16),
+					R = new Uint16Array(16);
+		let N,
+				T,
+				O,
+				L = null,
+				B = 0;
+
+		for (w = 0; w <= 15; w++) z[w] = 0;
+
+		for (p = 0; p < n; p++) z[e[i + p]]++;
+
+		for (m = h, b = 15; b >= 1 && 0 === z[b]; b--);
+
+		if (m > b && (m = b), 0 === b) return r[s++] = 20971520, r[s++] = 20971520, o.bits = 1, 0;
+
+		for (g = 1; g < b && 0 === z[g]; g++);
+
+		for (m < g && (m = g), v = 1, w = 1; w <= 15; w++) if (v <<= 1, v -= z[w], v < 0) return -1;
+
+		if (v > 0 && (0 === t || 1 !== b)) return -1;
+
+		for (R[1] = 0, w = 1; w < 15; w++) R[w + 1] = R[w] + z[w];
+
+		for (p = 0; p < n; p++) 0 !== e[i + p] && (a[R[e[i + p]]++] = p);
+
+		if (0 === t ? (x = L = a, u = 19) : 1 === t ? (x = de, U -= 257, L = _e, B -= 257, u = 256) : (x = fe, L = ce, u = -1), A = 0, p = 0, w = g, c = s, k = m, y = 0, _ = -1, E = 1 << m, f = E - 1, 1 === t && E > 852 || 2 === t && E > 592) return 1;
+
+		for (;;) {
+			N = w - y, a[p] < u ? (T = 0, O = a[p]) : a[p] > u ? (T = L[B + a[p]], O = x[U + a[p]]) : (T = 96, O = 0), l = 1 << w - y, d = 1 << k, g = d;
+
+			do {
+				d -= l, r[c + (A >> y) + d] = N << 24 | T << 16 | O | 0;
+			} while (0 !== d);
+
+			for (l = 1 << w - 1; A & l;) l >>= 1;
+
+			if (0 !== l ? (A &= l - 1, A += l) : A = 0, p++, 0 == --z[w]) {
+				if (w === b) break;
+				w = e[i + a[p]];
+			}
+
+			if (w > m && (A & f) !== _) {
+				for (0 === y && (y = m), c += g, k = w - y, v = 1 << k; k + y < b && (v -= z[k + y], !(v <= 0));) k++, v <<= 1;
+
+				if (E += 1 << k, 1 === t && E > 852 || 2 === t && E > 592) return 1;
+				_ = A & f, r[_] = m << 24 | k << 16 | c - s | 0;
+			}
+		}
+
+		return 0 !== A && (r[c + A] = w - y << 24 | 64 << 16 | 0), o.bits = m, 0;
+	};
+
+	const {
+		Z_FINISH: we,
+		Z_BLOCK: pe,
+		Z_TREES: ge,
+		Z_OK: be,
+		Z_STREAM_END: me,
+		Z_NEED_DICT: ke,
+		Z_STREAM_ERROR: ye,
+		Z_DATA_ERROR: ve,
+		Z_MEM_ERROR: Ee,
+		Z_BUF_ERROR: Ae,
+		Z_DEFLATED: xe
+	} = H,
+				Ue = 12,
+				ze = 30,
+				Re = t => (t >>> 24 & 255) + (t >>> 8 & 65280) + ((65280 & t) << 8) + ((255 & t) << 24);
+
+	function Ne() {
+		this.mode = 0, this.last = !1, this.wrap = 0, this.havedict = !1, this.flags = 0, this.dmax = 0, this.check = 0, this.total = 0, this.head = null, this.wbits = 0, this.wsize = 0, this.whave = 0, this.wnext = 0, this.window = null, this.hold = 0, this.bits = 0, this.length = 0, this.offset = 0, this.extra = 0, this.lencode = null, this.distcode = null, this.lenbits = 0, this.distbits = 0, this.ncode = 0, this.nlen = 0, this.ndist = 0, this.have = 0, this.next = null, this.lens = new Uint16Array(320), this.work = new Uint16Array(288), this.lendyn = null, this.distdyn = null, this.sane = 0, this.back = 0, this.was = 0;
+	}
+
+	const Te = t => {
+		if (!t || !t.state) return ye;
+		const e = t.state;
+		return t.total_in = t.total_out = e.total = 0, t.msg = "", e.wrap && (t.adler = 1 & e.wrap), e.mode = 1, e.last = 0, e.havedict = 0, e.dmax = 32768, e.head = null, e.hold = 0, e.bits = 0, e.lencode = e.lendyn = new Int32Array(852), e.distcode = e.distdyn = new Int32Array(592), e.sane = 1, e.back = -1, be;
+	},
+				Oe = t => {
+		if (!t || !t.state) return ye;
+		const e = t.state;
+		return e.wsize = 0, e.whave = 0, e.wnext = 0, Te(t);
+	},
+				Le = (t, e) => {
+		let i;
+		if (!t || !t.state) return ye;
+		const n = t.state;
+		return e < 0 ? (i = 0, e = -e) : (i = 1 + (e >> 4), e < 48 && (e &= 15)), e && (e < 8 || e > 15) ? ye : (null !== n.window && n.wbits !== e && (n.window = null), n.wrap = i, n.wbits = e, Oe(t));
+	},
+				Be = (t, e) => {
+		if (!t) return ye;
+		const i = new Ne();
+		t.state = i, i.window = null;
+		const n = Le(t, e);
+		return n !== be && (t.state = null), n;
+	};
+
+	let Ce,
+			De,
+			Ie = !0;
+
+	const Se = t => {
+		if (Ie) {
+			Ce = new Int32Array(512), De = new Int32Array(32);
+			let e = 0;
+
+			for (; e < 144;) t.lens[e++] = 8;
+
+			for (; e < 256;) t.lens[e++] = 9;
+
+			for (; e < 280;) t.lens[e++] = 7;
+
+			for (; e < 288;) t.lens[e++] = 8;
+
+			for (ue(1, t.lens, 0, 288, Ce, 0, t.work, {
+				bits: 9
+			}), e = 0; e < 32;) t.lens[e++] = 5;
+
+			ue(2, t.lens, 0, 32, De, 0, t.work, {
+				bits: 5
+			}), Ie = !1;
+		}
+
+		t.lencode = Ce, t.lenbits = 9, t.distcode = De, t.distbits = 5;
+	},
+				Ze = (t, e, i, n) => {
+		let r;
+		const s = t.state;
+		return null === s.window && (s.wsize = 1 << s.wbits, s.wnext = 0, s.whave = 0, s.window = new Uint8Array(s.wsize)), n >= s.wsize ? (s.window.set(e.subarray(i - s.wsize, i), 0), s.wnext = 0, s.whave = s.wsize) : (r = s.wsize - s.wnext, r > n && (r = n), s.window.set(e.subarray(i - n, i - n + r), s.wnext), (n -= r) ? (s.window.set(e.subarray(i - n, i), 0), s.wnext = n, s.whave = s.wsize) : (s.wnext += r, s.wnext === s.wsize && (s.wnext = 0), s.whave < s.wsize && (s.whave += r))), 0;
+	};
+
+	var Fe = Oe,
+			Me = Be,
+			Pe = (t, e) => {
+		let i,
+				n,
+				r,
+				s,
+				a,
+				o,
+				h,
+				l,
+				d,
+				_,
+				f,
+				c,
+				u,
+				w,
+				p,
+				g,
+				b,
+				m,
+				k,
+				y,
+				v,
+				E,
+				A = 0;
+
+		const x = new Uint8Array(4);
+		let U, z;
+		const R = new Uint8Array([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
+		if (!t || !t.state || !t.output || !t.input && 0 !== t.avail_in) return ye;
+		i = t.state, i.mode === Ue && (i.mode = 13), a = t.next_out, r = t.output, h = t.avail_out, s = t.next_in, n = t.input, o = t.avail_in, l = i.hold, d = i.bits, _ = o, f = h, E = be;
+
+		t: for (;;) switch (i.mode) {
+			case 1:
+				if (0 === i.wrap) {
+					i.mode = 13;
+					break;
+				}
+
+				for (; d < 16;) {
+					if (0 === o) break t;
+					o--, l += n[s++] << d, d += 8;
+				}
+
+				if (2 & i.wrap && 35615 === l) {
+					i.check = 0, x[0] = 255 & l, x[1] = l >>> 8 & 255, i.check = M(i.check, x, 2, 0), l = 0, d = 0, i.mode = 2;
+					break;
+				}
+
+				if (i.flags = 0, i.head && (i.head.done = !1), !(1 & i.wrap) || (((255 & l) << 8) + (l >> 8)) % 31) {
+					t.msg = "incorrect header check", i.mode = ze;
+					break;
+				}
+
+				if ((15 & l) !== xe) {
+					t.msg = "unknown compression method", i.mode = ze;
+					break;
+				}
+
+				if (l >>>= 4, d -= 4, v = 8 + (15 & l), 0 === i.wbits) i.wbits = v;else if (v > i.wbits) {
+					t.msg = "invalid window size", i.mode = ze;
+					break;
+				}
+				i.dmax = 1 << i.wbits, t.adler = i.check = 1, i.mode = 512 & l ? 10 : Ue, l = 0, d = 0;
+				break;
+
+			case 2:
+				for (; d < 16;) {
+					if (0 === o) break t;
+					o--, l += n[s++] << d, d += 8;
+				}
+
+				if (i.flags = l, (255 & i.flags) !== xe) {
+					t.msg = "unknown compression method", i.mode = ze;
+					break;
+				}
+
+				if (57344 & i.flags) {
+					t.msg = "unknown header flags set", i.mode = ze;
+					break;
+				}
+
+				i.head && (i.head.text = l >> 8 & 1), 512 & i.flags && (x[0] = 255 & l, x[1] = l >>> 8 & 255, i.check = M(i.check, x, 2, 0)), l = 0, d = 0, i.mode = 3;
+
+			case 3:
+				for (; d < 32;) {
+					if (0 === o) break t;
+					o--, l += n[s++] << d, d += 8;
+				}
+
+				i.head && (i.head.time = l), 512 & i.flags && (x[0] = 255 & l, x[1] = l >>> 8 & 255, x[2] = l >>> 16 & 255, x[3] = l >>> 24 & 255, i.check = M(i.check, x, 4, 0)), l = 0, d = 0, i.mode = 4;
+
+			case 4:
+				for (; d < 16;) {
+					if (0 === o) break t;
+					o--, l += n[s++] << d, d += 8;
+				}
+
+				i.head && (i.head.xflags = 255 & l, i.head.os = l >> 8), 512 & i.flags && (x[0] = 255 & l, x[1] = l >>> 8 & 255, i.check = M(i.check, x, 2, 0)), l = 0, d = 0, i.mode = 5;
+
+			case 5:
+				if (1024 & i.flags) {
+					for (; d < 16;) {
+						if (0 === o) break t;
+						o--, l += n[s++] << d, d += 8;
+					}
+
+					i.length = l, i.head && (i.head.extra_len = l), 512 & i.flags && (x[0] = 255 & l, x[1] = l >>> 8 & 255, i.check = M(i.check, x, 2, 0)), l = 0, d = 0;
+				} else i.head && (i.head.extra = null);
+
+				i.mode = 6;
+
+			case 6:
+				if (1024 & i.flags && (c = i.length, c > o && (c = o), c && (i.head && (v = i.head.extra_len - i.length, i.head.extra || (i.head.extra = new Uint8Array(i.head.extra_len)), i.head.extra.set(n.subarray(s, s + c), v)), 512 & i.flags && (i.check = M(i.check, n, c, s)), o -= c, s += c, i.length -= c), i.length)) break t;
+				i.length = 0, i.mode = 7;
+
+			case 7:
+				if (2048 & i.flags) {
+					if (0 === o) break t;
+					c = 0;
+
+					do {
+						v = n[s + c++], i.head && v && i.length < 65536 && (i.head.name += String.fromCharCode(v));
+					} while (v && c < o);
+
+					if (512 & i.flags && (i.check = M(i.check, n, c, s)), o -= c, s += c, v) break t;
+				} else i.head && (i.head.name = null);
+
+				i.length = 0, i.mode = 8;
+
+			case 8:
+				if (4096 & i.flags) {
+					if (0 === o) break t;
+					c = 0;
+
+					do {
+						v = n[s + c++], i.head && v && i.length < 65536 && (i.head.comment += String.fromCharCode(v));
+					} while (v && c < o);
+
+					if (512 & i.flags && (i.check = M(i.check, n, c, s)), o -= c, s += c, v) break t;
+				} else i.head && (i.head.comment = null);
+
+				i.mode = 9;
+
+			case 9:
+				if (512 & i.flags) {
+					for (; d < 16;) {
+						if (0 === o) break t;
+						o--, l += n[s++] << d, d += 8;
+					}
+
+					if (l !== (65535 & i.check)) {
+						t.msg = "header crc mismatch", i.mode = ze;
+						break;
+					}
+
+					l = 0, d = 0;
+				}
+
+				i.head && (i.head.hcrc = i.flags >> 9 & 1, i.head.done = !0), t.adler = i.check = 0, i.mode = Ue;
+				break;
+
+			case 10:
+				for (; d < 32;) {
+					if (0 === o) break t;
+					o--, l += n[s++] << d, d += 8;
+				}
+
+				t.adler = i.check = Re(l), l = 0, d = 0, i.mode = 11;
+
+			case 11:
+				if (0 === i.havedict) return t.next_out = a, t.avail_out = h, t.next_in = s, t.avail_in = o, i.hold = l, i.bits = d, ke;
+				t.adler = i.check = 1, i.mode = Ue;
+
+			case Ue:
+				if (e === pe || e === ge) break t;
+
+			case 13:
+				if (i.last) {
+					l >>>= 7 & d, d -= 7 & d, i.mode = 27;
+					break;
+				}
+
+				for (; d < 3;) {
+					if (0 === o) break t;
+					o--, l += n[s++] << d, d += 8;
+				}
+
+				switch (i.last = 1 & l, l >>>= 1, d -= 1, 3 & l) {
+					case 0:
+						i.mode = 14;
+						break;
+
+					case 1:
+						if (Se(i), i.mode = 20, e === ge) {
+							l >>>= 2, d -= 2;
+							break t;
+						}
+
+						break;
+
+					case 2:
+						i.mode = 17;
+						break;
+
+					case 3:
+						t.msg = "invalid block type", i.mode = ze;
+				}
+
+				l >>>= 2, d -= 2;
+				break;
+
+			case 14:
+				for (l >>>= 7 & d, d -= 7 & d; d < 32;) {
+					if (0 === o) break t;
+					o--, l += n[s++] << d, d += 8;
+				}
+
+				if ((65535 & l) != (l >>> 16 ^ 65535)) {
+					t.msg = "invalid stored block lengths", i.mode = ze;
+					break;
+				}
+
+				if (i.length = 65535 & l, l = 0, d = 0, i.mode = 15, e === ge) break t;
+
+			case 15:
+				i.mode = 16;
+
+			case 16:
+				if (c = i.length, c) {
+					if (c > o && (c = o), c > h && (c = h), 0 === c) break t;
+					r.set(n.subarray(s, s + c), a), o -= c, s += c, h -= c, a += c, i.length -= c;
+					break;
+				}
+
+				i.mode = Ue;
+				break;
+
+			case 17:
+				for (; d < 14;) {
+					if (0 === o) break t;
+					o--, l += n[s++] << d, d += 8;
+				}
+
+				if (i.nlen = 257 + (31 & l), l >>>= 5, d -= 5, i.ndist = 1 + (31 & l), l >>>= 5, d -= 5, i.ncode = 4 + (15 & l), l >>>= 4, d -= 4, i.nlen > 286 || i.ndist > 30) {
+					t.msg = "too many length or distance symbols", i.mode = ze;
+					break;
+				}
+
+				i.have = 0, i.mode = 18;
+
+			case 18:
+				for (; i.have < i.ncode;) {
+					for (; d < 3;) {
+						if (0 === o) break t;
+						o--, l += n[s++] << d, d += 8;
+					}
+
+					i.lens[R[i.have++]] = 7 & l, l >>>= 3, d -= 3;
+				}
+
+				for (; i.have < 19;) i.lens[R[i.have++]] = 0;
+
+				if (i.lencode = i.lendyn, i.lenbits = 7, U = {
+					bits: i.lenbits
+				}, E = ue(0, i.lens, 0, 19, i.lencode, 0, i.work, U), i.lenbits = U.bits, E) {
+					t.msg = "invalid code lengths set", i.mode = ze;
+					break;
+				}
+
+				i.have = 0, i.mode = 19;
+
+			case 19:
+				for (; i.have < i.nlen + i.ndist;) {
+					for (; A = i.lencode[l & (1 << i.lenbits) - 1], p = A >>> 24, g = A >>> 16 & 255, b = 65535 & A, !(p <= d);) {
+						if (0 === o) break t;
+						o--, l += n[s++] << d, d += 8;
+					}
+
+					if (b < 16) l >>>= p, d -= p, i.lens[i.have++] = b;else {
+						if (16 === b) {
+							for (z = p + 2; d < z;) {
+								if (0 === o) break t;
+								o--, l += n[s++] << d, d += 8;
+							}
+
+							if (l >>>= p, d -= p, 0 === i.have) {
+								t.msg = "invalid bit length repeat", i.mode = ze;
+								break;
+							}
+
+							v = i.lens[i.have - 1], c = 3 + (3 & l), l >>>= 2, d -= 2;
+						} else if (17 === b) {
+							for (z = p + 3; d < z;) {
+								if (0 === o) break t;
+								o--, l += n[s++] << d, d += 8;
+							}
+
+							l >>>= p, d -= p, v = 0, c = 3 + (7 & l), l >>>= 3, d -= 3;
+						} else {
+							for (z = p + 7; d < z;) {
+								if (0 === o) break t;
+								o--, l += n[s++] << d, d += 8;
+							}
+
+							l >>>= p, d -= p, v = 0, c = 11 + (127 & l), l >>>= 7, d -= 7;
+						}
+
+						if (i.have + c > i.nlen + i.ndist) {
+							t.msg = "invalid bit length repeat", i.mode = ze;
+							break;
+						}
+
+						for (; c--;) i.lens[i.have++] = v;
+					}
+				}
+
+				if (i.mode === ze) break;
+
+				if (0 === i.lens[256]) {
+					t.msg = "invalid code -- missing end-of-block", i.mode = ze;
+					break;
+				}
+
+				if (i.lenbits = 9, U = {
+					bits: i.lenbits
+				}, E = ue(1, i.lens, 0, i.nlen, i.lencode, 0, i.work, U), i.lenbits = U.bits, E) {
+					t.msg = "invalid literal/lengths set", i.mode = ze;
+					break;
+				}
+
+				if (i.distbits = 6, i.distcode = i.distdyn, U = {
+					bits: i.distbits
+				}, E = ue(2, i.lens, i.nlen, i.ndist, i.distcode, 0, i.work, U), i.distbits = U.bits, E) {
+					t.msg = "invalid distances set", i.mode = ze;
+					break;
+				}
+
+				if (i.mode = 20, e === ge) break t;
+
+			case 20:
+				i.mode = 21;
+
+			case 21:
+				if (o >= 6 && h >= 258) {
+					t.next_out = a, t.avail_out = h, t.next_in = s, t.avail_in = o, i.hold = l, i.bits = d, le(t, f), a = t.next_out, r = t.output, h = t.avail_out, s = t.next_in, n = t.input, o = t.avail_in, l = i.hold, d = i.bits, i.mode === Ue && (i.back = -1);
+					break;
+				}
+
+				for (i.back = 0; A = i.lencode[l & (1 << i.lenbits) - 1], p = A >>> 24, g = A >>> 16 & 255, b = 65535 & A, !(p <= d);) {
+					if (0 === o) break t;
+					o--, l += n[s++] << d, d += 8;
+				}
+
+				if (g && 0 == (240 & g)) {
+					for (m = p, k = g, y = b; A = i.lencode[y + ((l & (1 << m + k) - 1) >> m)], p = A >>> 24, g = A >>> 16 & 255, b = 65535 & A, !(m + p <= d);) {
+						if (0 === o) break t;
+						o--, l += n[s++] << d, d += 8;
+					}
+
+					l >>>= m, d -= m, i.back += m;
+				}
+
+				if (l >>>= p, d -= p, i.back += p, i.length = b, 0 === g) {
+					i.mode = 26;
+					break;
+				}
+
+				if (32 & g) {
+					i.back = -1, i.mode = Ue;
+					break;
+				}
+
+				if (64 & g) {
+					t.msg = "invalid literal/length code", i.mode = ze;
+					break;
+				}
+
+				i.extra = 15 & g, i.mode = 22;
+
+			case 22:
+				if (i.extra) {
+					for (z = i.extra; d < z;) {
+						if (0 === o) break t;
+						o--, l += n[s++] << d, d += 8;
+					}
+
+					i.length += l & (1 << i.extra) - 1, l >>>= i.extra, d -= i.extra, i.back += i.extra;
+				}
+
+				i.was = i.length, i.mode = 23;
+
+			case 23:
+				for (; A = i.distcode[l & (1 << i.distbits) - 1], p = A >>> 24, g = A >>> 16 & 255, b = 65535 & A, !(p <= d);) {
+					if (0 === o) break t;
+					o--, l += n[s++] << d, d += 8;
+				}
+
+				if (0 == (240 & g)) {
+					for (m = p, k = g, y = b; A = i.distcode[y + ((l & (1 << m + k) - 1) >> m)], p = A >>> 24, g = A >>> 16 & 255, b = 65535 & A, !(m + p <= d);) {
+						if (0 === o) break t;
+						o--, l += n[s++] << d, d += 8;
+					}
+
+					l >>>= m, d -= m, i.back += m;
+				}
+
+				if (l >>>= p, d -= p, i.back += p, 64 & g) {
+					t.msg = "invalid distance code", i.mode = ze;
+					break;
+				}
+
+				i.offset = b, i.extra = 15 & g, i.mode = 24;
+
+			case 24:
+				if (i.extra) {
+					for (z = i.extra; d < z;) {
+						if (0 === o) break t;
+						o--, l += n[s++] << d, d += 8;
+					}
+
+					i.offset += l & (1 << i.extra) - 1, l >>>= i.extra, d -= i.extra, i.back += i.extra;
+				}
+
+				if (i.offset > i.dmax) {
+					t.msg = "invalid distance too far back", i.mode = ze;
+					break;
+				}
+
+				i.mode = 25;
+
+			case 25:
+				if (0 === h) break t;
+
+				if (c = f - h, i.offset > c) {
+					if (c = i.offset - c, c > i.whave && i.sane) {
+						t.msg = "invalid distance too far back", i.mode = ze;
+						break;
+					}
+
+					c > i.wnext ? (c -= i.wnext, u = i.wsize - c) : u = i.wnext - c, c > i.length && (c = i.length), w = i.window;
+				} else w = r, u = a - i.offset, c = i.length;
+
+				c > h && (c = h), h -= c, i.length -= c;
+
+				do {
+					r[a++] = w[u++];
+				} while (--c);
+
+				0 === i.length && (i.mode = 21);
+				break;
+
+			case 26:
+				if (0 === h) break t;
+				r[a++] = i.length, h--, i.mode = 21;
+				break;
+
+			case 27:
+				if (i.wrap) {
+					for (; d < 32;) {
+						if (0 === o) break t;
+						o--, l |= n[s++] << d, d += 8;
+					}
+
+					if (f -= h, t.total_out += f, i.total += f, f && (t.adler = i.check = i.flags ? M(i.check, r, f, a - f) : Z(i.check, r, f, a - f)), f = h, (i.flags ? l : Re(l)) !== i.check) {
+						t.msg = "incorrect data check", i.mode = ze;
+						break;
+					}
+
+					l = 0, d = 0;
+				}
+
+				i.mode = 28;
+
+			case 28:
+				if (i.wrap && i.flags) {
+					for (; d < 32;) {
+						if (0 === o) break t;
+						o--, l += n[s++] << d, d += 8;
+					}
+
+					if (l !== (4294967295 & i.total)) {
+						t.msg = "incorrect length check", i.mode = ze;
+						break;
+					}
+
+					l = 0, d = 0;
+				}
+
+				i.mode = 29;
+
+			case 29:
+				E = me;
+				break t;
+
+			case ze:
+				E = ve;
+				break t;
+
+			case 31:
+				return Ee;
+
+			default:
+				return ye;
+		}
+
+		return t.next_out = a, t.avail_out = h, t.next_in = s, t.avail_in = o, i.hold = l, i.bits = d, (i.wsize || f !== t.avail_out && i.mode < ze && (i.mode < 27 || e !== we)) && Ze(t, t.output, t.next_out, f - t.avail_out), _ -= t.avail_in, f -= t.avail_out, t.total_in += _, t.total_out += f, i.total += f, i.wrap && f && (t.adler = i.check = i.flags ? M(i.check, r, f, t.next_out - f) : Z(i.check, r, f, t.next_out - f)), t.data_type = i.bits + (i.last ? 64 : 0) + (i.mode === Ue ? 128 : 0) + (20 === i.mode || 15 === i.mode ? 256 : 0), (0 === _ && 0 === f || e === we) && E === be && (E = Ae), E;
+	},
+			He = t => {
+		if (!t || !t.state) return ye;
+		let e = t.state;
+		return e.window && (e.window = null), t.state = null, be;
+	},
+			We = (t, e) => {
+		if (!t || !t.state) return ye;
+		const i = t.state;
+		return 0 == (2 & i.wrap) ? ye : (i.head = e, e.done = !1, be);
+	},
+			Ke = (t, e) => {
+		const i = e.length;
+		let n, r, s;
+		return t && t.state ? (n = t.state, 0 !== n.wrap && 11 !== n.mode ? ye : 11 === n.mode && (r = 1, r = Z(r, e, i, 0), r !== n.check) ? ve : (s = Ze(t, e, i, i), s ? (n.mode = 31, Ee) : (n.havedict = 1, be))) : ye;
+	},
+			$e = function $e() {
+		this.text = 0, this.time = 0, this.xflags = 0, this.os = 0, this.extra = null, this.extra_len = 0, this.name = "", this.comment = "", this.hcrc = 0, this.done = !1;
+	};
+
+	const Ye = Object.prototype.toString,
+				{
+		Z_NO_FLUSH: je,
+		Z_FINISH: Ge,
+		Z_OK: Xe,
+		Z_STREAM_END: Ve,
+		Z_NEED_DICT: qe,
+		Z_STREAM_ERROR: Je,
+		Z_DATA_ERROR: Qe,
+		Z_MEM_ERROR: ti
+	} = H;
+
+	function ei(t) {
+		this.options = Ht({
+			chunkSize: 65536,
+			windowBits: 15,
+			to: ""
+		}, t || {});
+		const e = this.options;
+		e.raw && e.windowBits >= 0 && e.windowBits < 16 && (e.windowBits = -e.windowBits, 0 === e.windowBits && (e.windowBits = -15)), !(e.windowBits >= 0 && e.windowBits < 16) || t && t.windowBits || (e.windowBits += 32), e.windowBits > 15 && e.windowBits < 48 && 0 == (15 & e.windowBits) && (e.windowBits |= 15), this.err = 0, this.msg = "", this.ended = !1, this.chunks = [], this.strm = new Xt(), this.strm.avail_out = 0;
+		let i = Me(this.strm, e.windowBits);
+		if (i !== Xe) throw new Error(P[i]);
+		if (this.header = new $e(), We(this.strm, this.header), e.dictionary && ("string" == typeof e.dictionary ? e.dictionary = Yt(e.dictionary) : "[object ArrayBuffer]" === Ye.call(e.dictionary) && (e.dictionary = new Uint8Array(e.dictionary)), e.raw && (i = Ke(this.strm, e.dictionary), i !== Xe))) throw new Error(P[i]);
+	}
+
+	function ii(t, e) {
+		const i = new ei(e);
+		if (i.push(t), i.err) throw i.msg || P[i.err];
+		return i.result;
+	}
+
+	ei.prototype.push = function (t, e) {
+		const i = this.strm,
+					n = this.options.chunkSize,
+					r = this.options.dictionary;
+		let s, a, o;
+		if (this.ended) return !1;
+
+		for (a = e === ~~e ? e : !0 === e ? Ge : je, "[object ArrayBuffer]" === Ye.call(t) ? i.input = new Uint8Array(t) : i.input = t, i.next_in = 0, i.avail_in = i.input.length;;) {
+			for (0 === i.avail_out && (i.output = new Uint8Array(n), i.next_out = 0, i.avail_out = n), s = Pe(i, a), s === qe && r && (s = Ke(i, r), s === Xe ? s = Pe(i, a) : s === Qe && (s = qe)); i.avail_in > 0 && s === Ve && i.state.wrap > 0 && 0 !== t[i.next_in];) Fe(i), s = Pe(i, a);
+
+			switch (s) {
+				case Je:
+				case Qe:
+				case qe:
+				case ti:
+					return this.onEnd(s), this.ended = !0, !1;
+			}
+
+			if (o = i.avail_out, i.next_out && (0 === i.avail_out || s === Ve)) if ("string" === this.options.to) {
+				let t = Gt(i.output, i.next_out),
+						e = i.next_out - t,
+						r = jt(i.output, t);
+				i.next_out = e, i.avail_out = n - e, e && i.output.set(i.output.subarray(t, t + e), 0), this.onData(r);
+			} else this.onData(i.output.length === i.next_out ? i.output : i.output.subarray(0, i.next_out));
+
+			if (s !== Xe || 0 !== o) {
+				if (s === Ve) return s = He(this.strm), this.onEnd(s), this.ended = !0, !0;
+				if (0 === i.avail_in) break;
+			}
+		}
+
+		return !0;
+	}, ei.prototype.onData = function (t) {
+		this.chunks.push(t);
+	}, ei.prototype.onEnd = function (t) {
+		t === Xe && ("string" === this.options.to ? this.result = this.chunks.join("") : this.result = Wt(this.chunks)), this.chunks = [], this.err = t, this.msg = this.strm.msg;
+	};
+	var ni = {
+		Inflate: ei,
+		inflate: ii,
+		inflateRaw: function inflateRaw(t, e) {
+			return (e = e || {}).raw = !0, ii(t, e);
+		},
+		ungzip: ii,
+		constants: H
+	};
+	const {
+		Deflate: ri,
+		deflate: si,
+		deflateRaw: ai,
+		gzip: oi
+	} = he,
+				{
+		Inflate: hi,
+		inflate: li,
+		inflateRaw: di,
+		ungzip: _i
+	} = ni;
+	var fi = si,
+			ci = hi,
+			ui = li;
+	const wi = [137, 80, 78, 71, 13, 10, 26, 10],
+				pi = [];
+
+	for (let t = 0; t < 256; t++) {
+		let e = t;
+
+		for (let t = 0; t < 8; t++) 1 & e ? e = 3988292384 ^ e >>> 1 : e >>>= 1;
+
+		pi[t] = e;
+	}
+
+	const gi = 4294967295;
+
+	function bi(t, e) {
+		return (function (t, e, i) {
+			let n = 4294967295;
+
+			for (let t = 0; t < i; t++) n = pi[255 & (n ^ e[t])] ^ n >>> 8;
+
+			return n;
+		}(0, t, e) ^ gi) >>> 0;
+	}
+
+	var mi, ki, yi, vi;
+	!function (t) {
+		t[t.UNKNOWN = -1] = "UNKNOWN", t[t.GREYSCALE = 0] = "GREYSCALE", t[t.TRUECOLOUR = 2] = "TRUECOLOUR", t[t.INDEXED_COLOUR = 3] = "INDEXED_COLOUR", t[t.GREYSCALE_ALPHA = 4] = "GREYSCALE_ALPHA", t[t.TRUECOLOUR_ALPHA = 6] = "TRUECOLOUR_ALPHA";
+	}(mi || (mi = {})), function (t) {
+		t[t.UNKNOWN = -1] = "UNKNOWN", t[t.DEFLATE = 0] = "DEFLATE";
+	}(ki || (ki = {})), function (t) {
+		t[t.UNKNOWN = -1] = "UNKNOWN", t[t.ADAPTIVE = 0] = "ADAPTIVE";
+	}(yi || (yi = {})), function (t) {
+		t[t.UNKNOWN = -1] = "UNKNOWN", t[t.NO_INTERLACE = 0] = "NO_INTERLACE", t[t.ADAM7 = 1] = "ADAM7";
+	}(vi || (vi = {}));
+	const Ei = new Uint8Array(0),
+				Ai = new Uint16Array([255]),
+				xi = 255 === new Uint8Array(Ai.buffer)[0];
+
+	class Ui extends r {
+		constructor(t) {
+			let e = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+			super(t);
+			const {
+				checkCrc: i = !1
+			} = e;
+			this._checkCrc = i, this._inflator = new ci(), this._png = {
+				width: -1,
+				height: -1,
+				channels: -1,
+				data: new Uint8Array(0),
+				depth: 1,
+				text: {}
+			}, this._end = !1, this._hasPalette = !1, this._palette = [], this._compressionMethod = ki.UNKNOWN, this._filterMethod = yi.UNKNOWN, this._interlaceMethod = vi.UNKNOWN, this._colorType = -1, this.setBigEndian();
+		}
+
+		decode() {
+			for (this.decodeSignature(); !this._end;) this.decodeChunk();
+
+			return this.decodeImage(), this._png;
+		}
+
+		decodeSignature() {
+			for (let t = 0; t < wi.length; t++) if (this.readUint8() !== wi[t]) throw new Error("wrong PNG signature. Byte at ".concat(t, " should be ").concat(wi[t], "."));
+		}
+
+		decodeChunk() {
+			const t = this.readUint32(),
+						e = this.readChars(4),
+						i = this.offset;
+
+			switch (e) {
+				case "IHDR":
+					this.decodeIHDR();
+					break;
+
+				case "PLTE":
+					this.decodePLTE(t);
+					break;
+
+				case "IDAT":
+					this.decodeIDAT(t);
+					break;
+
+				case "IEND":
+					this._end = !0;
+					break;
+
+				case "tRNS":
+					this.decodetRNS(t);
+					break;
+
+				case "iCCP":
+					this.decodeiCCP(t);
+					break;
+
+				case "tEXt":
+					this.decodetEXt(t);
+					break;
+
+				case "pHYs":
+					this.decodepHYs();
+					break;
+
+				default:
+					this.skip(t);
+			}
+
+			if (this.offset - i !== t) throw new Error("Length mismatch while decoding chunk ".concat(e));
+
+			if (this._checkCrc) {
+				const i = this.readUint32(),
+							n = t + 4,
+							r = bi(new Uint8Array(this.buffer, this.byteOffset + this.offset - n - 4, n), n);
+				if (r !== i) throw new Error("CRC mismatch for chunk ".concat(e, ". Expected ").concat(i, ", found ").concat(r));
+			} else this.skip(4);
+		}
+
+		decodeIHDR() {
+			const t = this._png;
+			t.width = this.readUint32(), t.height = this.readUint32(), t.depth = function (t) {
+				if (1 !== t && 2 !== t && 4 !== t && 8 !== t && 16 !== t) throw new Error("invalid bit depth: ".concat(t));
+				return t;
+			}(this.readUint8());
+			const e = this.readUint8();
+			let i;
+
+			switch (this._colorType = e, e) {
+				case mi.GREYSCALE:
+					i = 1;
+					break;
+
+				case mi.TRUECOLOUR:
+					i = 3;
+					break;
+
+				case mi.INDEXED_COLOUR:
+					i = 1;
+					break;
+
+				case mi.GREYSCALE_ALPHA:
+					i = 2;
+					break;
+
+				case mi.TRUECOLOUR_ALPHA:
+					i = 4;
+					break;
+
+				default:
+					throw new Error("Unknown color type: ".concat(e));
+			}
+
+			if (this._png.channels = i, this._compressionMethod = this.readUint8(), this._compressionMethod !== ki.DEFLATE) throw new Error("Unsupported compression method: ".concat(this._compressionMethod));
+			this._filterMethod = this.readUint8(), this._interlaceMethod = this.readUint8();
+		}
+
+		decodePLTE(t) {
+			if (t % 3 != 0) throw new RangeError("PLTE field length must be a multiple of 3. Got ".concat(t));
+			const e = t / 3;
+			this._hasPalette = !0;
+			const i = [];
+			this._palette = i;
+
+			for (let t = 0; t < e; t++) i.push([this.readUint8(), this.readUint8(), this.readUint8()]);
+		}
+
+		decodeIDAT(t) {
+			this._inflator.push(new Uint8Array(this.buffer, this.offset + this.byteOffset, t)), this.skip(t);
+		}
+
+		decodetRNS(t) {
+			if (3 === this._colorType) {
+				if (t > this._palette.length) throw new Error("tRNS chunk contains more alpha values than there are palette colors (".concat(t, " vs ").concat(this._palette.length, ")"));
+				let e = 0;
+
+				for (; e < t; e++) {
+					const t = this.readByte();
+
+					this._palette[e].push(t);
+				}
+
+				for (; e < this._palette.length; e++) this._palette[e].push(255);
+			}
+		}
+
+		decodeiCCP(t) {
+			let e,
+					i = "";
+
+			for (; "\0" !== (e = this.readChar());) i += e;
+
+			const n = this.readUint8();
+			if (n !== ki.DEFLATE) throw new Error("Unsupported iCCP compression method: ".concat(n));
+			const r = this.readBytes(t - i.length - 2);
+			this._png.iccEmbeddedProfile = {
+				name: i,
+				profile: ui(r)
+			};
+		}
+
+		decodetEXt(t) {
+			let e,
+					i = "";
+
+			for (; "\0" !== (e = this.readChar());) i += e;
+
+			this._png.text[i] = this.readChars(t - i.length - 1);
+		}
+
+		decodepHYs() {
+			const t = this.readUint32(),
+						e = this.readUint32(),
+						i = this.readByte();
+			this._png.resolution = {
+				x: t,
+				y: e,
+				unit: i
+			};
+		}
+
+		decodeImage() {
+			if (this._inflator.err) throw new Error("Error while decompressing the data: ".concat(this._inflator.err));
+			const t = this._inflator.result;
+			if (this._filterMethod !== yi.ADAPTIVE) throw new Error("Filter method ".concat(this._filterMethod, " not supported"));
+			if (this._interlaceMethod !== vi.NO_INTERLACE) throw new Error("Interlace method ".concat(this._interlaceMethod, " not supported"));
+			this.decodeInterlaceNull(t);
+		}
+
+		decodeInterlaceNull(t) {
+			const e = this._png.height,
+						i = this._png.channels * this._png.depth / 8,
+						n = this._png.width * i,
+						r = new Uint8Array(this._png.height * n);
+			let s,
+					a,
+					o = Ei,
+					h = 0;
+
+			for (let l = 0; l < e; l++) {
+				switch (s = t.subarray(h + 1, h + 1 + n), a = r.subarray(l * n, (l + 1) * n), t[h]) {
+					case 0:
+						zi(s, a, n);
+						break;
+
+					case 1:
+						Ri(s, a, n, i);
+						break;
+
+					case 2:
+						Ni(s, a, o, n);
+						break;
+
+					case 3:
+						Ti(s, a, o, n, i);
+						break;
+
+					case 4:
+						Oi(s, a, o, n, i);
+						break;
+
+					default:
+						throw new Error("Unsupported filter: ".concat(t[h]));
+				}
+
+				o = a, h += n + 1;
+			}
+
+			if (this._hasPalette && (this._png.palette = this._palette), 16 === this._png.depth) {
+				const t = new Uint16Array(r.buffer);
+				if (xi) for (let e = 0; e < t.length; e++) t[e] = (255 & (l = t[e])) << 8 | l >> 8 & 255;
+				this._png.data = t;
+			} else this._png.data = r;
+
+			var l;
+		}
+
+	}
+
+	function zi(t, e, i) {
+		for (let n = 0; n < i; n++) e[n] = t[n];
+	}
+
+	function Ri(t, e, i, n) {
+		let r = 0;
+
+		for (; r < n; r++) e[r] = t[r];
+
+		for (; r < i; r++) e[r] = t[r] + e[r - n] & 255;
+	}
+
+	function Ni(t, e, i, n) {
+		let r = 0;
+		if (0 === i.length) for (; r < n; r++) e[r] = t[r];else for (; r < n; r++) e[r] = t[r] + i[r] & 255;
+	}
+
+	function Ti(t, e, i, n, r) {
+		let s = 0;
+
+		if (0 === i.length) {
+			for (; s < r; s++) e[s] = t[s];
+
+			for (; s < n; s++) e[s] = t[s] + (e[s - r] >> 1) & 255;
+		} else {
+			for (; s < r; s++) e[s] = t[s] + (i[s] >> 1) & 255;
+
+			for (; s < n; s++) e[s] = t[s] + (e[s - r] + i[s] >> 1) & 255;
+		}
+	}
+
+	function Oi(t, e, i, n, r) {
+		let s = 0;
+
+		if (0 === i.length) {
+			for (; s < r; s++) e[s] = t[s];
+
+			for (; s < n; s++) e[s] = t[s] + e[s - r] & 255;
+		} else {
+			for (; s < r; s++) e[s] = t[s] + i[s] & 255;
+
+			for (; s < n; s++) e[s] = t[s] + Li(e[s - r], i[s], i[s - r]) & 255;
+		}
+	}
+
+	function Li(t, e, i) {
+		const n = t + e - i,
+					r = Math.abs(n - t),
+					s = Math.abs(n - e),
+					a = Math.abs(n - i);
+		return r <= s && r <= a ? t : s <= a ? e : i;
+	}
+
+	const Bi = {
+		level: 3
+	};
+
+	class Ci extends r {
+		constructor(t) {
+			let e = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+			super(), this._colorType = mi.UNKNOWN, this._zlibOptions = _objectSpread2(_objectSpread2({}, Bi), e.zlib), this._png = this._checkData(t), this.setBigEndian();
+		}
+
+		encode() {
+			return this.encodeSignature(), this.encodeIHDR(), this.encodeData(), this.encodeIEND(), this.toArray();
+		}
+
+		encodeSignature() {
+			this.writeBytes(wi);
+		}
+
+		encodeIHDR() {
+			this.writeUint32(13), this.writeChars("IHDR"), this.writeUint32(this._png.width), this.writeUint32(this._png.height), this.writeByte(this._png.depth), this.writeByte(this._colorType), this.writeByte(ki.DEFLATE), this.writeByte(yi.ADAPTIVE), this.writeByte(vi.NO_INTERLACE), this.writeCrc(17);
+		}
+
+		encodeIEND() {
+			this.writeUint32(0), this.writeChars("IEND"), this.writeCrc(4);
+		}
+
+		encodeIDAT(t) {
+			this.writeUint32(t.length), this.writeChars("IDAT"), this.writeBytes(t), this.writeCrc(t.length + 4);
+		}
+
+		encodeData() {
+			const {
+				width: t,
+				height: e,
+				channels: i,
+				depth: n,
+				data: s
+			} = this._png,
+						a = i * t,
+						o = new r().setBigEndian();
+			let h = 0;
+
+			for (let t = 0; t < e; t++) if (o.writeByte(0), 8 === n) h = Ii(s, o, a, h);else {
+				if (16 !== n) throw new Error("unreachable");
+				h = Si(s, o, a, h);
+			}
+
+			const l = o.toArray(),
+						d = fi(l, this._zlibOptions);
+			this.encodeIDAT(d);
+		}
+
+		_checkData(t) {
+			const {
+				colorType: e,
+				channels: i,
+				depth: n
+			} = function (t) {
+				const {
+					channels: e = 4,
+					depth: i = 8
+				} = t;
+				if (4 !== e && 3 !== e && 2 !== e && 1 !== e) throw new RangeError("unsupported number of channels: ".concat(e));
+				if (8 !== i && 16 !== i) throw new RangeError("unsupported bit depth: ".concat(i));
+				const n = {
+					channels: e,
+					depth: i,
+					colorType: mi.UNKNOWN
+				};
+
+				switch (e) {
+					case 4:
+						n.colorType = mi.TRUECOLOUR_ALPHA;
+						break;
+
+					case 3:
+						n.colorType = mi.TRUECOLOUR;
+						break;
+
+					case 1:
+						n.colorType = mi.GREYSCALE;
+						break;
+
+					case 2:
+						n.colorType = mi.GREYSCALE_ALPHA;
+						break;
+
+					default:
+						throw new Error("unsupported number of channels");
+				}
+
+				return n;
+			}(t),
+						r = {
+				width: Di(t.width, "width"),
+				height: Di(t.height, "height"),
+				channels: i,
+				data: t.data,
+				depth: n,
+				text: {}
+			};
+
+			this._colorType = e;
+			const s = r.width * r.height * i;
+			if (r.data.length !== s) throw new RangeError("wrong data size. Found ".concat(r.data.length, ", expected ").concat(s));
+			return r;
+		}
+
+		writeCrc(t) {
+			this.writeUint32(bi(new Uint8Array(this.buffer, this.byteOffset + this.offset - t, t), t));
+		}
+
+	}
+
+	function Di(t, e) {
+		if (Number.isInteger(t) && t > 0) return t;
+		throw new TypeError("".concat(e, " must be a positive integer"));
+	}
+
+	function Ii(t, e, i, n) {
+		for (let r = 0; r < i; r++) e.writeByte(t[n++]);
+
+		return n;
+	}
+
+	function Si(t, e, i, n) {
+		for (let r = 0; r < i; r++) e.writeUint16(t[n++]);
+
+		return n;
+	}
+
+	var Zi;
+	!function (t) {
+		t[t.UNKNOWN = 0] = "UNKNOWN", t[t.METRE = 1] = "METRE";
+	}(Zi || (Zi = {}));
+
+	const Fi = (t, e, i) => new Ci({
+		width: t,
+		height: e,
+		data: i
+	}, undefined).encode(),
+				Mi = t => function (t, e) {
+		return new Ui(t, void 0).decode();
+	}(t);
+})();
+
+n.P;
+		n.m;
+
+function setReaders(readers) {
+	return TypeReader.setReaders(readers);
+}
+
+/** 
+ * xnb.js 1.1.0
+ * made by Lybell( https://github.com/lybell-art/ )
+ * This library is based on the XnbCli made by Leonblade.
+ * 
+ * xnb.js is licensed under the LGPL 3.0 License.
+ * 
+*/
+
+class BaseReader {
+	static isTypeOf(type) {
+		return false;
+	}
+
+	static hasSubType() {
+		return false;
+	}
+
+	static parseTypeList() {
+		return [this.type()];
+	}
+
+	static type() {
+		return this.name.slice(0, -6);
+	}
+
+	isValueType() {
+		return true;
+	}
+
+	get type() {
+		return this.constructor.type();
+	}
+
+	read(buffer, resolver) {
+		throw new Error('Cannot invoke methods on abstract class.');
+	}
+
+	write(buffer, content, resolver) {
+		throw new Error('Cannot invoke methods on abstract class.');
+	}
+
+	writeIndex(buffer, resolver) {
+		if (resolver != null) buffer.write7BitNumber(Number.parseInt(resolver.getIndex(this)) + 1);
+	}
+
+	toString() {
+		return this.type;
+	}
+
+	parseTypeList() {
+		return this.constructor.parseTypeList();
+	}
+
+}
+
+class UInt32Reader extends BaseReader {
+	static isTypeOf(type) {
+		switch (type) {
+			case 'Microsoft.Xna.Framework.Content.UInt32Reader':
+			case 'System.UInt32':
+				return true;
+
+			default:
+				return false;
+		}
+	}
+
+	read(buffer) {
+		return buffer.readUInt32();
+	}
+
+	write(buffer, content, resolver) {
+		this.writeIndex(buffer, resolver);
+		buffer.writeUInt32(content);
+	}
+
+}
+
+class Int32Reader extends BaseReader {
+	static isTypeOf(type) {
+		switch (type) {
+			case 'Microsoft.Xna.Framework.Content.Int32Reader':
+			case 'System.Int32':
+				return true;
+
+			default:
+				return false;
+		}
+	}
+
+	read(buffer) {
+		return buffer.readInt32();
+	}
+
+	write(buffer, content, resolver) {
+		this.writeIndex(buffer, resolver);
+		buffer.writeInt32(content);
+	}
+
+}
+
+class LightweightTexture2DReader extends BaseReader {
+	static isTypeOf(type) {
+		switch (type) {
+			case 'Microsoft.Xna.Framework.Content.Texture2DReader':
+				return true;
+
+			default:
+				return false;
+		}
+	}
+
+	static type() {
+		return "Texture2D";
+	}
+
+	read(buffer) {
+		const int32Reader = new Int32Reader();
+		const uint32Reader = new UInt32Reader();
+		let format = int32Reader.read(buffer);
+		let width = uint32Reader.read(buffer);
+		let height = uint32Reader.read(buffer);
+		let mipCount = uint32Reader.read(buffer);
+		if (mipCount > 1) console.warn("Found mipcount of ".concat(mipCount, ", only the first will be used."));
+		let dataSize = uint32Reader.read(buffer);
+		let data = buffer.read(dataSize);
+		if (format != 0) throw new Error("Compressed texture format is not supported!");
+
+		for (let i = 0; i < data.length; i += 4) {
+			let inverseAlpha = 255 / data[i + 3];
+			data[i] = Math.min(Math.ceil(data[i] * inverseAlpha), 255);
+			data[i + 1] = Math.min(Math.ceil(data[i + 1] * inverseAlpha), 255);
+			data[i + 2] = Math.min(Math.ceil(data[i + 2] * inverseAlpha), 255);
+		}
+
+		return {
+			format,
+			export: {
+				type: this.type,
+				data,
+				width,
+				height
+			}
+		};
+	}
+
+	write(buffer, content, resolver) {
+		if (content.format != 0) throw new Error("Compressed texture format is not supported!");
+		const int32Reader = new Int32Reader();
+		const uint32Reader = new UInt32Reader();
+		this.writeIndex(buffer, resolver);
+		content.export.width;
+		content.export.height;
+		int32Reader.write(buffer, content.format, null);
+		uint32Reader.write(buffer, content.export.width, null);
+		uint32Reader.write(buffer, content.export.height, null);
+		uint32Reader.write(buffer, 1, null);
+		let data = content.export.data;
+
+		for (let i = 0; i < data.length; i += 4) {
+			const alpha = data[i + 3] / 255;
+			data[i] = Math.floor(data[i] * alpha);
+			data[i + 1] = Math.floor(data[i + 1] * alpha);
+			data[i + 2] = Math.floor(data[i + 2] * alpha);
+		}
+
+		uint32Reader.write(buffer, data.length, null);
+		buffer.concat(data);
+	}
+
+	isValueType() {
+		return false;
+	}
+
+	get type() {
+		return "Texture2D";
+	}
+
 }
 
 var niceErrors = {
@@ -33321,11 +36322,11 @@ function isStringish(value) {
 
   return false;
 }
-function isObject$1(value) {
+function isObject$4(value) {
   return value !== null && typeof value === "object";
 }
 function isPlainObject(value) {
-  if (!isObject$1(value)) {
+  if (!isObject$4(value)) {
     return false;
   }
 
@@ -33372,7 +36373,7 @@ function createInstanceofPredicate(name, theClass) {
   var propName = "isMobX" + name;
   theClass.prototype[propName] = true;
   return function (x) {
-    return isObject$1(x) && x[propName] === true;
+    return isObject$4(x) && x[propName] === true;
   };
 }
 function isES6Map(thing) {
@@ -33457,8 +36458,8 @@ function _createClass(Constructor, protoProps, staticProps) {
   return Constructor;
 }
 
-function _extends() {
-  _extends = Object.assign || function (target) {
+function _extends$2() {
+  _extends$2 = Object.assign || function (target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i];
 
@@ -33472,7 +36473,7 @@ function _extends() {
     return target;
   };
 
-  return _extends.apply(this, arguments);
+  return _extends$2.apply(this, arguments);
 }
 
 function _inheritsLoose(subClass, superClass) {
@@ -33558,7 +36559,7 @@ function createDecoratorAnnotation(annotation) {
 
 function storeAnnotation(prototype, key, annotation) {
   if (!hasProp(prototype, storedAnnotationsSymbol)) {
-    addHiddenProp(prototype, storedAnnotationsSymbol, _extends({}, prototype[storedAnnotationsSymbol]));
+    addHiddenProp(prototype, storedAnnotationsSymbol, _extends$2({}, prototype[storedAnnotationsSymbol]));
   } // @override must override something
 
 
@@ -33595,7 +36596,7 @@ function collectStoredAnnotations(target) {
     } // We need a copy as we will remove annotation from the list once it's applied.
 
 
-    addHiddenProp(target, storedAnnotationsSymbol, _extends({}, target[storedAnnotationsSymbol]));
+    addHiddenProp(target, storedAnnotationsSymbol, _extends$2({}, target[storedAnnotationsSymbol]));
   }
 
   return target[storedAnnotationsSymbol];
@@ -34030,7 +37031,7 @@ function make_$3(adm, key, descriptor) {
 
 function extend_$3(adm, key, descriptor, proxyTrap) {
   assertComputedDescriptor(adm, this, key, descriptor);
-  return adm.defineComputedProperty_(key, _extends({}, this.options_, {
+  return adm.defineComputedProperty_(key, _extends$2({}, this.options_, {
     get: descriptor.get,
     set: descriptor.set
   }), proxyTrap);
@@ -35789,7 +38790,7 @@ function spyReport(event) {
 }
 function spyReportStart(event) {
 
-  var change = _extends({}, event, {
+  var change = _extends$2({}, event, {
     spyReportStart: true
   });
 
@@ -35802,7 +38803,7 @@ var END_EVENT = {
 function spyReportEnd(change) {
 
   if (change) {
-    spyReport(_extends({}, change, {
+    spyReport(_extends$2({}, change, {
       type: "report-end",
       spyReportEnd: true
     }));
@@ -36530,6 +39531,49 @@ function makeObservable(target, annotations, options) {
   return target;
 } // proto[keysSymbol] = new Set<PropertyKey>()
 
+var keysSymbol = /*#__PURE__*/Symbol("mobx-keys");
+function makeAutoObservable(target, overrides, options) {
+  {
+    if (!isPlainObject(target) && !isPlainObject(Object.getPrototypeOf(target))) {
+      die("'makeAutoObservable' can only be used for classes that don't have a superclass");
+    }
+
+    if (isObservableObject(target)) {
+      die("makeAutoObservable can only be used on objects not already made observable");
+    }
+  } // Optimization: avoid visiting protos
+  // Assumes that annotation.make_/.extend_ works the same for plain objects
+
+
+  if (isPlainObject(target)) {
+    return extendObservable(target, target, overrides, options);
+  }
+
+  var adm = asObservableObject(target, options)[$mobx]; // Optimization: cache keys on proto
+  // Assumes makeAutoObservable can be called only once per object and can't be used in subclass
+
+  if (!target[keysSymbol]) {
+    var proto = Object.getPrototypeOf(target);
+    var keys = new Set([].concat(ownKeys(target), ownKeys(proto)));
+    keys["delete"]("constructor");
+    keys["delete"]($mobx);
+    addHiddenProp(proto, keysSymbol, keys);
+  }
+
+  startBatch();
+
+  try {
+    target[keysSymbol].forEach(function (key) {
+      return adm.make_(key, // must pass "undefined" for { key: undefined }
+      !overrides ? true : key in overrides ? overrides[key] : true);
+    });
+  } finally {
+    endBatch();
+  }
+
+  return target;
+}
+
 var SPLICE = "splice";
 var UPDATE = "update";
 var MAX_SPLICE_SIZE = 10000; // See e.g. https://github.com/mobxjs/mobx/issues/859
@@ -37086,7 +40130,7 @@ function reduceLikeFunc(funcName) {
 
 var isObservableArrayAdministration = /*#__PURE__*/createInstanceofPredicate("ObservableArrayAdministration", ObservableArrayAdministration);
 function isObservableArray(thing) {
-  return isObject$1(thing) && isObservableArrayAdministration(thing[$mobx]);
+  return isObject$4(thing) && isObservableArrayAdministration(thing[$mobx]);
 }
 
 var _Symbol$iterator, _Symbol$toStringTag;
@@ -38186,7 +41230,7 @@ var ObservableObjectAdministration = /*#__PURE__*/function () {
         var newValue = change.newValue;
 
         if (descriptor.value !== newValue) {
-          descriptor = _extends({}, descriptor, {
+          descriptor = _extends$2({}, descriptor, {
             value: newValue
           });
         }
@@ -38543,7 +41587,7 @@ function getCachedObservablePropDescriptor(key) {
 }
 
 function isObservableObject(thing) {
-  if (isObject$1(thing)) {
+  if (isObject$4(thing)) {
     return isObservableObjectAdministration(thing[$mobx]);
   }
 
@@ -38850,11 +41894,11 @@ function deepEqual(a, b, depth) {
     depth = -1;
   }
 
-  return eq(a, b, depth);
+  return eq$1(a, b, depth);
 } // Copied from https://github.com/jashkenas/underscore/blob/5c237a7c682fb68fd5378203f0bf22dce1624854/underscore.js#L1186-L1289
 // Internal recursive comparison function for `isEqual`.
 
-function eq(a, b, depth, aStack, bStack) {
+function eq$1(a, b, depth, aStack, bStack) {
   // Identical objects are equal. `0 === -0`, but they aren't identical.
   // See the [Harmony `egal` proposal](http://wiki.ecmascript.org/doku.php?id=harmony:egal).
   if (a === b) {
@@ -38981,7 +42025,7 @@ function eq(a, b, depth, aStack, bStack) {
 
 
     while (length--) {
-      if (!eq(a[length], b[length], depth - 1, aStack, bStack)) {
+      if (!eq$1(a[length], b[length], depth - 1, aStack, bStack)) {
         return false;
       }
     }
@@ -38999,7 +42043,7 @@ function eq(a, b, depth, aStack, bStack) {
       // Deep compare each member
       key = keys[length];
 
-      if (!(hasProp(b, key) && eq(a[key], b[key], depth - 1, aStack, bStack))) {
+      if (!(hasProp(b, key) && eq$1(a[key], b[key], depth - 1, aStack, bStack))) {
         return false;
       }
     }
@@ -39077,166 +42121,6 @@ if (typeof __MOBX_DEVTOOLS_GLOBAL_HOOK__ === "object") {
     $mobx: $mobx
   });
 }
-
-function isMobileView(screenWidth) {
-  const TABLET_MIN_SCREEN_WIDTH = 768;
-  return screenWidth < TABLET_MIN_SCREEN_WIDTH;
-}
-
-class ThresholdObserver {
-  constructor(threshold, _default = 0) {
-    this.prev = _default;
-    this.threshold = threshold;
-  }
-
-  checkEach(current, threshold) {
-    if (this.prev >= threshold && current < threshold) return -1;
-    if (this.prev <= threshold && current > threshold) return 1;
-    return 0;
-  }
-
-  update(current, callback) {
-    if (typeof this.threshold === "number") {
-      const res = this.checkEach(current, this.threshold);
-      if (res === 1) callback(1);else if (res === -1) callback(0);
-    }
-
-    if (Array.isArray(this.threshold)) {
-      for (let i = 0; i < this.threshold.length; i++) {
-        const res = this.checkEach(current, this.threshold[i]);
-        if (res === 1) callback((i << 1) + 1);else if (res === -1) callback((i << 1) + 0);
-      }
-    }
-
-    this.prev = current;
-  }
-
-}
-
-function clamp(value, min, max) {
-  if (min > value) return min;
-  if (max < value) return max;
-  return value;
-}
-
-function lerp(a, b, v) {
-  return a * (1 - v) + b * v;
-} // stardew valley using HSB color system
-// from https://www.30secondsofcode.org/js/s/hsb-to-rgb
-
-
-function HSBtoRGB(hue, saturation, brightness) {
-  const S = saturation / 100;
-  const B = brightness / 100;
-
-  const k = n => (n + hue / 60) % 6;
-
-  const f = n => B * (1 - S * Math.max(0, Math.min(k(n), 4 - k(n), 1)));
-
-  return [5, 3, 1].map(i => Math.floor(255 * f(i)));
-}
-
-function colorArrayToHex(arr) {
-  return (arr[0] << 16) + (arr[1] << 8) + arr[2];
-}
-
-function getRedToHex(hex) {
-  return hex >> 16;
-}
-
-function getGreenToHex(hex) {
-  return (hex & 0xff << 8) >> 8;
-}
-
-function getBlueToHex(hex) {
-  return hex & 0xff;
-}
-
-function lerpColor(a, b, v) {
-  let red = lerp(getRedToHex(a), getRedToHex(b), v);
-  let green = lerp(getGreenToHex(a), getGreenToHex(b), v);
-  let blue = lerp(getBlueToHex(a), getBlueToHex(b), v);
-  return colorArrayToHex([red, green, blue]);
-}
-
-function getPrismaticColor(percent) {
-  const prismaticArray = [0xff0000, 0xff7800, 0xffd900, 0x00ff00, 0x00ffff, 0xee82ee];
-  const lerp = percent * 6 % 1;
-  const part = Math.floor(percent * 6);
-  return lerpColor(prismaticArray[part % 6], prismaticArray[(part + 1) % 6], lerp);
-}
-
-function easeOut(x) {
-  return 1 - Math.pow(1 - x, 5);
-}
-
-class ClothStoreBox {
-  value = 0;
-  hue = 0;
-  saturation = 100;
-  brightness = 100;
-
-  constructor({
-    value = 0,
-    hue = 0,
-    saturation = 100,
-    brightness = 100
-  } = {}) {
-    makeObservable(this, {
-      value: observable,
-      hue: observable,
-      saturation: observable,
-      brightness: observable,
-      color: computed,
-      changeSelect: action,
-      changeHue: action,
-      changeSaturation: action,
-      changeBrightness: action
-    });
-    this.value = value;
-    this.hue = hue;
-    this.saturation = saturation;
-    this.brightness = brightness;
-  }
-
-  get color() {
-    return HSBtoRGB(this.hue, this.saturation, this.brightness);
-  }
-
-  changeSelect(value) {
-    this.value = value;
-  }
-
-  changeHue(hue) {
-    this.hue = +hue;
-  }
-
-  changeSaturation(saturation) {
-    this.saturation = +saturation;
-  }
-
-  changeBrightness(brightness) {
-    this.brightness = +brightness;
-  }
-
-}
-
-const clothStoreDict = {
-  hats: new ClothStoreBox({
-    value: -1
-  }),
-  hairstyle: new ClothStoreBox({
-    hue: 4,
-    saturation: 74,
-    brightness: 75
-  }),
-  shirts: new ClothStoreBox(),
-  pants: new ClothStoreBox({
-    hue: 61,
-    saturation: 74,
-    brightness: 71
-  })
-};
 
 var i18n_en = {
 	"title.hats": "Hats",
@@ -39966,9 +42850,738 @@ var i18n_en = {
 	"pants.desc.16": "Tailoring Randomly (Cloth + Prismatic Shard)"
 };
 
+var i18n_ko = {
+	"title.hats": "모자",
+	"title.hairstyle": "머리카락",
+	"title.shirts": "상의",
+	"title.pants": "하의",
+	"UI.language.en": "영어",
+	"UI.language.ko": "한국어",
+	"UI.color": "색상 선택",
+	"UI.howToObtain": "획득 방법",
+	"hats.name.0": "카우보이 모자",
+	"hats.name.1": "중절모",
+	"hats.name.2": "실크해트",
+	"hats.name.3": "솜브레로",
+	"hats.name.4": "밀짚모자",
+	"hats.name.5": "공무원 모자",
+	"hats.name.6": "파란 보닛",
+	"hats.name.7": "자두색 샤포",
+	"hats.name.8": "해골 가면",
+	"hats.name.9": "고블린 가면",
+	"hats.name.10": "닭 가면",
+	"hats.name.11": "귀마개",
+	"hats.name.12": "섬세한 리본",
+	"hats.name.13": "열대클립",
+	"hats.name.14": "나비 리본",
+	"hats.name.15": "사냥꾼모자",
+	"hats.name.16": "트럭 운전수 모자",
+	"hats.name.17": "선원 모자",
+	"hats.name.18": "편한 모자",
+	"hats.name.19": "페도라",
+	"hats.name.20": "쿨 캡",
+	"hats.name.21": "럭키 리본",
+	"hats.name.22": "땡땡이 리본",
+	"hats.name.23": "노움의 모자",
+	"hats.name.24": "안대",
+	"hats.name.25": "산타 모자",
+	"hats.name.26": "티아라",
+	"hats.name.27": "안전모",
+	"hats.name.28": "방수모",
+	"hats.name.29": "민들레",
+	"hats.name.30": "수박 머리띠",
+	"hats.name.31": "쥐 귀",
+	"hats.name.32": "고양이 귀",
+	"hats.name.33": "카우걸 모자",
+	"hats.name.34": "소몰이 모자",
+	"hats.name.35": "궁수의 모자",
+	"hats.name.36": "판다 모자",
+	"hats.name.37": "파란 카우보이 모자",
+	"hats.name.38": "붉은 카우보이 모자",
+	"hats.name.39": "고깔모자",
+	"hats.name.40": "살아있는 모자",
+	"hats.name.41": "에밀리의 마법 모자",
+	"hats.name.42": "버섯 캡",
+	"hats.name.43": "공룡 모자",
+	"hats.name.44": "토템 가면",
+	"hats.name.45": "로고 캡",
+	"hats.name.46": "대형 드워프 투구",
+	"hats.name.47": "패션 모자",
+	"hats.name.48": "호박 가면",
+	"hats.name.49": "뼈 장식",
+	"hats.name.50": "기사의 투구",
+	"hats.name.51": "종자의 투구",
+	"hats.name.52": "물방울무늬 머리 스카프",
+	"hats.name.53": "비니",
+	"hats.name.54": "헐렁한 비니",
+	"hats.name.55": "낚시용 모자",
+	"hats.name.56": "블롭피쉬 가면",
+	"hats.name.57": "파티 모자",
+	"hats.name.58": "파티 모자",
+	"hats.name.59": "파티 모자",
+	"hats.name.60": "신비한 모자",
+	"hats.name.61": "셰프 모자",
+	"hats.name.62": "해적모",
+	"hats.name.63": "플랫 톱 모자",
+	"hats.name.64": "우아한 터번",
+	"hats.name.65": "흰색 터번",
+	"hats.name.66": "쓰레기 모자",
+	"hats.name.67": "황금 가면",
+	"hats.name.68": "프로펠러 모자",
+	"hats.name.69": "신부의 면사포",
+	"hats.name.70": "마녀 모자",
+	"hats.name.71": "구리 냄비",
+	"hats.name.72": "녹색 터번",
+	"hats.name.73": "마법 카우보이 모자",
+	"hats.name.74": "마법 터번",
+	"hats.name.75": "황금 투구",
+	"hats.name.76": "디럭스 해적모",
+	"hats.name.77": "핑크 리본",
+	"hats.name.78": "개구리 모자",
+	"hats.name.79": "작은 캡",
+	"hats.name.80": "파랑새 가면",
+	"hats.name.81": "디럭스 카우보이 모자",
+	"hats.name.82": "미스터 치 모자",
+	"hats.name.83": "어두운 카우보이 모자",
+	"hats.name.84": "방사능 고글",
+	"hats.name.85": "스워시버클러 모자",
+	"hats.name.86": "치의 가면",
+	"hats.name.87": "스타 헬멧",
+	"hats.name.88": "선글라스",
+	"hats.name.89": "고글",
+	"hats.name.90": "채집가의 모자",
+	"hats.name.91": "호랑이 모자",
+	"hats.name.92": "???",
+	"hats.name.93": "전사의 투구",
+	"shirts.name.0": "전형적인 멜빵바지",
+	"shirts.name.2": "민트색 블라우스",
+	"shirts.name.3": "어두운 셔츠",
+	"shirts.name.4": "두개골 셔츠",
+	"shirts.name.5": "연파랑 셔츠",
+	"shirts.name.6": "베이지색 줄무늬 셔츠",
+	"shirts.name.7": "녹색 멜빵바지",
+	"shirts.name.8": "\"세상에\" 셔츠",
+	"shirts.name.9": "연하늘색 셔츠",
+	"shirts.name.10": "정장 상의",
+	"shirts.name.11": "녹색 벨트 셔츠",
+	"shirts.name.12": "라임색 줄무늬 셔츠",
+	"shirts.name.13": "붉은 줄무늬 셔츠",
+	"shirts.name.14": "해골 셔츠",
+	"shirts.name.15": "주황색 셔츠",
+	"shirts.name.16": "밤하늘 셔츠",
+	"shirts.name.17": "시장의 멜빵",
+	"shirts.name.18": "갈색 재킷",
+	"shirts.name.19": "선원 셔츠",
+	"shirts.name.20": "녹색 조끼",
+	"shirts.name.21": "노란색과 초록색 셔츠",
+	"shirts.name.26": "연파랑 줄무늬 셔츠",
+	"shirts.name.27": "핑크 줄무늬 셔츠",
+	"shirts.name.28": "하트 셔츠",
+	"shirts.name.29": "작업용 셔츠",
+	"shirts.name.30": "상점 주인의 재킷",
+	"shirts.name.34": "녹색 튜닉",
+	"shirts.name.35": "화려한 붉은 블라우스",
+	"shirts.name.38": "평범한 셔츠",
+	"shirts.name.39": "레트로 무지개 셔츠",
+	"shirts.name.42": "라임색 튜닉",
+	"shirts.name.71": "흰색 멜빵바지 셔츠",
+	"shirts.name.87": "단정한 나비넥타이 셔츠",
+	"shirts.name.123": "셔츠와 넥타이",
+	"shirts.name.127": "에밀리의 마법 셔츠",
+	"shirts.name.128": "줄무늬 셔츠",
+	"shirts.name.129": "탱크탑",
+	"shirts.name.131": "카우보이 판초",
+	"shirts.name.132": "크롭 탱크탑",
+	"shirts.name.134": "비키니 탑",
+	"shirts.name.135": "웜버스 셔츠",
+	"shirts.name.136": "80년대 셔츠",
+	"shirts.name.137": "레터맨 재킷",
+	"shirts.name.138": "검은 레터맨 재킷",
+	"shirts.name.139": "끈 달린 탑",
+	"shirts.name.140": "와이셔츠",
+	"shirts.name.141": "크롭 탑 셔츠",
+	"shirts.name.142": "튜브 탑",
+	"shirts.name.143": "타이 다이 셔츠",
+	"shirts.name.148": "강철 흉갑",
+	"shirts.name.149": "구리 흉갑",
+	"shirts.name.150": "황금 흉갑",
+	"shirts.name.151": "이리듐 흉갑",
+	"shirts.name.153": "가짜 근육 셔츠",
+	"shirts.name.154": "플란넬 셔츠",
+	"shirts.name.155": "항공 재킷",
+	"shirts.name.156": "원시인 셔츠",
+	"shirts.name.157": "낚시용 조끼",
+	"shirts.name.158": "물고기 셔츠",
+	"shirts.name.159": "셔츠와 벨트",
+	"shirts.name.160": "회색 후드",
+	"shirts.name.161": "파란 후드",
+	"shirts.name.162": "붉은 후드",
+	"shirts.name.163": "청재킷",
+	"shirts.name.164": "육상 재킷",
+	"shirts.name.165": "흰색 도복",
+	"shirts.name.166": "주황색 도복",
+	"shirts.name.167": "회색 조끼",
+	"shirts.name.168": "해초 셔츠",
+	"shirts.name.169": "징 박힌 조끼",
+	"shirts.name.170": "얇은 셔츠",
+	"shirts.name.171": "오아시스 가운",
+	"shirts.name.172": "대장장이용 앞치마",
+	"shirts.name.173": "단정한 나비넥타이 셔츠",
+	"shirts.name.174": "하이 웨이스트 셔츠",
+	"shirts.name.175": "하이 웨이스트 셔츠",
+	"shirts.name.176": "평범한 스웨터",
+	"shirts.name.178": "터틀넥 스웨터",
+	"shirts.name.179": "이리듐 에너지 셔츠",
+	"shirts.name.180": "터널러즈 저지",
+	"shirts.name.183": "회색 정장",
+	"shirts.name.184": "붉은 턱시도",
+	"shirts.name.185": "네이비색 턱시도",
+	"shirts.name.186": "홀리데이 셔츠",
+	"shirts.name.187": "나뭇잎 탑",
+	"shirts.name.188": "굿나잇 셔츠",
+	"shirts.name.189": "녹색 벨트 셔츠",
+	"shirts.name.190": "해피 셔츠",
+	"shirts.name.191": "나비넥타이 셔츠",
+	"shirts.name.192": "광대 셔츠",
+	"shirts.name.193": "바다 셔츠",
+	"shirts.name.194": "어두운 줄무늬 셔츠",
+	"shirts.name.195": "반다나 셔츠",
+	"shirts.name.196": "배낭 셔츠",
+	"shirts.name.197": "보라색 블라우스",
+	"shirts.name.198": "빈티지 폴로",
+	"shirts.name.199": "토가 셔츠",
+	"shirts.name.200": "별 셔츠",
+	"shirts.name.201": "교양 있는 탑",
+	"shirts.name.203": "반다나 셔츠",
+	"shirts.name.204": "휴가 셔츠",
+	"shirts.name.205": "원예가의 셔츠",
+	"shirts.name.206": "반다나 셔츠",
+	"shirts.name.207": "슬라임 셔츠",
+	"shirts.name.208": "발굴자의 셔츠",
+	"shirts.name.209": "스포츠 셔츠",
+	"shirts.name.210": "하트 셔츠",
+	"shirts.name.211": "어두운 재킷",
+	"shirts.name.212": "노을 셔츠",
+	"shirts.name.213": "셰프 코트",
+	"shirts.name.214": "바다의 셔츠",
+	"shirts.name.215": "신비한 셔츠",
+	"shirts.name.216": "평범한 멜빵바지",
+	"shirts.name.217": "민소매 멜빵바지",
+	"shirts.name.218": "가디건",
+	"shirts.name.219": "요바 셔츠",
+	"shirts.name.220": "목걸이 셔츠",
+	"shirts.name.221": "벨트 코트",
+	"shirts.name.222": "황금 테두리 셔츠",
+	"shirts.name.223": "무지갯빛 셔츠",
+	"shirts.name.224": "펜던트 셔츠",
+	"shirts.name.225": "고온 셔츠",
+	"shirts.name.226": "불꽃 셔츠",
+	"shirts.name.227": "고대 셔츠",
+	"shirts.name.228": "부드러운 화살표 셔츠",
+	"shirts.name.229": "인형 셔츠",
+	"shirts.name.230": "장신구 셔츠",
+	"shirts.name.231": "캔버스 재킷",
+	"shirts.name.232": "쓰레기통 셔츠",
+	"shirts.name.233": "녹슨 셔츠",
+	"shirts.name.234": "회로판 셔츠",
+	"shirts.name.235": "푹신한 셔츠",
+	"shirts.name.236": "소스 묻은 셔츠",
+	"shirts.name.237": "갈색 정장",
+	"shirts.name.238": "황금 셔츠",
+	"shirts.name.239": "선장 유니폼",
+	"shirts.name.240": "경찰 유니폼",
+	"shirts.name.241": "삼림 관리원 유니폼",
+	"shirts.name.242": "긴 파란 조끼",
+	"shirts.name.243": "제왕의 망토",
+	"shirts.name.244": "유물 셔츠",
+	"shirts.name.245": "보보 셔츠",
+	"shirts.name.246": "계란 프라이 셔츠",
+	"shirts.name.247": "버거 셔츠",
+	"shirts.name.248": "깃 셔츠",
+	"shirts.name.249": "토스트 셔츠",
+	"shirts.name.250": "잉어 셔츠",
+	"shirts.name.251": "붉은 플란넬 셔츠",
+	"shirts.name.252": "또띠야 셔츠",
+	"shirts.name.253": "따뜻한 플란넬 셔츠",
+	"shirts.name.254": "설탕 셔츠",
+	"shirts.name.255": "녹색 플란넬 셔츠",
+	"shirts.name.256": "기름 얼룩 셔츠",
+	"shirts.name.257": "곰보 셔츠",
+	"shirts.name.258": "봄 셔츠",
+	"shirts.name.259": "선원 셔츠",
+	"shirts.name.260": "우비",
+	"shirts.name.261": "선원 셔츠",
+	"shirts.name.262": "어두운 반다나 셔츠",
+	"shirts.name.263": "어두운 하이라이트 셔츠",
+	"shirts.name.264": "옴니 셔츠",
+	"shirts.name.265": "신부 셔츠",
+	"shirts.name.266": "갈색 멜빵바지",
+	"shirts.name.267": "주황색 나비넥타이 셔츠",
+	"shirts.name.268": "흰색 멜빵바지",
+	"shirts.name.269": "포어-오버 셔츠",
+	"shirts.name.270": "녹색 재킷 셔츠",
+	"shirts.name.271": "짧은 재킷",
+	"shirts.name.272": "물방울무늬 셔츠",
+	"shirts.name.273": "흰 물방울무늬 셔츠",
+	"shirts.name.274": "위장색 셔츠",
+	"shirts.name.275": "흙 셔츠",
+	"shirts.name.276": "게살 케이크 셔츠",
+	"shirts.name.277": "실크 셔츠",
+	"shirts.name.278": "파란 단추 조끼",
+	"shirts.name.279": "색 바랜 데님 셔츠",
+	"shirts.name.280": "붉은 단추 조끼",
+	"shirts.name.281": "초록 단추 조끼",
+	"shirts.name.282": "토마토 셔츠",
+	"shirts.name.283": "술 달린 조끼",
+	"shirts.name.284": "방울 셔츠",
+	"shirts.name.285": "자정의 개 재킷",
+	"shirts.name.286": "새우 애호가 셔츠",
+	"shirts.name.287": "'티' 셔츠",
+	"shirts.name.288": "장신구 셔츠",
+	"shirts.name.289": "어둠의 정장",
+	"shirts.name.290": "미네랄 도그 재킷",
+	"shirts.name.291": "자홍색 셔츠",
+	"shirts.name.292": "진저 멜빵바지",
+	"shirts.name.293": "바나나 셔츠",
+	"shirts.name.294": "노란 양복",
+	"shirts.name.295": "핫 핑크 셔츠",
+	"shirts.name.296": "열대 일출 셔츠",
+	"shirts.name.297": "섬 비키니",
+	"shirts.name.997": "마법 스프링클 셔츠",
+	"shirts.name.998": "무지갯빛 셔츠",
+	"shirts.name.999": "무지갯빛 셔츠",
+	"shirts.name.default": "셔츠",
+	"pants.name.0": "농부 바지",
+	"pants.name.1": "반바지",
+	"pants.name.2": "롱 드레스",
+	"pants.name.3": "치마",
+	"pants.name.4": "주름치마",
+	"pants.name.5": "공룡 바지",
+	"pants.name.6": "잔디 치마",
+	"pants.name.7": "루아우 치마",
+	"pants.name.8": "지니 바지",
+	"pants.name.9": "꽉 붙는 바지",
+	"pants.name.10": "헐렁한 바지",
+	"pants.name.11": "간단한 드레스",
+	"pants.name.12": "편안한 바지",
+	"pants.name.13": "편안한 반바지",
+	"pants.name.15": "테두리가 장식된 행운의 보라 반바지",
+	"pants.name.998": "무지갯빛 바지",
+	"pants.name.999": "무지갯빛 지니 바지",
+	"pants.name.default": "바지",
+	"hats.desc.0": "'완성된 컬렉션' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.1": "'백만장자' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.2": "카지노에서 치 코인 8000개와 교환",
+	"hats.desc.3": "'전설' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.4": "달걀 축제 최초 우승 보상\n획득 후 모자 상점에서 추가 구매 가능",
+	"hats.desc.5": "'경험 많은 뱃사람' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.6": "'보물창고' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.7": "'수셰프' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.8": "해골 50마리 처치 후 모험가 길드에서 받음\n달성 후 모험가 길드에서 20000골드에 추가 구매 가능",
+	"hats.desc.9": "'수송품 한가득' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.10": "'큰 도움' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.11": "'인기인' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.12": "'요리사' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.13": "'출세' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.14": "'새 친구' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.15": "'크게 살기' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.16": "'장인' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.17": "얼음 축제 낚시 대회 최초 우승 보상\n획득 후 모자 상점에서 추가 구매 가능",
+	"hats.desc.18": "'풋내기' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.19": "스타듀 밸리 품평회에서 스타토큰 500개와 교환",
+	"hats.desc.20": "'농가 주인' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.21": "'소몰이' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.22": "'심부름꾼' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.23": "'제작의 달인' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.24": "'낚시의 달인' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.25": "'인맥 형성' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.26": "'무리' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.27": "더기 30마리 처치 후 모험가 길드에서 받음\n달성 후 모험가 길드에서 20000골드에 추가 구매 가능",
+	"hats.desc.28": "'낚시꾼' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.29": "'수작업' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.30": "'낚시의 신' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.31": "'절친' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.32": "'총애 받는 농부' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.33": "'단일 재배' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.34": "'혼합양식' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.35": "'미식가 셰프' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.36": "획득 불가능",
+	"hats.desc.37": "해골 광산 보물상자에서 1/26 확률로 획득",
+	"hats.desc.38": "해골 광산 보물상자에서 1/26 확률로 획득",
+	"hats.desc.39": "야시장에서 구매",
+	"hats.desc.40": "잡초를 벨 때 0.001% 확률로 획득\n야생 골렘에게서 0.01% 확률로 드랍",
+	"hats.desc.41": "에밀리 14하트 이벤트 보상",
+	"hats.desc.42": "버섯 나무를 벨 때 1% 확률로 획득",
+	"hats.desc.43": "재봉틀에서 옷감과 공룡알로 재단",
+	"hats.desc.44": "재봉틀에서 옷감과 토템류 아이템로 재단",
+	"hats.desc.45": "재봉틀에서 옷감과 용암 장어로 재단",
+	"hats.desc.46": "재봉틀에서 옷감과 드워프 도구/드워프 투구로 재단",
+	"hats.desc.47": "재봉틀에서 옷감과 캐비어로 재단",
+	"hats.desc.48": "재봉틀에서 옷감과 잭 오 랜턴으로 재단",
+	"hats.desc.49": "재봉틀에서 옷감과 선사 시대 경골로 재단",
+	"hats.desc.50": "페퍼 렉스 50마리 처치 후 모험가 길드에서 받음\n달성 후 모험가 길드에서 20000골드에 추가 구매 가능",
+	"hats.desc.51": "메탈 헤드에게서 드랍(100마리당 1개꼴로 드랍됨)",
+	"hats.desc.52": "재봉틀에서 옷감과 붉은색 버섯으로 재단",
+	"hats.desc.53": "재봉틀에서 옷감과 도토리/단풍나무 씨앗/솔방울/마호가니 씨앗으로 재단",
+	"hats.desc.54": "재봉틀에서 옷감과 참나무 수지/메이플 시럽/소나무 타르로 재단",
+	"hats.desc.55": "재봉틀에서 옷감과 쑥치/아이스핍/전갈잉어/자정오징어/통안어/슬라임잭/공허의 연어로 재단",
+	"hats.desc.56": "재봉틀에서 옷감과 블롭피시로 재단",
+	"hats.desc.57": "재봉틀에서 옷감과 피자로 재단",
+	"hats.desc.58": "재봉틀에서 옷감과 초콜릿 케이크로 재단",
+	"hats.desc.59": "재봉틀에서 옷감과 생선 타코로 재단",
+	"hats.desc.60": "미라 100마리 처치 후 모험가 길드에서 받음\n달성 후 모험가 길드에서 20000골드에 추가 구매 가능",
+	"hats.desc.61": "'미식가 셰프' 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.62": "재봉틀에서 옷감과 보물상자로 재단",
+	"hats.desc.63": "재봉틀에서 옷감과 크랜베리 소스/요리용 속으로 재단",
+	"hats.desc.64": "모든 업적 달성 후 모자 상점에서 1000골드에 구매",
+	"hats.desc.65": "재봉틀에서 옷감과 달콤보석베리로 재단\n해골 광산 보물상자에서 1/26 확률로 획득",
+	"hats.desc.66": "쓰레기통 20개 이상을 뒤진 후 쓰레기통에서 0.2% 확률로 획득",
+	"hats.desc.67": "재봉틀에서 옷감과 황금 가면으로 재단",
+	"hats.desc.68": "재봉틀에서 옷감과 광부의 간식으로 재단",
+	"hats.desc.69": "재봉틀에서 옷감과 진주로 재단",
+	"hats.desc.70": "재봉틀에서 옷감과 황금 호박으로 재단",
+	"hats.desc.71": "구리 선광 냄비를 머리에 착용",
+	"hats.desc.72": "사막 상인에게서 전 정동석 50개와 교환",
+	"hats.desc.73": "홀수 날에 사막 상인에게서 전 정동석 333개와 교환",
+	"hats.desc.74": "짝수 날에 사막 상인에게서 전 정동석 333개와 교환",
+	"hats.desc.75": "황금 코코넛에서 5% 확률로 획득",
+	"hats.desc.76": "화산던전 레어 보물상자에서 1/9 확률로 획득",
+	"hats.desc.77": "25% 확률로 화산던전 드워프에게서 10000골드에 구매",
+	"hats.desc.78": "진저섬 미식가 개구리 동굴에서 낚시",
+	"hats.desc.79": "월요일에 섬 상인에게서 토란 30개와 교환",
+	"hats.desc.80": "수요일에 섬 상인에게서 토란 30개와 교환",
+	"hats.desc.81": "금요일에 섬 상인에게서 토란 30개와 교환",
+	"hats.desc.82": "치의 호두방에서 치 보석 5개로 구매",
+	"hats.desc.83": "해골 광산 보물상자에서 1/26 확률로 획득",
+	"hats.desc.84": "재봉틀에서 옷감과 방사능 주괴로 재단",
+	"hats.desc.85": "재봉틀에서 옷감과 용의 이빨로 재단",
+	"hats.desc.86": "재봉틀에서 옷감과 치 열매로 재단",
+	"hats.desc.87": "재봉틀에서 옷감과 버섯나무 씨앗으로 재단",
+	"hats.desc.88": "재봉틀에서 옷감과 잉걸불 파편으로 재단",
+	"hats.desc.89": "재봉틀에서 옷감과 벌레 스테이크로 재단",
+	"hats.desc.90": "재봉틀에서 옷감과 생강으로 재단",
+	"hats.desc.91": "호랑 슬라임에게서 0.1% 확률로 드랍",
+	"hats.desc.92": "진엔딩 이후 화산광산 10층의 원숭이에게서 받음",
+	"hats.desc.93": "재봉틀에서 옷감과 타조알로 재단",
+	"shirts.desc.0": "시작 시 선택\n재봉틀에서 옷감과 완벽한 아침으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.1": "시작 시 선택\n재봉틀에서 옷감과 점토로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.2": "시작 시 선택\n재봉틀에서 옷감과 민들레로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.3": "시작 시 선택\n재봉틀에서 옷감과 박쥐 날개로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.4": "시작 시 선택\n재봉틀에서 옷감과 선사 시대 두개골로 재단\n귀신 들린 해골에게서 0.22% 확률로 드랍\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.5": "시작 시 선택\n재봉틀에서 옷감과 마요네즈로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.6": "시작 시 선택\n재봉틀에서 옷감과 수액으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.7": "시작 시 선택\n재봉틀에서 옷감과 청나래고사리로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.8": "시작 시 선택\n재봉틀에서 옷감과 야생 고추냉이로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.9": "시작 시 선택\n재봉틀에서 옷감과 오리 마요네즈로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.10": "시작 시 선택\n재봉틀에서 옷감과 부케로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.11": "시작 시 선택\n재봉틀에서 옷감과 동굴 당근으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.12": "시작 시 선택\n재봉틀에서 옷감과 오리깃털로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.13": "시작 시 선택\n재봉틀에서 옷감과 크랜베리 캔디로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.14": "시작 시 선택\n재봉틀에서 옷감과 선사 시대 늑골/선사 시대 견갑골/선사 시대 척추골/손 뼈/꼬리 뼈/뼛조각/화석화된 두개골/화석화된 척추/화석화된 꼬리/화석화된 다리/화석화된 늑골/뱀 두개골/뱀 척추/미이라화된 박쥐/미이라화된 개구리로 재단\n귀신 들린 해골에게서 0.22% 확률로 드랍\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.15": "시작 시 선택\n재봉틀에서 옷감과 살구버섯으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.16": "시작 시 선택\n재봉틀에서 옷감과 블루베리 타르트로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.17": "시작 시 선택\n재봉틀에서 옷감과 야채의 메들리로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.18": "시작 시 선택\n재봉틀에서 옷감과 이암으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.19": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.20": "시작 시 선택\n재봉틀에서 옷감과 콩 스튜로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.21": "시작 시 선택\n재봉틀에서 옷감과 오믈렛으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.22": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.23": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.24": "시작 시 선택\n재봉틀에서 옷감과 염소젖으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.25": "시작 시 선택\n재봉틀에서 옷감과 큰 염소젖으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.26": "시작 시 선택\n재봉틀에서 옷감과 라이스 푸딩으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.27": "시작 시 선택\n재봉틀에서 옷감과 벌레 고기로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.28": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.29": "시작 시 선택\n재봉틀에서 옷감과 돌로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.30": "시작 시 선택\n재봉틀에서 옷감과 오징어튀김으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.31": "시작 시 선택\n재봉틀에서 옷감과 생선구이로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.32": "시작 시 선택\n재봉틀에서 옷감과 새먼베리로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.33": "시작 시 선택\n재봉틀에서 옷감과 샐러드로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.34": "시작 시 선택\n재봉틀에서 옷감과 고대 검으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.35": "시작 시 선택\n재봉틀에서 옷감과 호랑가시나무 열매로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.36": "시작 시 선택\n재봉틀에서 옷감과 회로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.37": "시작 시 선택\n재봉틀에서 옷감과 마키 롤로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.38": "시작 시 선택\n재봉틀에서 옷감과 양털로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.39": "시작 시 선택\n재봉틀에서 옷감과 아이스크림으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.40": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.41": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.42": "시작 시 선택\n재봉틀에서 옷감과 리크로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.43": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.44": "시작 시 선택\n재봉틀에서 옷감과 눈마로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.45": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.46": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.47": "시작 시 선택\n재봉틀에서 옷감과 단단한 나무로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.48": "시작 시 선택\n재봉틀에서 옷감과 석탄으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.49": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.50": "시작 시 선택\n재봉틀에서 옷감과 스위트피로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.51": "시작 시 선택\n재봉틀에서 옷감과 핑크 케이크로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.52": "시작 시 선택\n재봉틀에서 옷감과 행운의 점심으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.53": "시작 시 선택\n재봉틀에서 옷감과 구운 헤이즐넛으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.54": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.55": "시작 시 선택\n재봉틀에서 옷감과 장어튀김으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.56": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.57": "시작 시 선택\n재봉틀에서 옷감과 불의 석영으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.58": "시작 시 선택\n재봉틀에서 옷감과 블랙베리 코블러로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.59": "시작 시 선택\n재봉틀에서 옷감과 호박죽으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.60": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.61": "시작 시 선택\n재봉틀에서 옷감과 빵으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.62": "시작 시 선택\n재봉틀에서 옷감과 오팔로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.63": "시작 시 선택\n재봉틀에서 옷감과 대황 파이로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.64": "시작 시 선택\n재봉틀에서 옷감과 수정 과일로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.65": "시작 시 선택\n재봉틀에서 옷감과 아티초크 소스로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.66": "시작 시 선택\n재봉틀에서 옷감과 치즈로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.67": "시작 시 선택\n재봉틀에서 옷감과 수선화로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.68": "시작 시 선택\n재봉틀에서 옷감과 농부의 점심으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.69": "시작 시 선택\n재봉틀에서 옷감과 녹조류 스프로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.70": "시작 시 선택\n재봉틀에서 옷감과 요정석으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.71": "시작 시 선택\n재봉틀에서 옷감과 우유로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.72": "시작 시 선택\n재봉틀에서 옷감과 과일 샐러드로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.73": "시작 시 선택\n재봉틀에서 옷감과 둥근 옥수로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.74": "시작 시 선택\n재봉틀에서 옷감과 흔한 버섯으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.75": "시작 시 선택\n재봉틀에서 옷감과 야생 미끼로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.76": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.77": "시작 시 선택\n재봉틀에서 옷감과 쿠키로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.78": "시작 시 선택\n재봉틀에서 옷감과 크로커스로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.79": "시작 시 선택\n재봉틀에서 옷감과 블랙베리로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.80": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.81": "시작 시 선택\n재봉틀에서 옷감과 알라마이트로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.82": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.83": "시작 시 선택\n재봉틀에서 옷감과 공허의 달걀로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.84": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.85": "시작 시 선택\n재봉틀에서 옷감과 루비로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.86": "시작 시 선택\n재봉틀에서 옷감과 점판암으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.87": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.88": "시작 시 선택\n재봉틀에서 옷감과 설탕당근 스프로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.89": "시작 시 선택\n재봉틀에서 옷감과 자수정으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.90": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.91": "시작 시 선택\n재봉틀에서 옷감과 피클로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.92": "시작 시 선택\n재봉틀에서 옷감과 젤리로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.93": "시작 시 선택\n재봉틀에서 옷감과 염소 치즈로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.94": "시작 시 선택\n재봉틀에서 옷감과 땅의 수정으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.95": "시작 시 선택\n재봉틀에서 옷감과 토끼발로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.96": "시작 시 선택\n재봉틀에서 옷감과 슬라임으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.97": "시작 시 선택\n재봉틀에서 옷감과 현무암으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.98": "시작 시 선택\n재봉틀에서 옷감과 넵튜나이트로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.99": "시작 시 선택\n재봉틀에서 옷감과 보라색 버섯으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.100": "시작 시 선택\n재봉틀에서 옷감과 천청석으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.101": "시작 시 선택\n재봉틀에서 옷감과 빅사이트로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.102": "시작 시 선택\n재봉틀에서 옷감과 석회석으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.103": "시작 시 선택\n재봉틀에서 옷감과 유령수정으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.104": "시작 시 선택\n재봉틀에서 옷감과 제미나이트로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.105": "시작 시 선택\n재봉틀에서 옷감과 조자 콜라로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.106": "시작 시 선택\n재봉틀에서 옷감과 배터리 팩으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.107": "시작 시 선택\n재봉틀에서 옷감과 네코아이트로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.108": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.109": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.110": "시작 시 선택\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.111": "시작 시 선택\n재봉틀에서 옷감과 우럭 튀김으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.112": "재봉틀에서 옷감과 버섯구이로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.113": "재봉틀에서 옷감과 백운석으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.114": "재봉틀에서 옷감과 가지 파마산으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.115": "재봉틀에서 옷감과 에어리나이트로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.116": "재봉틀에서 옷감과 연어 정찬으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.117": "재봉틀에서 옷감과 뿌리채소 모음으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.118": "샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.119": "샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.120": "샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.121": "샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.122": "재봉틀에서 옷감과 화강암으로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.123": "재봉틀에서 옷감과 브루쉐타로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.124": "재봉틀에서 옷감과 생선 스튜로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.125": "재봉틀에서 옷감과 가재 비스크로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.126": "재봉틀에서 옷감과 코울슬로로 재단\n샌디에게서 1000골드에 구매(랜덤으로 나옴)",
+	"shirts.desc.127": "에밀리 14하트 이벤트",
+	"shirts.desc.128": "재봉틀에서 옷감과 옥수수로 재단",
+	"shirts.desc.129": "재봉틀에서 옷감과 무/붉은 양배추로 재단",
+	"shirts.desc.130": "재봉틀에서 옷감과 녹슨 징으로 재단",
+	"shirts.desc.131": "재봉틀에서 옷감과 밀로 재단",
+	"shirts.desc.132": "재봉틀에서 옷감과 무지개 껍데기로 재단",
+	"shirts.desc.133": "재봉틀에서 옷감과 이상한 인형 (녹색)으로 재단",
+	"shirts.desc.134": "재봉틀에서 옷감과 선인장 열매로 재단",
+	"shirts.desc.135": "재봉틀에서 옷감과 자양강장제로 재단",
+	"shirts.desc.136": "재봉틀에서 옷감과 맥주/벌꿀 술/페일 에일/와인/피나콜라다로 재단",
+	"shirts.desc.137": "재봉틀에서 옷감과 산호/앵무조개 껍데기/성게로 재단",
+	"shirts.desc.138": "재봉틀에서 옷감과 아티초크/사탕무/청경채/가지/호박/참마로 재단",
+	"shirts.desc.139": "재봉틀에서 옷감과 아마란스로 재단",
+	"shirts.desc.140": "재봉틀에서 옷감과 해삼/슈퍼해삼으로 재단",
+	"shirts.desc.141": "획득 불가능",
+	"shirts.desc.142": "재봉틀에서 옷감과 에메랄드로 재단",
+	"shirts.desc.143": "재봉틀에서 옷감과 아쿠아마린으로 재단",
+	"shirts.desc.144": "재봉틀에서 옷감과 토파즈로 재단",
+	"shirts.desc.145": "재봉틀에서 옷감과 옥으로 재단",
+	"shirts.desc.146": "재봉틀에서 옷감과 철 주괴로 재단",
+	"shirts.desc.147": "재봉틀에서 옷감과 구리 주괴로 재단",
+	"shirts.desc.148": "재봉틀에서 옷감과 금 주괴로 재단",
+	"shirts.desc.149": "재봉틀에서 옷감과 이리듐 주괴로 재단",
+	"shirts.desc.150": "재봉틀에서 옷감과 근육 치료제로 재단",
+	"shirts.desc.151": "재봉틀에서 옷감과 커피콩으로 재단",
+	"shirts.desc.152": "재봉틀에서 옷감과 체리 폭탄/폭탄/거대 폭탄으로 재단",
+	"shirts.desc.153": "재봉틀에서 옷감과 선사 시대 도구/선사 시대 손도끼로 재단",
+	"shirts.desc.154": "재봉틀에서 옷감과 눈동자개/잉어/피라미/큰입우럭/범노래미/농어/강꼬치고기/작은입우럭/철갑상어/월아이/숲고기로 재단",
+	"shirts.desc.155": "재봉틀에서 옷감과 귀신물고기/도루묵/도미/메기/만새기/무지개송어/전어/개복치/타이거 송어로 재단",
+	"shirts.desc.156": "재봉틀에서 옷감과 콜리플라워/마늘/완두콩/홉/케일/파스닙/감자/토란/찻잎/가공되지 않은 쌀로 재단",
+	"shirts.desc.157": "재봉틀에서 옷감과 정동석으로 재단",
+	"shirts.desc.158": "재봉틀에서 옷감과 얼어붙은 정동석으로 재단",
+	"shirts.desc.159": "재봉틀에서 옷감과 마그마 정동석으로 재단",
+	"shirts.desc.160": "재봉틀에서 옷감과 수제 에너지바로 재단",
+	"shirts.desc.161": "재봉틀에서 옷감과 팬케이크로 재단",
+	"shirts.desc.162": "재봉틀에서 옷감과 창백한 죽으로 재단",
+	"shirts.desc.163": "재봉틀에서 옷감과 식초로 재단",
+	"shirts.desc.164": "재봉틀에서 옷감과 석영으로 재단",
+	"shirts.desc.165": "재봉틀에서 옷감과 해초로 재단",
+	"shirts.desc.166": "재봉틀에서 옷감과 흑요석으로 재단",
+	"shirts.desc.167": "재봉틀에서 옷감과 동석으로 재단",
+	"shirts.desc.168": "재봉틀에서 옷감과 똠카 스프로 재단",
+	"shirts.desc.169": "재봉틀에서 옷감과 청나래고사리 리조또로 재단",
+	"shirts.desc.170": "획득 불가능",
+	"shirts.desc.171": "재봉틀에서 옷감과 기본 비료/기본 보습 토양/성장 촉진제/나무용 비료로 재단",
+	"shirts.desc.172": "재봉틀에서 옷감과 고급 비료/고급 보습 토양/디럭스 성장 촉진제로 재단",
+	"shirts.desc.173": "재봉틀에서 옷감과 섬유/나무로 재단",
+	"shirts.desc.174": "재봉틀에서 옷감과 구리광석/철광석/금광석/방사능 광석으로 재단",
+	"shirts.desc.175": "재봉틀에서 옷감과 이리듐광석으로 재단",
+	"shirts.desc.176": "재봉틀에서 옷감과 페퍼 파퍼로 재단",
+	"shirts.desc.177": "재봉틀에서 옷감과 중정석으로 재단",
+	"shirts.desc.178": "재봉틀에서 옷감과 방해석으로 재단",
+	"shirts.desc.179": "재봉틀에서 옷감과 에스퍼라이트로 재단",
+	"shirts.desc.180": "재봉틀에서 옷감과 붉은 정식으로 재단",
+	"shirts.desc.181": "재봉틀에서 옷감과 희귀한 원반으로 재단",
+	"shirts.desc.182": "재봉틀에서 옷감과 호박 파이로 재단",
+	"shirts.desc.183": "재봉틀에서 옷감과 재고아이트로 재단",
+	"shirts.desc.184": "재봉틀에서 옷감과 루나라이트로 재단",
+	"shirts.desc.185": "재봉틀에서 옷감과 공작석으로 재단",
+	"shirts.desc.186": "재봉틀에서 옷감과 레몬 스톤으로 재단",
+	"shirts.desc.187": "재봉틀에서 옷감과 석웅황으로 재단",
+	"shirts.desc.188": "재봉틀에서 옷감과 황철석으로 재단",
+	"shirts.desc.189": "재봉틀에서 옷감과 바다수정으로 재단",
+	"shirts.desc.190": "재봉틀에서 옷감과 호안석으로 재단",
+	"shirts.desc.191": "재봉틀에서 옷감과 벽옥으로 재단",
+	"shirts.desc.192": "재봉틀에서 옷감과 사암으로 재단",
+	"shirts.desc.193": "재봉틀에서 옷감과 화단백석으로 재단",
+	"shirts.desc.194": "재봉틀에서 옷감과 적철석으로 재단",
+	"shirts.desc.195": "재봉틀에서 옷감과 대리석으로 재단",
+	"shirts.desc.196": "재봉틀에서 옷감과 별조각으로 재단",
+	"shirts.desc.197": "재봉틀에서 옷감과 헬바이트로 재단",
+	"shirts.desc.198": "재봉틀에서 옷감과 남정석으로 재단",
+	"shirts.desc.199": "재봉틀에서 옷감과 코코넛으로 재단",
+	"shirts.desc.200": "재봉틀에서 옷감과 잠보라이트로 재단",
+	"shirts.desc.201": "재봉틀에서 옷감과 플루오르 인회석으로 재단",
+	"shirts.desc.202": "재봉틀에서 옷감과 석화된 슬라임으로 재단",
+	"shirts.desc.203": "재봉틀에서 옷감과 양서류 화석/앵무조개 화석/야자 화석/삼엽충으로 재단",
+	"shirts.desc.204": "재봉틀에서 옷감과 주스로 재단",
+	"shirts.desc.205": "재봉틀에서 옷감과 수상한 롤로 재단",
+	"shirts.desc.206": "재봉틀에서 옷감과 얼어붙은 눈물로 재단",
+	"shirts.desc.207": "재봉틀에서 옷감과 맛탕으로 재단",
+	"shirts.desc.208": "재봉틀에서 옷감과 에스카르고로 재단",
+	"shirts.desc.209": "재봉틀에서 옷감과 바다의 요리로 재단",
+	"shirts.desc.210": "재봉틀에서 옷감과 공허 정수로 재단",
+	"shirts.desc.211": "재봉틀에서 옷감과 달걀로 재단",
+	"shirts.desc.212": "재봉틀에서 옷감과 큰 우유로 재단",
+	"shirts.desc.213": "재봉틀에서 옷감과 큰 달걀로 재단",
+	"shirts.desc.214": "재봉틀에서 옷감과 태양 정수로 재단",
+	"shirts.desc.215": "재봉틀에서 옷감과 정제된 석영으로 재단",
+	"shirts.desc.216": "재봉틀에서 옷감과 가을의 수확으로 재단",
+	"shirts.desc.217": "재봉틀에서 옷감과 드워프 스크롤로 재단",
+	"shirts.desc.218": "재봉틀에서 옷감과 무지개 파편을 조합하면 랜덤 획득",
+	"shirts.desc.219": "재봉틀에서 옷감과 다이아몬드로 재단",
+	"shirts.desc.220": "재봉틀에서 옷감과 횃불로 재단",
+	"shirts.desc.221": "재봉틀에서 옷감과 매콤한 장어로 재단",
+	"shirts.desc.222": "재봉틀에서 옷감과 깨진 암포라로 재단",
+	"shirts.desc.223": "재봉틀에서 옷감과 화살촉으로 재단",
+	"shirts.desc.224": "재봉틀에서 옷감과 고대 인형으로 재단",
+	"shirts.desc.225": "재봉틀에서 옷감과 엘프 장신구로 재단",
+	"shirts.desc.226": "재봉틀에서 옷감과 씹는 막대로 재단",
+	"shirts.desc.227": "재봉틀에서 옷감과 깨진 CD/깨진 안경/유목/젖은 신문지/쓰레기로 재단",
+	"shirts.desc.228": "재봉틀에서 옷감과 녹슨 숟가락으로 재단",
+	"shirts.desc.229": "재봉틀에서 옷감과 녹슨 톱니바퀴로 재단",
+	"shirts.desc.230": "재봉틀에서 옷감과 닭 동상으로 재단",
+	"shirts.desc.231": "재봉틀에서 옷감과 스파게티로 재단",
+	"shirts.desc.232": "재봉틀에서 옷감과 고대 씨앗으로 재단",
+	"shirts.desc.233": "재봉틀에서 옷감과 말린 불가사리로 재단",
+	"shirts.desc.234": "재봉틀에서 옷감과 닻으로 재단",
+	"shirts.desc.235": "재봉틀에서 옷감과 유리 파편으로 재단",
+	"shirts.desc.236": "재봉틀에서 옷감과 송어 스프로 재단",
+	"shirts.desc.237": "재봉틀에서 옷감과 뼈피리로 재단",
+	"shirts.desc.238": "재봉틀에서 옷감과 고대 북으로 재단",
+	"shirts.desc.239": "재봉틀에서 옷감과 황금 유물로 재단",
+	"shirts.desc.240": "재봉틀에서 옷감과 이상한 인형 (노란색)으로 재단",
+	"shirts.desc.241": "재봉틀에서 옷감과 계란 프라이로 재단",
+	"shirts.desc.242": "재봉틀에서 옷감과 생존형 버거로 재단",
+	"shirts.desc.243": "재봉틀에서 옷감과 녹조류/흰 조류로 재단",
+	"shirts.desc.244": "재봉틀에서 옷감과 치즈 콜리플라워로 재단",
+	"shirts.desc.245": "재봉틀에서 옷감과 깜짝잉어로 재단",
+	"shirts.desc.246": "재봉틀에서 옷감과 해시브라운으로 재단",
+	"shirts.desc.247": "재봉틀에서 옷감과 또띠아로 재단",
+	"shirts.desc.248": "재봉틀에서 옷감과 밀가루로 재단",
+	"shirts.desc.249": "재봉틀에서 옷감과 설탕으로 재단",
+	"shirts.desc.250": "재봉틀에서 옷감과 슈퍼 건강식으로 재단",
+	"shirts.desc.251": "재봉틀에서 옷감과 기름으로 재단",
+	"shirts.desc.252": "재봉틀에서 옷감과 곰보버섯으로 재단",
+	"shirts.desc.253": "재봉틀에서 옷감과 파로 재단",
+	"shirts.desc.254": "재봉틀에서 옷감과 날개다랑어/멸치/장어/넙치/청어/복어/숭어/붉은 퉁돔/정어리/오징어/틸라피아/참치로 재단",
+	"shirts.desc.255": "재봉틀에서 옷감과 민물가재/충알고둥/달팽이로 재단",
+	"shirts.desc.256": "재봉틀에서 옷감과 조개/새조개/게/바닷가재/홍합/굴/새우로 재단",
+	"shirts.desc.257": "재봉틀에서 옷감과 송로버섯/송로버섯 오일로 재단\n귀신 들린 해골에게서 0.22% 확률로 드랍",
+	"shirts.desc.258": "재봉틀에서 옷감과 생명의 영약/마늘즙으로 재단\n귀신 들린 해골에게서 0.22% 확률로 드랍",
+	"shirts.desc.259": "재봉틀에서 옷감과 전 정동석으로 재단",
+	"shirts.desc.260": "재봉틀에서 옷감과 화려한 부채로 재단",
+	"shirts.desc.261": "재봉틀에서 옷감과 헤이즐넛으로 재단",
+	"shirts.desc.262": "재봉틀에서 옷감과 겨울뿌리로 재단",
+	"shirts.desc.263": "재봉틀에서 옷감과 쌀로 재단",
+	"shirts.desc.264": "재봉틀에서 옷감과 트리플 샷 에스프레소/커피로 재단",
+	"shirts.desc.265": "재봉틀에서 옷감과 오리알로 재단",
+	"shirts.desc.266": "재봉틀에서 옷감과 자두 푸딩으로 재단",
+	"shirts.desc.267": "재봉틀에서 옷감과 어란/공허 마요네즈로 재단",
+	"shirts.desc.268": "재봉틀에서 옷감과 양귀비씨 머핀으로 재단",
+	"shirts.desc.269": "재봉틀에서 옷감과 야채 볶음으로 재단",
+	"shirts.desc.270": "재봉틀에서 옷감과 메이플 바로 재단",
+	"shirts.desc.271": "재봉틀에서 옷감과 게살 케이크로 재단",
+	"shirts.desc.272": "재봉틀에서 옷감과 무 샐러드로 재단",
+	"shirts.desc.273": "재봉틀에서 옷감과 문어로 재단",
+	"shirts.desc.274": "재봉틀에서 옷감과 연어로 재단",
+	"shirts.desc.275": "획득 불가능",
+	"shirts.desc.276": "재봉틀에서 옷감과 대황/백량금으로 재단",
+	"shirts.desc.277": "재봉틀에서 옷감과 토마토로 재단",
+	"shirts.desc.278": "재봉틀에서 옷감과 차우더로 재단",
+	"shirts.desc.279": "재봉틀에서 옷감과 숙성된 어란으로 재단",
+	"shirts.desc.280": "재봉틀에서 옷감과 오징어 먹물로 재단",
+	"shirts.desc.281": "재봉틀에서 옷감과 새우 칵테일로 재단",
+	"shirts.desc.282": "재봉틀에서 옷감과 녹차로 재단",
+	"shirts.desc.283": "재봉틀에서 옷감과 유물 상자로 재단",
+	"shirts.desc.284": "재봉틀에서 옷감과 시들은 부케로 재단",
+	"shirts.desc.285": "재봉틀에서 옷감과 바다 거품 푸딩으로 재단",
+	"shirts.desc.286": "재봉틀에서 옷감과 마그마 버섯으로 재단",
+	"shirts.desc.287": "재봉틀에서 옷감과 진저 에일로 재단",
+	"shirts.desc.288": "재봉틀에서 옷감과 바나나 푸딩으로 재단",
+	"shirts.desc.289": "재봉틀에서 옷감과 카오 니야우 마무앙으로 재단",
+	"shirts.desc.290": "재봉틀에서 옷감과 포이로 재단",
+	"shirts.desc.291": "재봉틀에서 옷감과 열대 카레로 재단",
+	"shirts.desc.292": "재봉틀에서 옷감과 황금 코코넛으로 재단",
+	"shirts.desc.293": "재봉틀에서 옷감과 마법 얼음사탕으로 재단",
+	"shirts.desc.294": "재봉틀에서 옷감과 무지개 파편을 조합하면 랜덤 획득",
+	"shirts.desc.295": "재봉틀에서 옷감과 무지개 파편을 조합하면 랜덤 획득",
+	"pants.desc.0": "시작 시 선택\n재봉틀에서 옷감과 딸기/야생 자두/크랜베리/파인애플로 재단",
+	"pants.desc.1": "시작 시 선택\n재봉틀에서 옷감과 매운 고추/멜론/블루베리/포도로 재단",
+	"pants.desc.2": "시작 시 선택\n재봉틀에서 옷감과 요정장미/해바라기로 재단",
+	"pants.desc.3": "시작 시 선택\n재봉틀에서 옷감과 튤립/푸른 재즈로 재단",
+	"pants.desc.4": "재봉틀에서 옷감과 양귀비/여름별꽃으로 재단",
+	"pants.desc.5": "재봉틀에서 옷감과 공룡 마요네즈로 재단",
+	"pants.desc.6": "재봉틀에서 옷감과 건초로 재단",
+	"pants.desc.7": "섬 상인에게서 토란 50개와 교환",
+	"pants.desc.8": "재봉틀에서 옷감과 고대 과일/스타프루트로 재단",
+	"pants.desc.9": "획득 불가능",
+	"pants.desc.10": "재봉틀에서 옷감과 슬라임 알로 재단\n귀신들린 해골에게서 0.22% 확률로 드랍",
+	"pants.desc.11": "재봉틀에서 옷감과 벌꿀로 재단",
+	"pants.desc.12": "재봉틀에서 옷감과 망고/바나나/사과/살구/석류/체리로 재단\n귀신들린 해골에게서 0.22% 확률로 드랍",
+	"pants.desc.13": "재봉틀에서 옷감과 오렌지/복숭아로 재단",
+	"pants.desc.14": "재봉틀에서 행운의 보라색 반바지와 금 주괴로 재단\n바지 슬롯에 계단을 올려놓음",
+	"pants.desc.15": "재봉틀에서 옷감과 무지개 파편을 조합하면 랜덤 획득",
+	"pants.desc.16": "재봉틀에서 옷감과 무지개 파편을 조합하면 랜덤 획득"
+};
+
 class Langs {
   static langData = {
-    en: i18n_en
+    en: i18n_en,
+    ko: i18n_ko
   };
   currentLanguage = "en";
 
@@ -39998,6953 +43611,6 @@ const LangsProvider = ({
 }) => /*#__PURE__*/react.exports.createElement(LangsContext.Provider, {
   value: new Langs()
 }, children);
-
-if (!react.exports.useState) {
-    throw new Error("mobx-react-lite requires React with Hooks support");
-}
-if (!makeObservable) {
-    throw new Error("mobx-react-lite@3 requires mobx at least version 6 to be available");
-}
-
-function defaultNoopBatch(callback) {
-    callback();
-}
-function observerBatching(reactionScheduler) {
-    if (!reactionScheduler) {
-        reactionScheduler = defaultNoopBatch;
-        {
-            console.warn("[MobX] Failed to get unstable_batched updates from react-dom / react-native");
-        }
-    }
-    configure({ reactionScheduler: reactionScheduler });
-}
-
-function printDebugValue(v) {
-    return getDependencyTree(v);
-}
-
-var FinalizationRegistryLocal = typeof FinalizationRegistry === "undefined" ? undefined : FinalizationRegistry;
-
-function createTrackingData(reaction) {
-    var trackingData = {
-        reaction: reaction,
-        mounted: false,
-        changedBeforeMount: false,
-        cleanAt: Date.now() + CLEANUP_LEAKED_REACTIONS_AFTER_MILLIS
-    };
-    return trackingData;
-}
-/**
- * The minimum time before we'll clean up a Reaction created in a render
- * for a component that hasn't managed to run its effects. This needs to
- * be big enough to ensure that a component won't turn up and have its
- * effects run without being re-rendered.
- */
-var CLEANUP_LEAKED_REACTIONS_AFTER_MILLIS = 10000;
-/**
- * The frequency with which we'll check for leaked reactions.
- */
-var CLEANUP_TIMER_LOOP_MILLIS = 10000;
-
-/**
- * FinalizationRegistry-based uncommitted reaction cleanup
- */
-function createReactionCleanupTrackingUsingFinalizationRegister(FinalizationRegistry) {
-    var cleanupTokenToReactionTrackingMap = new Map();
-    var globalCleanupTokensCounter = 1;
-    var registry = new FinalizationRegistry(function cleanupFunction(token) {
-        var trackedReaction = cleanupTokenToReactionTrackingMap.get(token);
-        if (trackedReaction) {
-            trackedReaction.reaction.dispose();
-            cleanupTokenToReactionTrackingMap.delete(token);
-        }
-    });
-    return {
-        addReactionToTrack: function (reactionTrackingRef, reaction, objectRetainedByReact) {
-            var token = globalCleanupTokensCounter++;
-            registry.register(objectRetainedByReact, token, reactionTrackingRef);
-            reactionTrackingRef.current = createTrackingData(reaction);
-            reactionTrackingRef.current.finalizationRegistryCleanupToken = token;
-            cleanupTokenToReactionTrackingMap.set(token, reactionTrackingRef.current);
-            return reactionTrackingRef.current;
-        },
-        recordReactionAsCommitted: function (reactionRef) {
-            registry.unregister(reactionRef);
-            if (reactionRef.current && reactionRef.current.finalizationRegistryCleanupToken) {
-                cleanupTokenToReactionTrackingMap.delete(reactionRef.current.finalizationRegistryCleanupToken);
-            }
-        },
-        forceCleanupTimerToRunNowForTests: function () {
-            // When FinalizationRegistry in use, this this is no-op
-        },
-        resetCleanupScheduleForTests: function () {
-            // When FinalizationRegistry in use, this this is no-op
-        }
-    };
-}
-
-var __values = (undefined && undefined.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-    if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
-        next: function () {
-            if (o && i >= o.length) o = void 0;
-            return { value: o && o[i++], done: !o };
-        }
-    };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-};
-/**
- * timers, gc-style, uncommitted reaction cleanup
- */
-function createTimerBasedReactionCleanupTracking() {
-    /**
-     * Reactions created by components that have yet to be fully mounted.
-     */
-    var uncommittedReactionRefs = new Set();
-    /**
-     * Latest 'uncommitted reactions' cleanup timer handle.
-     */
-    var reactionCleanupHandle;
-    /* istanbul ignore next */
-    /**
-     * Only to be used by test functions; do not export outside of mobx-react-lite
-     */
-    function forceCleanupTimerToRunNowForTests() {
-        // This allows us to control the execution of the cleanup timer
-        // to force it to run at awkward times in unit tests.
-        if (reactionCleanupHandle) {
-            clearTimeout(reactionCleanupHandle);
-            cleanUncommittedReactions();
-        }
-    }
-    /* istanbul ignore next */
-    function resetCleanupScheduleForTests() {
-        var e_1, _a;
-        if (uncommittedReactionRefs.size > 0) {
-            try {
-                for (var uncommittedReactionRefs_1 = __values(uncommittedReactionRefs), uncommittedReactionRefs_1_1 = uncommittedReactionRefs_1.next(); !uncommittedReactionRefs_1_1.done; uncommittedReactionRefs_1_1 = uncommittedReactionRefs_1.next()) {
-                    var ref = uncommittedReactionRefs_1_1.value;
-                    var tracking = ref.current;
-                    if (tracking) {
-                        tracking.reaction.dispose();
-                        ref.current = null;
-                    }
-                }
-            }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
-                try {
-                    if (uncommittedReactionRefs_1_1 && !uncommittedReactionRefs_1_1.done && (_a = uncommittedReactionRefs_1.return)) _a.call(uncommittedReactionRefs_1);
-                }
-                finally { if (e_1) throw e_1.error; }
-            }
-            uncommittedReactionRefs.clear();
-        }
-        if (reactionCleanupHandle) {
-            clearTimeout(reactionCleanupHandle);
-            reactionCleanupHandle = undefined;
-        }
-    }
-    function ensureCleanupTimerRunning() {
-        if (reactionCleanupHandle === undefined) {
-            reactionCleanupHandle = setTimeout(cleanUncommittedReactions, CLEANUP_TIMER_LOOP_MILLIS);
-        }
-    }
-    function scheduleCleanupOfReactionIfLeaked(ref) {
-        uncommittedReactionRefs.add(ref);
-        ensureCleanupTimerRunning();
-    }
-    function recordReactionAsCommitted(reactionRef) {
-        uncommittedReactionRefs.delete(reactionRef);
-    }
-    /**
-     * Run by the cleanup timer to dispose any outstanding reactions
-     */
-    function cleanUncommittedReactions() {
-        reactionCleanupHandle = undefined;
-        // Loop through all the candidate leaked reactions; those older
-        // than CLEANUP_LEAKED_REACTIONS_AFTER_MILLIS get tidied.
-        var now = Date.now();
-        uncommittedReactionRefs.forEach(function (ref) {
-            var tracking = ref.current;
-            if (tracking) {
-                if (now >= tracking.cleanAt) {
-                    // It's time to tidy up this leaked reaction.
-                    tracking.reaction.dispose();
-                    ref.current = null;
-                    uncommittedReactionRefs.delete(ref);
-                }
-            }
-        });
-        if (uncommittedReactionRefs.size > 0) {
-            // We've just finished a round of cleanups but there are still
-            // some leak candidates outstanding.
-            ensureCleanupTimerRunning();
-        }
-    }
-    return {
-        addReactionToTrack: function (reactionTrackingRef, reaction, 
-        /**
-         * On timer based implementation we don't really need this object,
-         * but we keep the same api
-         */
-        objectRetainedByReact) {
-            reactionTrackingRef.current = createTrackingData(reaction);
-            scheduleCleanupOfReactionIfLeaked(reactionTrackingRef);
-            return reactionTrackingRef.current;
-        },
-        recordReactionAsCommitted: recordReactionAsCommitted,
-        forceCleanupTimerToRunNowForTests: forceCleanupTimerToRunNowForTests,
-        resetCleanupScheduleForTests: resetCleanupScheduleForTests
-    };
-}
-
-var _a$4 = FinalizationRegistryLocal
-    ? createReactionCleanupTrackingUsingFinalizationRegister(FinalizationRegistryLocal)
-    : createTimerBasedReactionCleanupTracking(), addReactionToTrack = _a$4.addReactionToTrack, recordReactionAsCommitted = _a$4.recordReactionAsCommitted;
-
-var __read = (undefined && undefined.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-function observerComponentNameFor(baseComponentName) {
-    return "observer".concat(baseComponentName);
-}
-/**
- * We use class to make it easier to detect in heap snapshots by name
- */
-var ObjectToBeRetainedByReact = /** @class */ (function () {
-    function ObjectToBeRetainedByReact() {
-    }
-    return ObjectToBeRetainedByReact;
-}());
-function objectToBeRetainedByReactFactory() {
-    return new ObjectToBeRetainedByReact();
-}
-function useObserver(fn, baseComponentName) {
-    if (baseComponentName === void 0) { baseComponentName = "observed"; }
-    var _a = __read(React.useState(objectToBeRetainedByReactFactory), 1), objectRetainedByReact = _a[0];
-    // Force update, see #2982
-    var _b = __read(React.useState(), 2), setState = _b[1];
-    var forceUpdate = function () { return setState([]); };
-    // StrictMode/ConcurrentMode/Suspense may mean that our component is
-    // rendered and abandoned multiple times, so we need to track leaked
-    // Reactions.
-    var reactionTrackingRef = React.useRef(null);
-    if (!reactionTrackingRef.current) {
-        // First render for this component (or first time since a previous
-        // reaction from an abandoned render was disposed).
-        var newReaction = new Reaction(observerComponentNameFor(baseComponentName), function () {
-            // Observable has changed, meaning we want to re-render
-            // BUT if we're a component that hasn't yet got to the useEffect()
-            // stage, we might be a component that _started_ to render, but
-            // got dropped, and we don't want to make state changes then.
-            // (It triggers warnings in StrictMode, for a start.)
-            if (trackingData_1.mounted) {
-                // We have reached useEffect(), so we're mounted, and can trigger an update
-                forceUpdate();
-            }
-            else {
-                // We haven't yet reached useEffect(), so we'll need to trigger a re-render
-                // when (and if) useEffect() arrives.
-                trackingData_1.changedBeforeMount = true;
-            }
-        });
-        var trackingData_1 = addReactionToTrack(reactionTrackingRef, newReaction, objectRetainedByReact);
-    }
-    var reaction = reactionTrackingRef.current.reaction;
-    React.useDebugValue(reaction, printDebugValue);
-    React.useEffect(function () {
-        // Called on first mount only
-        recordReactionAsCommitted(reactionTrackingRef);
-        if (reactionTrackingRef.current) {
-            // Great. We've already got our reaction from our render;
-            // all we need to do is to record that it's now mounted,
-            // to allow future observable changes to trigger re-renders
-            reactionTrackingRef.current.mounted = true;
-            // Got a change before first mount, force an update
-            if (reactionTrackingRef.current.changedBeforeMount) {
-                reactionTrackingRef.current.changedBeforeMount = false;
-                forceUpdate();
-            }
-        }
-        else {
-            // The reaction we set up in our render has been disposed.
-            // This can be due to bad timings of renderings, e.g. our
-            // component was paused for a _very_ long time, and our
-            // reaction got cleaned up
-            // Re-create the reaction
-            reactionTrackingRef.current = {
-                reaction: new Reaction(observerComponentNameFor(baseComponentName), function () {
-                    // We've definitely already been mounted at this point
-                    forceUpdate();
-                }),
-                mounted: true,
-                changedBeforeMount: false,
-                cleanAt: Infinity
-            };
-            forceUpdate();
-        }
-        return function () {
-            reactionTrackingRef.current.reaction.dispose();
-            reactionTrackingRef.current = null;
-        };
-    }, []);
-    // render the original component, but have the
-    // reaction track the observables, so that rendering
-    // can be invalidated (see above) once a dependency changes
-    var rendering;
-    var exception;
-    reaction.track(function () {
-        try {
-            rendering = fn();
-        }
-        catch (e) {
-            exception = e;
-        }
-    });
-    if (exception) {
-        throw exception; // re-throw any exceptions caught during rendering
-    }
-    return rendering;
-}
-
-var warnObserverOptionsDeprecated = true;
-var hasSymbol = typeof Symbol === "function" && Symbol.for;
-// Using react-is had some issues (and operates on elements, not on types), see #608 / #609
-var ReactForwardRefSymbol = hasSymbol
-    ? Symbol.for("react.forward_ref")
-    : typeof react.exports.forwardRef === "function" && react.exports.forwardRef(function (props) { return null; })["$$typeof"];
-var ReactMemoSymbol = hasSymbol
-    ? Symbol.for("react.memo")
-    : typeof react.exports.memo === "function" && react.exports.memo(function (props) { return null; })["$$typeof"];
-// n.b. base case is not used for actual typings or exported in the typing files
-function observer(baseComponent, 
-// TODO remove in next major
-options) {
-    var _a;
-    if (warnObserverOptionsDeprecated && options) {
-        warnObserverOptionsDeprecated = false;
-        console.warn("[mobx-react-lite] `observer(fn, { forwardRef: true })` is deprecated, use `observer(React.forwardRef(fn))`");
-    }
-    if (ReactMemoSymbol && baseComponent["$$typeof"] === ReactMemoSymbol) {
-        throw new Error("[mobx-react-lite] You are trying to use `observer` on a function component wrapped in either another `observer` or `React.memo`. The observer already applies 'React.memo' for you.");
-    }
-    var useForwardRef = (_a = options === null || options === void 0 ? void 0 : options.forwardRef) !== null && _a !== void 0 ? _a : false;
-    var render = baseComponent;
-    var baseComponentName = baseComponent.displayName || baseComponent.name;
-    // If already wrapped with forwardRef, unwrap,
-    // so we can patch render and apply memo
-    if (ReactForwardRefSymbol && baseComponent["$$typeof"] === ReactForwardRefSymbol) {
-        useForwardRef = true;
-        render = baseComponent["render"];
-        if (typeof render !== "function") {
-            throw new Error("[mobx-react-lite] `render` property of ForwardRef was not a function");
-        }
-    }
-    var observerComponent = function (props, ref) {
-        return useObserver(function () { return render(props, ref); }, baseComponentName);
-    };
-    // Don't set `displayName` for anonymous components,
-    // so the `displayName` can be customized by user, see #3192.
-    if (baseComponentName !== "") {
-        observerComponent.displayName = baseComponentName;
-    }
-    // Support legacy context: `contextTypes` must be applied before `memo`
-    if (baseComponent.contextTypes) {
-        observerComponent.contextTypes = baseComponent.contextTypes;
-    }
-    if (useForwardRef) {
-        // `forwardRef` must be applied prior `memo`
-        // `forwardRef(observer(cmp))` throws:
-        // "forwardRef requires a render function but received a `memo` component. Instead of forwardRef(memo(...)), use memo(forwardRef(...))"
-        observerComponent = react.exports.forwardRef(observerComponent);
-    }
-    // memo; we are not interested in deep updates
-    // in props; we assume that if deep objects are changed,
-    // this is in observables, which would have been tracked anyway
-    observerComponent = react.exports.memo(observerComponent);
-    copyStaticProperties(baseComponent, observerComponent);
-    {
-        Object.defineProperty(observerComponent, "contextTypes", {
-            set: function () {
-                var _a;
-                throw new Error("[mobx-react-lite] `".concat(this.displayName || ((_a = this.type) === null || _a === void 0 ? void 0 : _a.displayName) || "Component", ".contextTypes` must be set before applying `observer`."));
-            }
-        });
-    }
-    return observerComponent;
-}
-// based on https://github.com/mridgway/hoist-non-react-statics/blob/master/src/index.js
-var hoistBlackList = {
-    $$typeof: true,
-    render: true,
-    compare: true,
-    type: true,
-    // Don't redefine `displayName`,
-    // it's defined as getter-setter pair on `memo` (see #3192).
-    displayName: true
-};
-function copyStaticProperties(base, target) {
-    Object.keys(base).forEach(function (key) {
-        if (!hoistBlackList[key]) {
-            Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(base, key));
-        }
-    });
-}
-
-(undefined && undefined.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-
-observerBatching(reactDom.exports.unstable_batchedUpdates);
-
-var jsxRuntime = {exports: {}};
-
-var reactJsxRuntime_development = {};
-
-/**
- * @license React
- * react-jsx-runtime.development.js
- *
- * Copyright (c) Facebook, Inc. and its affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-{
-  (function() {
-
-var React = react.exports;
-
-// -----------------------------------------------------------------------------
-
-var enableScopeAPI = false; // Experimental Create Event Handle API.
-var enableCacheElement = false;
-var enableTransitionTracing = false; // No known bugs, but needs performance testing
-
-var enableLegacyHidden = false; // Enables unstable_avoidThisFallback feature in Fiber
-// stuff. Intended to enable React core members to more easily debug scheduling
-// issues in DEV builds.
-
-var enableDebugTracing = false; // Track which Fiber(s) schedule render work.
-
-// ATTENTION
-
-var REACT_ELEMENT_TYPE =  Symbol.for('react.element');
-var REACT_PORTAL_TYPE =  Symbol.for('react.portal');
-var REACT_FRAGMENT_TYPE =  Symbol.for('react.fragment');
-var REACT_STRICT_MODE_TYPE =  Symbol.for('react.strict_mode');
-var REACT_PROFILER_TYPE =  Symbol.for('react.profiler');
-var REACT_PROVIDER_TYPE =  Symbol.for('react.provider');
-var REACT_CONTEXT_TYPE =  Symbol.for('react.context');
-var REACT_FORWARD_REF_TYPE =  Symbol.for('react.forward_ref');
-var REACT_SUSPENSE_TYPE =  Symbol.for('react.suspense');
-var REACT_SUSPENSE_LIST_TYPE =  Symbol.for('react.suspense_list');
-var REACT_MEMO_TYPE =  Symbol.for('react.memo');
-var REACT_LAZY_TYPE =  Symbol.for('react.lazy');
-var REACT_OFFSCREEN_TYPE =  Symbol.for('react.offscreen');
-var MAYBE_ITERATOR_SYMBOL =  Symbol.iterator;
-var FAUX_ITERATOR_SYMBOL = '@@iterator';
-function getIteratorFn(maybeIterable) {
-  if (maybeIterable === null || typeof maybeIterable !== 'object') {
-    return null;
-  }
-
-  var maybeIterator = MAYBE_ITERATOR_SYMBOL && maybeIterable[MAYBE_ITERATOR_SYMBOL] || maybeIterable[FAUX_ITERATOR_SYMBOL];
-
-  if (typeof maybeIterator === 'function') {
-    return maybeIterator;
-  }
-
-  return null;
-}
-
-var ReactSharedInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-
-function error(format) {
-  {
-    {
-      for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-        args[_key2 - 1] = arguments[_key2];
-      }
-
-      printWarning('error', format, args);
-    }
-  }
-}
-
-function printWarning(level, format, args) {
-  // When changing this logic, you might want to also
-  // update consoleWithStackDev.www.js as well.
-  {
-    var ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
-    var stack = ReactDebugCurrentFrame.getStackAddendum();
-
-    if (stack !== '') {
-      format += '%s';
-      args = args.concat([stack]);
-    } // eslint-disable-next-line react-internal/safe-string-coercion
-
-
-    var argsWithFormat = args.map(function (item) {
-      return String(item);
-    }); // Careful: RN currently depends on this prefix
-
-    argsWithFormat.unshift('Warning: ' + format); // We intentionally don't use spread (or .apply) directly because it
-    // breaks IE9: https://github.com/facebook/react/issues/13610
-    // eslint-disable-next-line react-internal/no-production-logging
-
-    Function.prototype.apply.call(console[level], console, argsWithFormat);
-  }
-}
-
-var REACT_MODULE_REFERENCE;
-
-{
-  REACT_MODULE_REFERENCE = Symbol.for('react.module.reference');
-}
-
-function isValidElementType(type) {
-  if (typeof type === 'string' || typeof type === 'function') {
-    return true;
-  } // Note: typeof might be other than 'symbol' or 'number' (e.g. if it's a polyfill).
-
-
-  if (type === REACT_FRAGMENT_TYPE || type === REACT_PROFILER_TYPE || enableDebugTracing  || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || type === REACT_SUSPENSE_LIST_TYPE || enableLegacyHidden  || type === REACT_OFFSCREEN_TYPE || enableScopeAPI  || enableCacheElement  || enableTransitionTracing ) {
-    return true;
-  }
-
-  if (typeof type === 'object' && type !== null) {
-    if (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE || // This needs to include all possible module reference object
-    // types supported by any Flight configuration anywhere since
-    // we don't know which Flight build this will end up being used
-    // with.
-    type.$$typeof === REACT_MODULE_REFERENCE || type.getModuleId !== undefined) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function getWrappedName(outerType, innerType, wrapperName) {
-  var displayName = outerType.displayName;
-
-  if (displayName) {
-    return displayName;
-  }
-
-  var functionName = innerType.displayName || innerType.name || '';
-  return functionName !== '' ? wrapperName + "(" + functionName + ")" : wrapperName;
-} // Keep in sync with react-reconciler/getComponentNameFromFiber
-
-
-function getContextName(type) {
-  return type.displayName || 'Context';
-} // Note that the reconciler package should generally prefer to use getComponentNameFromFiber() instead.
-
-
-function getComponentNameFromType(type) {
-  if (type == null) {
-    // Host root, text node or just invalid type.
-    return null;
-  }
-
-  {
-    if (typeof type.tag === 'number') {
-      error('Received an unexpected object in getComponentNameFromType(). ' + 'This is likely a bug in React. Please file an issue.');
-    }
-  }
-
-  if (typeof type === 'function') {
-    return type.displayName || type.name || null;
-  }
-
-  if (typeof type === 'string') {
-    return type;
-  }
-
-  switch (type) {
-    case REACT_FRAGMENT_TYPE:
-      return 'Fragment';
-
-    case REACT_PORTAL_TYPE:
-      return 'Portal';
-
-    case REACT_PROFILER_TYPE:
-      return 'Profiler';
-
-    case REACT_STRICT_MODE_TYPE:
-      return 'StrictMode';
-
-    case REACT_SUSPENSE_TYPE:
-      return 'Suspense';
-
-    case REACT_SUSPENSE_LIST_TYPE:
-      return 'SuspenseList';
-
-  }
-
-  if (typeof type === 'object') {
-    switch (type.$$typeof) {
-      case REACT_CONTEXT_TYPE:
-        var context = type;
-        return getContextName(context) + '.Consumer';
-
-      case REACT_PROVIDER_TYPE:
-        var provider = type;
-        return getContextName(provider._context) + '.Provider';
-
-      case REACT_FORWARD_REF_TYPE:
-        return getWrappedName(type, type.render, 'ForwardRef');
-
-      case REACT_MEMO_TYPE:
-        var outerName = type.displayName || null;
-
-        if (outerName !== null) {
-          return outerName;
-        }
-
-        return getComponentNameFromType(type.type) || 'Memo';
-
-      case REACT_LAZY_TYPE:
-        {
-          var lazyComponent = type;
-          var payload = lazyComponent._payload;
-          var init = lazyComponent._init;
-
-          try {
-            return getComponentNameFromType(init(payload));
-          } catch (x) {
-            return null;
-          }
-        }
-
-      // eslint-disable-next-line no-fallthrough
-    }
-  }
-
-  return null;
-}
-
-var assign = Object.assign;
-
-// Helpers to patch console.logs to avoid logging during side-effect free
-// replaying on render function. This currently only patches the object
-// lazily which won't cover if the log function was extracted eagerly.
-// We could also eagerly patch the method.
-var disabledDepth = 0;
-var prevLog;
-var prevInfo;
-var prevWarn;
-var prevError;
-var prevGroup;
-var prevGroupCollapsed;
-var prevGroupEnd;
-
-function disabledLog() {}
-
-disabledLog.__reactDisabledLog = true;
-function disableLogs() {
-  {
-    if (disabledDepth === 0) {
-      /* eslint-disable react-internal/no-production-logging */
-      prevLog = console.log;
-      prevInfo = console.info;
-      prevWarn = console.warn;
-      prevError = console.error;
-      prevGroup = console.group;
-      prevGroupCollapsed = console.groupCollapsed;
-      prevGroupEnd = console.groupEnd; // https://github.com/facebook/react/issues/19099
-
-      var props = {
-        configurable: true,
-        enumerable: true,
-        value: disabledLog,
-        writable: true
-      }; // $FlowFixMe Flow thinks console is immutable.
-
-      Object.defineProperties(console, {
-        info: props,
-        log: props,
-        warn: props,
-        error: props,
-        group: props,
-        groupCollapsed: props,
-        groupEnd: props
-      });
-      /* eslint-enable react-internal/no-production-logging */
-    }
-
-    disabledDepth++;
-  }
-}
-function reenableLogs() {
-  {
-    disabledDepth--;
-
-    if (disabledDepth === 0) {
-      /* eslint-disable react-internal/no-production-logging */
-      var props = {
-        configurable: true,
-        enumerable: true,
-        writable: true
-      }; // $FlowFixMe Flow thinks console is immutable.
-
-      Object.defineProperties(console, {
-        log: assign({}, props, {
-          value: prevLog
-        }),
-        info: assign({}, props, {
-          value: prevInfo
-        }),
-        warn: assign({}, props, {
-          value: prevWarn
-        }),
-        error: assign({}, props, {
-          value: prevError
-        }),
-        group: assign({}, props, {
-          value: prevGroup
-        }),
-        groupCollapsed: assign({}, props, {
-          value: prevGroupCollapsed
-        }),
-        groupEnd: assign({}, props, {
-          value: prevGroupEnd
-        })
-      });
-      /* eslint-enable react-internal/no-production-logging */
-    }
-
-    if (disabledDepth < 0) {
-      error('disabledDepth fell below zero. ' + 'This is a bug in React. Please file an issue.');
-    }
-  }
-}
-
-var ReactCurrentDispatcher = ReactSharedInternals.ReactCurrentDispatcher;
-var prefix;
-function describeBuiltInComponentFrame(name, source, ownerFn) {
-  {
-    if (prefix === undefined) {
-      // Extract the VM specific prefix used by each line.
-      try {
-        throw Error();
-      } catch (x) {
-        var match = x.stack.trim().match(/\n( *(at )?)/);
-        prefix = match && match[1] || '';
-      }
-    } // We use the prefix to ensure our stacks line up with native stack frames.
-
-
-    return '\n' + prefix + name;
-  }
-}
-var reentry = false;
-var componentFrameCache;
-
-{
-  var PossiblyWeakMap = typeof WeakMap === 'function' ? WeakMap : Map;
-  componentFrameCache = new PossiblyWeakMap();
-}
-
-function describeNativeComponentFrame(fn, construct) {
-  // If something asked for a stack inside a fake render, it should get ignored.
-  if ( !fn || reentry) {
-    return '';
-  }
-
-  {
-    var frame = componentFrameCache.get(fn);
-
-    if (frame !== undefined) {
-      return frame;
-    }
-  }
-
-  var control;
-  reentry = true;
-  var previousPrepareStackTrace = Error.prepareStackTrace; // $FlowFixMe It does accept undefined.
-
-  Error.prepareStackTrace = undefined;
-  var previousDispatcher;
-
-  {
-    previousDispatcher = ReactCurrentDispatcher.current; // Set the dispatcher in DEV because this might be call in the render function
-    // for warnings.
-
-    ReactCurrentDispatcher.current = null;
-    disableLogs();
-  }
-
-  try {
-    // This should throw.
-    if (construct) {
-      // Something should be setting the props in the constructor.
-      var Fake = function () {
-        throw Error();
-      }; // $FlowFixMe
-
-
-      Object.defineProperty(Fake.prototype, 'props', {
-        set: function () {
-          // We use a throwing setter instead of frozen or non-writable props
-          // because that won't throw in a non-strict mode function.
-          throw Error();
-        }
-      });
-
-      if (typeof Reflect === 'object' && Reflect.construct) {
-        // We construct a different control for this case to include any extra
-        // frames added by the construct call.
-        try {
-          Reflect.construct(Fake, []);
-        } catch (x) {
-          control = x;
-        }
-
-        Reflect.construct(fn, [], Fake);
-      } else {
-        try {
-          Fake.call();
-        } catch (x) {
-          control = x;
-        }
-
-        fn.call(Fake.prototype);
-      }
-    } else {
-      try {
-        throw Error();
-      } catch (x) {
-        control = x;
-      }
-
-      fn();
-    }
-  } catch (sample) {
-    // This is inlined manually because closure doesn't do it for us.
-    if (sample && control && typeof sample.stack === 'string') {
-      // This extracts the first frame from the sample that isn't also in the control.
-      // Skipping one frame that we assume is the frame that calls the two.
-      var sampleLines = sample.stack.split('\n');
-      var controlLines = control.stack.split('\n');
-      var s = sampleLines.length - 1;
-      var c = controlLines.length - 1;
-
-      while (s >= 1 && c >= 0 && sampleLines[s] !== controlLines[c]) {
-        // We expect at least one stack frame to be shared.
-        // Typically this will be the root most one. However, stack frames may be
-        // cut off due to maximum stack limits. In this case, one maybe cut off
-        // earlier than the other. We assume that the sample is longer or the same
-        // and there for cut off earlier. So we should find the root most frame in
-        // the sample somewhere in the control.
-        c--;
-      }
-
-      for (; s >= 1 && c >= 0; s--, c--) {
-        // Next we find the first one that isn't the same which should be the
-        // frame that called our sample function and the control.
-        if (sampleLines[s] !== controlLines[c]) {
-          // In V8, the first line is describing the message but other VMs don't.
-          // If we're about to return the first line, and the control is also on the same
-          // line, that's a pretty good indicator that our sample threw at same line as
-          // the control. I.e. before we entered the sample frame. So we ignore this result.
-          // This can happen if you passed a class to function component, or non-function.
-          if (s !== 1 || c !== 1) {
-            do {
-              s--;
-              c--; // We may still have similar intermediate frames from the construct call.
-              // The next one that isn't the same should be our match though.
-
-              if (c < 0 || sampleLines[s] !== controlLines[c]) {
-                // V8 adds a "new" prefix for native classes. Let's remove it to make it prettier.
-                var _frame = '\n' + sampleLines[s].replace(' at new ', ' at '); // If our component frame is labeled "<anonymous>"
-                // but we have a user-provided "displayName"
-                // splice it in to make the stack more readable.
-
-
-                if (fn.displayName && _frame.includes('<anonymous>')) {
-                  _frame = _frame.replace('<anonymous>', fn.displayName);
-                }
-
-                {
-                  if (typeof fn === 'function') {
-                    componentFrameCache.set(fn, _frame);
-                  }
-                } // Return the line we found.
-
-
-                return _frame;
-              }
-            } while (s >= 1 && c >= 0);
-          }
-
-          break;
-        }
-      }
-    }
-  } finally {
-    reentry = false;
-
-    {
-      ReactCurrentDispatcher.current = previousDispatcher;
-      reenableLogs();
-    }
-
-    Error.prepareStackTrace = previousPrepareStackTrace;
-  } // Fallback to just using the name if we couldn't make it throw.
-
-
-  var name = fn ? fn.displayName || fn.name : '';
-  var syntheticFrame = name ? describeBuiltInComponentFrame(name) : '';
-
-  {
-    if (typeof fn === 'function') {
-      componentFrameCache.set(fn, syntheticFrame);
-    }
-  }
-
-  return syntheticFrame;
-}
-function describeFunctionComponentFrame(fn, source, ownerFn) {
-  {
-    return describeNativeComponentFrame(fn, false);
-  }
-}
-
-function shouldConstruct(Component) {
-  var prototype = Component.prototype;
-  return !!(prototype && prototype.isReactComponent);
-}
-
-function describeUnknownElementTypeFrameInDEV(type, source, ownerFn) {
-
-  if (type == null) {
-    return '';
-  }
-
-  if (typeof type === 'function') {
-    {
-      return describeNativeComponentFrame(type, shouldConstruct(type));
-    }
-  }
-
-  if (typeof type === 'string') {
-    return describeBuiltInComponentFrame(type);
-  }
-
-  switch (type) {
-    case REACT_SUSPENSE_TYPE:
-      return describeBuiltInComponentFrame('Suspense');
-
-    case REACT_SUSPENSE_LIST_TYPE:
-      return describeBuiltInComponentFrame('SuspenseList');
-  }
-
-  if (typeof type === 'object') {
-    switch (type.$$typeof) {
-      case REACT_FORWARD_REF_TYPE:
-        return describeFunctionComponentFrame(type.render);
-
-      case REACT_MEMO_TYPE:
-        // Memo may contain any component type so we recursively resolve it.
-        return describeUnknownElementTypeFrameInDEV(type.type, source, ownerFn);
-
-      case REACT_LAZY_TYPE:
-        {
-          var lazyComponent = type;
-          var payload = lazyComponent._payload;
-          var init = lazyComponent._init;
-
-          try {
-            // Lazy may contain any component type so we recursively resolve it.
-            return describeUnknownElementTypeFrameInDEV(init(payload), source, ownerFn);
-          } catch (x) {}
-        }
-    }
-  }
-
-  return '';
-}
-
-var hasOwnProperty = Object.prototype.hasOwnProperty;
-
-var loggedTypeFailures = {};
-var ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
-
-function setCurrentlyValidatingElement(element) {
-  {
-    if (element) {
-      var owner = element._owner;
-      var stack = describeUnknownElementTypeFrameInDEV(element.type, element._source, owner ? owner.type : null);
-      ReactDebugCurrentFrame.setExtraStackFrame(stack);
-    } else {
-      ReactDebugCurrentFrame.setExtraStackFrame(null);
-    }
-  }
-}
-
-function checkPropTypes(typeSpecs, values, location, componentName, element) {
-  {
-    // $FlowFixMe This is okay but Flow doesn't know it.
-    var has = Function.call.bind(hasOwnProperty);
-
-    for (var typeSpecName in typeSpecs) {
-      if (has(typeSpecs, typeSpecName)) {
-        var error$1 = void 0; // Prop type validation may throw. In case they do, we don't want to
-        // fail the render phase where it didn't fail before. So we log it.
-        // After these have been cleaned up, we'll let them throw.
-
-        try {
-          // This is intentionally an invariant that gets caught. It's the same
-          // behavior as without this statement except with a better message.
-          if (typeof typeSpecs[typeSpecName] !== 'function') {
-            // eslint-disable-next-line react-internal/prod-error-codes
-            var err = Error((componentName || 'React class') + ': ' + location + ' type `' + typeSpecName + '` is invalid; ' + 'it must be a function, usually from the `prop-types` package, but received `' + typeof typeSpecs[typeSpecName] + '`.' + 'This often happens because of typos such as `PropTypes.function` instead of `PropTypes.func`.');
-            err.name = 'Invariant Violation';
-            throw err;
-          }
-
-          error$1 = typeSpecs[typeSpecName](values, typeSpecName, componentName, location, null, 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED');
-        } catch (ex) {
-          error$1 = ex;
-        }
-
-        if (error$1 && !(error$1 instanceof Error)) {
-          setCurrentlyValidatingElement(element);
-
-          error('%s: type specification of %s' + ' `%s` is invalid; the type checker ' + 'function must return `null` or an `Error` but returned a %s. ' + 'You may have forgotten to pass an argument to the type checker ' + 'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ' + 'shape all require an argument).', componentName || 'React class', location, typeSpecName, typeof error$1);
-
-          setCurrentlyValidatingElement(null);
-        }
-
-        if (error$1 instanceof Error && !(error$1.message in loggedTypeFailures)) {
-          // Only monitor this failure once because there tends to be a lot of the
-          // same error.
-          loggedTypeFailures[error$1.message] = true;
-          setCurrentlyValidatingElement(element);
-
-          error('Failed %s type: %s', location, error$1.message);
-
-          setCurrentlyValidatingElement(null);
-        }
-      }
-    }
-  }
-}
-
-var isArrayImpl = Array.isArray; // eslint-disable-next-line no-redeclare
-
-function isArray(a) {
-  return isArrayImpl(a);
-}
-
-/*
- * The `'' + value` pattern (used in in perf-sensitive code) throws for Symbol
- * and Temporal.* types. See https://github.com/facebook/react/pull/22064.
- *
- * The functions in this module will throw an easier-to-understand,
- * easier-to-debug exception with a clear errors message message explaining the
- * problem. (Instead of a confusing exception thrown inside the implementation
- * of the `value` object).
- */
-// $FlowFixMe only called in DEV, so void return is not possible.
-function typeName(value) {
-  {
-    // toStringTag is needed for namespaced types like Temporal.Instant
-    var hasToStringTag = typeof Symbol === 'function' && Symbol.toStringTag;
-    var type = hasToStringTag && value[Symbol.toStringTag] || value.constructor.name || 'Object';
-    return type;
-  }
-} // $FlowFixMe only called in DEV, so void return is not possible.
-
-
-function willCoercionThrow(value) {
-  {
-    try {
-      testStringCoercion(value);
-      return false;
-    } catch (e) {
-      return true;
-    }
-  }
-}
-
-function testStringCoercion(value) {
-  // If you ended up here by following an exception call stack, here's what's
-  // happened: you supplied an object or symbol value to React (as a prop, key,
-  // DOM attribute, CSS property, string ref, etc.) and when React tried to
-  // coerce it to a string using `'' + value`, an exception was thrown.
-  //
-  // The most common types that will cause this exception are `Symbol` instances
-  // and Temporal objects like `Temporal.Instant`. But any object that has a
-  // `valueOf` or `[Symbol.toPrimitive]` method that throws will also cause this
-  // exception. (Library authors do this to prevent users from using built-in
-  // numeric operators like `+` or comparison operators like `>=` because custom
-  // methods are needed to perform accurate arithmetic or comparison.)
-  //
-  // To fix the problem, coerce this object or symbol value to a string before
-  // passing it to React. The most reliable way is usually `String(value)`.
-  //
-  // To find which value is throwing, check the browser or debugger console.
-  // Before this exception was thrown, there should be `console.error` output
-  // that shows the type (Symbol, Temporal.PlainDate, etc.) that caused the
-  // problem and how that type was used: key, atrribute, input value prop, etc.
-  // In most cases, this console output also shows the component and its
-  // ancestor components where the exception happened.
-  //
-  // eslint-disable-next-line react-internal/safe-string-coercion
-  return '' + value;
-}
-function checkKeyStringCoercion(value) {
-  {
-    if (willCoercionThrow(value)) {
-      error('The provided key is an unsupported type %s.' + ' This value must be coerced to a string before before using it here.', typeName(value));
-
-      return testStringCoercion(value); // throw (to help callers find troubleshooting comments)
-    }
-  }
-}
-
-var ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
-var RESERVED_PROPS = {
-  key: true,
-  ref: true,
-  __self: true,
-  __source: true
-};
-var specialPropKeyWarningShown;
-var specialPropRefWarningShown;
-var didWarnAboutStringRefs;
-
-{
-  didWarnAboutStringRefs = {};
-}
-
-function hasValidRef(config) {
-  {
-    if (hasOwnProperty.call(config, 'ref')) {
-      var getter = Object.getOwnPropertyDescriptor(config, 'ref').get;
-
-      if (getter && getter.isReactWarning) {
-        return false;
-      }
-    }
-  }
-
-  return config.ref !== undefined;
-}
-
-function hasValidKey(config) {
-  {
-    if (hasOwnProperty.call(config, 'key')) {
-      var getter = Object.getOwnPropertyDescriptor(config, 'key').get;
-
-      if (getter && getter.isReactWarning) {
-        return false;
-      }
-    }
-  }
-
-  return config.key !== undefined;
-}
-
-function warnIfStringRefCannotBeAutoConverted(config, self) {
-  {
-    if (typeof config.ref === 'string' && ReactCurrentOwner.current && self && ReactCurrentOwner.current.stateNode !== self) {
-      var componentName = getComponentNameFromType(ReactCurrentOwner.current.type);
-
-      if (!didWarnAboutStringRefs[componentName]) {
-        error('Component "%s" contains the string ref "%s". ' + 'Support for string refs will be removed in a future major release. ' + 'This case cannot be automatically converted to an arrow function. ' + 'We ask you to manually fix this case by using useRef() or createRef() instead. ' + 'Learn more about using refs safely here: ' + 'https://reactjs.org/link/strict-mode-string-ref', getComponentNameFromType(ReactCurrentOwner.current.type), config.ref);
-
-        didWarnAboutStringRefs[componentName] = true;
-      }
-    }
-  }
-}
-
-function defineKeyPropWarningGetter(props, displayName) {
-  {
-    var warnAboutAccessingKey = function () {
-      if (!specialPropKeyWarningShown) {
-        specialPropKeyWarningShown = true;
-
-        error('%s: `key` is not a prop. Trying to access it will result ' + 'in `undefined` being returned. If you need to access the same ' + 'value within the child component, you should pass it as a different ' + 'prop. (https://reactjs.org/link/special-props)', displayName);
-      }
-    };
-
-    warnAboutAccessingKey.isReactWarning = true;
-    Object.defineProperty(props, 'key', {
-      get: warnAboutAccessingKey,
-      configurable: true
-    });
-  }
-}
-
-function defineRefPropWarningGetter(props, displayName) {
-  {
-    var warnAboutAccessingRef = function () {
-      if (!specialPropRefWarningShown) {
-        specialPropRefWarningShown = true;
-
-        error('%s: `ref` is not a prop. Trying to access it will result ' + 'in `undefined` being returned. If you need to access the same ' + 'value within the child component, you should pass it as a different ' + 'prop. (https://reactjs.org/link/special-props)', displayName);
-      }
-    };
-
-    warnAboutAccessingRef.isReactWarning = true;
-    Object.defineProperty(props, 'ref', {
-      get: warnAboutAccessingRef,
-      configurable: true
-    });
-  }
-}
-/**
- * Factory method to create a new React element. This no longer adheres to
- * the class pattern, so do not use new to call it. Also, instanceof check
- * will not work. Instead test $$typeof field against Symbol.for('react.element') to check
- * if something is a React Element.
- *
- * @param {*} type
- * @param {*} props
- * @param {*} key
- * @param {string|object} ref
- * @param {*} owner
- * @param {*} self A *temporary* helper to detect places where `this` is
- * different from the `owner` when React.createElement is called, so that we
- * can warn. We want to get rid of owner and replace string `ref`s with arrow
- * functions, and as long as `this` and owner are the same, there will be no
- * change in behavior.
- * @param {*} source An annotation object (added by a transpiler or otherwise)
- * indicating filename, line number, and/or other information.
- * @internal
- */
-
-
-var ReactElement = function (type, key, ref, self, source, owner, props) {
-  var element = {
-    // This tag allows us to uniquely identify this as a React Element
-    $$typeof: REACT_ELEMENT_TYPE,
-    // Built-in properties that belong on the element
-    type: type,
-    key: key,
-    ref: ref,
-    props: props,
-    // Record the component responsible for creating this element.
-    _owner: owner
-  };
-
-  {
-    // The validation flag is currently mutative. We put it on
-    // an external backing store so that we can freeze the whole object.
-    // This can be replaced with a WeakMap once they are implemented in
-    // commonly used development environments.
-    element._store = {}; // To make comparing ReactElements easier for testing purposes, we make
-    // the validation flag non-enumerable (where possible, which should
-    // include every environment we run tests in), so the test framework
-    // ignores it.
-
-    Object.defineProperty(element._store, 'validated', {
-      configurable: false,
-      enumerable: false,
-      writable: true,
-      value: false
-    }); // self and source are DEV only properties.
-
-    Object.defineProperty(element, '_self', {
-      configurable: false,
-      enumerable: false,
-      writable: false,
-      value: self
-    }); // Two elements created in two different places should be considered
-    // equal for testing purposes and therefore we hide it from enumeration.
-
-    Object.defineProperty(element, '_source', {
-      configurable: false,
-      enumerable: false,
-      writable: false,
-      value: source
-    });
-
-    if (Object.freeze) {
-      Object.freeze(element.props);
-      Object.freeze(element);
-    }
-  }
-
-  return element;
-};
-/**
- * https://github.com/reactjs/rfcs/pull/107
- * @param {*} type
- * @param {object} props
- * @param {string} key
- */
-
-function jsxDEV(type, config, maybeKey, source, self) {
-  {
-    var propName; // Reserved names are extracted
-
-    var props = {};
-    var key = null;
-    var ref = null; // Currently, key can be spread in as a prop. This causes a potential
-    // issue if key is also explicitly declared (ie. <div {...props} key="Hi" />
-    // or <div key="Hi" {...props} /> ). We want to deprecate key spread,
-    // but as an intermediary step, we will use jsxDEV for everything except
-    // <div {...props} key="Hi" />, because we aren't currently able to tell if
-    // key is explicitly declared to be undefined or not.
-
-    if (maybeKey !== undefined) {
-      {
-        checkKeyStringCoercion(maybeKey);
-      }
-
-      key = '' + maybeKey;
-    }
-
-    if (hasValidKey(config)) {
-      {
-        checkKeyStringCoercion(config.key);
-      }
-
-      key = '' + config.key;
-    }
-
-    if (hasValidRef(config)) {
-      ref = config.ref;
-      warnIfStringRefCannotBeAutoConverted(config, self);
-    } // Remaining properties are added to a new props object
-
-
-    for (propName in config) {
-      if (hasOwnProperty.call(config, propName) && !RESERVED_PROPS.hasOwnProperty(propName)) {
-        props[propName] = config[propName];
-      }
-    } // Resolve default props
-
-
-    if (type && type.defaultProps) {
-      var defaultProps = type.defaultProps;
-
-      for (propName in defaultProps) {
-        if (props[propName] === undefined) {
-          props[propName] = defaultProps[propName];
-        }
-      }
-    }
-
-    if (key || ref) {
-      var displayName = typeof type === 'function' ? type.displayName || type.name || 'Unknown' : type;
-
-      if (key) {
-        defineKeyPropWarningGetter(props, displayName);
-      }
-
-      if (ref) {
-        defineRefPropWarningGetter(props, displayName);
-      }
-    }
-
-    return ReactElement(type, key, ref, self, source, ReactCurrentOwner.current, props);
-  }
-}
-
-var ReactCurrentOwner$1 = ReactSharedInternals.ReactCurrentOwner;
-var ReactDebugCurrentFrame$1 = ReactSharedInternals.ReactDebugCurrentFrame;
-
-function setCurrentlyValidatingElement$1(element) {
-  {
-    if (element) {
-      var owner = element._owner;
-      var stack = describeUnknownElementTypeFrameInDEV(element.type, element._source, owner ? owner.type : null);
-      ReactDebugCurrentFrame$1.setExtraStackFrame(stack);
-    } else {
-      ReactDebugCurrentFrame$1.setExtraStackFrame(null);
-    }
-  }
-}
-
-var propTypesMisspellWarningShown;
-
-{
-  propTypesMisspellWarningShown = false;
-}
-/**
- * Verifies the object is a ReactElement.
- * See https://reactjs.org/docs/react-api.html#isvalidelement
- * @param {?object} object
- * @return {boolean} True if `object` is a ReactElement.
- * @final
- */
-
-
-function isValidElement(object) {
-  {
-    return typeof object === 'object' && object !== null && object.$$typeof === REACT_ELEMENT_TYPE;
-  }
-}
-
-function getDeclarationErrorAddendum() {
-  {
-    if (ReactCurrentOwner$1.current) {
-      var name = getComponentNameFromType(ReactCurrentOwner$1.current.type);
-
-      if (name) {
-        return '\n\nCheck the render method of `' + name + '`.';
-      }
-    }
-
-    return '';
-  }
-}
-
-function getSourceInfoErrorAddendum(source) {
-  {
-    if (source !== undefined) {
-      var fileName = source.fileName.replace(/^.*[\\\/]/, '');
-      var lineNumber = source.lineNumber;
-      return '\n\nCheck your code at ' + fileName + ':' + lineNumber + '.';
-    }
-
-    return '';
-  }
-}
-/**
- * Warn if there's no key explicitly set on dynamic arrays of children or
- * object keys are not valid. This allows us to keep track of children between
- * updates.
- */
-
-
-var ownerHasKeyUseWarning = {};
-
-function getCurrentComponentErrorInfo(parentType) {
-  {
-    var info = getDeclarationErrorAddendum();
-
-    if (!info) {
-      var parentName = typeof parentType === 'string' ? parentType : parentType.displayName || parentType.name;
-
-      if (parentName) {
-        info = "\n\nCheck the top-level render call using <" + parentName + ">.";
-      }
-    }
-
-    return info;
-  }
-}
-/**
- * Warn if the element doesn't have an explicit key assigned to it.
- * This element is in an array. The array could grow and shrink or be
- * reordered. All children that haven't already been validated are required to
- * have a "key" property assigned to it. Error statuses are cached so a warning
- * will only be shown once.
- *
- * @internal
- * @param {ReactElement} element Element that requires a key.
- * @param {*} parentType element's parent's type.
- */
-
-
-function validateExplicitKey(element, parentType) {
-  {
-    if (!element._store || element._store.validated || element.key != null) {
-      return;
-    }
-
-    element._store.validated = true;
-    var currentComponentErrorInfo = getCurrentComponentErrorInfo(parentType);
-
-    if (ownerHasKeyUseWarning[currentComponentErrorInfo]) {
-      return;
-    }
-
-    ownerHasKeyUseWarning[currentComponentErrorInfo] = true; // Usually the current owner is the offender, but if it accepts children as a
-    // property, it may be the creator of the child that's responsible for
-    // assigning it a key.
-
-    var childOwner = '';
-
-    if (element && element._owner && element._owner !== ReactCurrentOwner$1.current) {
-      // Give the component that originally created this child.
-      childOwner = " It was passed a child from " + getComponentNameFromType(element._owner.type) + ".";
-    }
-
-    setCurrentlyValidatingElement$1(element);
-
-    error('Each child in a list should have a unique "key" prop.' + '%s%s See https://reactjs.org/link/warning-keys for more information.', currentComponentErrorInfo, childOwner);
-
-    setCurrentlyValidatingElement$1(null);
-  }
-}
-/**
- * Ensure that every element either is passed in a static location, in an
- * array with an explicit keys property defined, or in an object literal
- * with valid key property.
- *
- * @internal
- * @param {ReactNode} node Statically passed child of any type.
- * @param {*} parentType node's parent's type.
- */
-
-
-function validateChildKeys(node, parentType) {
-  {
-    if (typeof node !== 'object') {
-      return;
-    }
-
-    if (isArray(node)) {
-      for (var i = 0; i < node.length; i++) {
-        var child = node[i];
-
-        if (isValidElement(child)) {
-          validateExplicitKey(child, parentType);
-        }
-      }
-    } else if (isValidElement(node)) {
-      // This element was passed in a valid location.
-      if (node._store) {
-        node._store.validated = true;
-      }
-    } else if (node) {
-      var iteratorFn = getIteratorFn(node);
-
-      if (typeof iteratorFn === 'function') {
-        // Entry iterators used to provide implicit keys,
-        // but now we print a separate warning for them later.
-        if (iteratorFn !== node.entries) {
-          var iterator = iteratorFn.call(node);
-          var step;
-
-          while (!(step = iterator.next()).done) {
-            if (isValidElement(step.value)) {
-              validateExplicitKey(step.value, parentType);
-            }
-          }
-        }
-      }
-    }
-  }
-}
-/**
- * Given an element, validate that its props follow the propTypes definition,
- * provided by the type.
- *
- * @param {ReactElement} element
- */
-
-
-function validatePropTypes(element) {
-  {
-    var type = element.type;
-
-    if (type === null || type === undefined || typeof type === 'string') {
-      return;
-    }
-
-    var propTypes;
-
-    if (typeof type === 'function') {
-      propTypes = type.propTypes;
-    } else if (typeof type === 'object' && (type.$$typeof === REACT_FORWARD_REF_TYPE || // Note: Memo only checks outer props here.
-    // Inner props are checked in the reconciler.
-    type.$$typeof === REACT_MEMO_TYPE)) {
-      propTypes = type.propTypes;
-    } else {
-      return;
-    }
-
-    if (propTypes) {
-      // Intentionally inside to avoid triggering lazy initializers:
-      var name = getComponentNameFromType(type);
-      checkPropTypes(propTypes, element.props, 'prop', name, element);
-    } else if (type.PropTypes !== undefined && !propTypesMisspellWarningShown) {
-      propTypesMisspellWarningShown = true; // Intentionally inside to avoid triggering lazy initializers:
-
-      var _name = getComponentNameFromType(type);
-
-      error('Component %s declared `PropTypes` instead of `propTypes`. Did you misspell the property assignment?', _name || 'Unknown');
-    }
-
-    if (typeof type.getDefaultProps === 'function' && !type.getDefaultProps.isReactClassApproved) {
-      error('getDefaultProps is only used on classic React.createClass ' + 'definitions. Use a static property named `defaultProps` instead.');
-    }
-  }
-}
-/**
- * Given a fragment, validate that it can only be provided with fragment props
- * @param {ReactElement} fragment
- */
-
-
-function validateFragmentProps(fragment) {
-  {
-    var keys = Object.keys(fragment.props);
-
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-
-      if (key !== 'children' && key !== 'key') {
-        setCurrentlyValidatingElement$1(fragment);
-
-        error('Invalid prop `%s` supplied to `React.Fragment`. ' + 'React.Fragment can only have `key` and `children` props.', key);
-
-        setCurrentlyValidatingElement$1(null);
-        break;
-      }
-    }
-
-    if (fragment.ref !== null) {
-      setCurrentlyValidatingElement$1(fragment);
-
-      error('Invalid attribute `ref` supplied to `React.Fragment`.');
-
-      setCurrentlyValidatingElement$1(null);
-    }
-  }
-}
-
-function jsxWithValidation(type, props, key, isStaticChildren, source, self) {
-  {
-    var validType = isValidElementType(type); // We warn in this case but don't throw. We expect the element creation to
-    // succeed and there will likely be errors in render.
-
-    if (!validType) {
-      var info = '';
-
-      if (type === undefined || typeof type === 'object' && type !== null && Object.keys(type).length === 0) {
-        info += ' You likely forgot to export your component from the file ' + "it's defined in, or you might have mixed up default and named imports.";
-      }
-
-      var sourceInfo = getSourceInfoErrorAddendum(source);
-
-      if (sourceInfo) {
-        info += sourceInfo;
-      } else {
-        info += getDeclarationErrorAddendum();
-      }
-
-      var typeString;
-
-      if (type === null) {
-        typeString = 'null';
-      } else if (isArray(type)) {
-        typeString = 'array';
-      } else if (type !== undefined && type.$$typeof === REACT_ELEMENT_TYPE) {
-        typeString = "<" + (getComponentNameFromType(type.type) || 'Unknown') + " />";
-        info = ' Did you accidentally export a JSX literal instead of a component?';
-      } else {
-        typeString = typeof type;
-      }
-
-      error('React.jsx: type is invalid -- expected a string (for ' + 'built-in components) or a class/function (for composite ' + 'components) but got: %s.%s', typeString, info);
-    }
-
-    var element = jsxDEV(type, props, key, source, self); // The result can be nullish if a mock or a custom function is used.
-    // TODO: Drop this when these are no longer allowed as the type argument.
-
-    if (element == null) {
-      return element;
-    } // Skip key warning if the type isn't valid since our key validation logic
-    // doesn't expect a non-string/function type and can throw confusing errors.
-    // We don't want exception behavior to differ between dev and prod.
-    // (Rendering will throw with a helpful message and as soon as the type is
-    // fixed, the key warnings will appear.)
-
-
-    if (validType) {
-      var children = props.children;
-
-      if (children !== undefined) {
-        if (isStaticChildren) {
-          if (isArray(children)) {
-            for (var i = 0; i < children.length; i++) {
-              validateChildKeys(children[i], type);
-            }
-
-            if (Object.freeze) {
-              Object.freeze(children);
-            }
-          } else {
-            error('React.jsx: Static children should always be an array. ' + 'You are likely explicitly calling React.jsxs or React.jsxDEV. ' + 'Use the Babel transform instead.');
-          }
-        } else {
-          validateChildKeys(children, type);
-        }
-      }
-    }
-
-    if (type === REACT_FRAGMENT_TYPE) {
-      validateFragmentProps(element);
-    } else {
-      validatePropTypes(element);
-    }
-
-    return element;
-  }
-} // These two functions exist to still get child warnings in dev
-// even with the prod transform. This means that jsxDEV is purely
-// opt-in behavior for better messages but that we won't stop
-// giving you warnings if you use production apis.
-
-function jsxWithValidationStatic(type, props, key) {
-  {
-    return jsxWithValidation(type, props, key, true);
-  }
-}
-function jsxWithValidationDynamic(type, props, key) {
-  {
-    return jsxWithValidation(type, props, key, false);
-  }
-}
-
-var jsx =  jsxWithValidationDynamic ; // we may want to special case jsxs internally to take advantage of static children.
-// for now we can ship identical prod functions
-
-var jsxs =  jsxWithValidationStatic ;
-
-reactJsxRuntime_development.Fragment = REACT_FRAGMENT_TYPE;
-reactJsxRuntime_development.jsx = jsx;
-reactJsxRuntime_development.jsxs = jsxs;
-  })();
-}
-
-(function (module) {
-
-	{
-	  module.exports = reactJsxRuntime_development;
-	}
-} (jsxRuntime));
-
-const _Viewer = ({
-  selection
-}) => {
-  const {
-    hats,
-    hairstyle,
-    shirts,
-    pants
-  } = selection;
-  return /*#__PURE__*/jsxRuntime.exports.jsx("div", {
-    className: "viewer",
-    children: /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-      className: "viewer-wrapper",
-      children: [/*#__PURE__*/jsxRuntime.exports.jsx("h2", {
-        children: "This is Viewer!"
-      }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
-        children: ["Hats : ", hats.value]
-      }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
-        children: ["Hairstyle : ", hairstyle.value]
-      }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
-        children: ["Shirts : ", shirts.value]
-      }), /*#__PURE__*/jsxRuntime.exports.jsxs("p", {
-        children: ["Pants : ", pants.value]
-      })]
-    })
-  });
-};
-
-const Viewer = observer(_Viewer);
-
-var hatsData = [
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: false
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: false
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: false
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: false
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: false
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: false
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: false
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: false
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: false
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: false
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 0,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 2,
-		ignoreHairstyleOffset: true
-	},
-	{
-		hairDrawType: 1,
-		ignoreHairstyleOffset: true
-	}
-];
-
-var hairstyleData = {
-	"100": {
-	sheet: "hairstyles2",
-	tileX: 0,
-	tileY: 0,
-	useUniqueLeft: true,
-	coveredHair: 100,
-	isBald: false
-},
-	"101": {
-	sheet: "hairstyles2",
-	tileX: 1,
-	tileY: 0,
-	useUniqueLeft: true,
-	coveredHair: -101,
-	isBald: false
-},
-	"102": {
-	sheet: "hairstyles2",
-	tileX: 2,
-	tileY: 0,
-	useUniqueLeft: true,
-	coveredHair: 102,
-	isBald: false
-},
-	"103": {
-	sheet: "hairstyles2",
-	tileX: 3,
-	tileY: 0,
-	useUniqueLeft: true,
-	coveredHair: 103,
-	isBald: false
-},
-	"104": {
-	sheet: "hairstyles2",
-	tileX: 4,
-	tileY: 0,
-	useUniqueLeft: true,
-	coveredHair: 103,
-	isBald: false
-},
-	"105": {
-	sheet: "hairstyles2",
-	tileX: 5,
-	tileY: 0,
-	useUniqueLeft: true,
-	coveredHair: 105,
-	isBald: false
-},
-	"106": {
-	sheet: "hairstyles2",
-	tileX: 6,
-	tileY: 0,
-	useUniqueLeft: true,
-	coveredHair: 105,
-	isBald: false
-},
-	"107": {
-	sheet: "hairstyles2",
-	tileX: 7,
-	tileY: 0,
-	useUniqueLeft: true,
-	coveredHair: -111,
-	isBald: false
-},
-	"108": {
-	sheet: "hairstyles2",
-	tileX: 0,
-	tileY: 8,
-	useUniqueLeft: true,
-	coveredHair: 116,
-	isBald: false
-},
-	"109": {
-	sheet: "hairstyles2",
-	tileX: 1,
-	tileY: 8,
-	useUniqueLeft: true,
-	coveredHair: -111,
-	isBald: false
-},
-	"110": {
-	sheet: "hairstyles2",
-	tileX: 2,
-	tileY: 8,
-	useUniqueLeft: true,
-	coveredHair: -110,
-	isBald: false
-},
-	"111": {
-	sheet: "hairstyles2",
-	tileX: 3,
-	tileY: 8,
-	useUniqueLeft: true,
-	coveredHair: 112,
-	isBald: false
-},
-	"112": {
-	sheet: "hairstyles2",
-	tileX: 4,
-	tileY: 8,
-	useUniqueLeft: true,
-	coveredHair: 112,
-	isBald: false
-},
-	"113": {
-	sheet: "hairstyles2",
-	tileX: 5,
-	tileY: 8,
-	useUniqueLeft: true,
-	coveredHair: 113,
-	isBald: false
-},
-	"114": {
-	sheet: "hairstyles2",
-	tileX: 6,
-	tileY: 8,
-	useUniqueLeft: true,
-	coveredHair: -114,
-	isBald: false
-},
-	"115": {
-	sheet: "hairstyles2",
-	tileX: 7,
-	tileY: 8,
-	useUniqueLeft: true,
-	coveredHair: -115,
-	isBald: false
-},
-	"116": {
-	sheet: "hairstyles2",
-	tileX: 0,
-	tileY: 16,
-	useUniqueLeft: true,
-	coveredHair: 116,
-	isBald: false
-},
-	"117": {
-	sheet: "hairstyles2",
-	tileX: 1,
-	tileY: 16,
-	useUniqueLeft: true,
-	coveredHair: 112,
-	isBald: false
-},
-	"-101": {
-	sheet: "hairstyles2",
-	tileX: 2,
-	tileY: 16,
-	useUniqueLeft: true,
-	coveredHair: -101,
-	isBald: false
-},
-	"-114": {
-	sheet: "hairstyles2",
-	tileX: 3,
-	tileY: 16,
-	useUniqueLeft: true,
-	coveredHair: -114,
-	isBald: false
-},
-	"-115": {
-	sheet: "hairstyles2",
-	tileX: 4,
-	tileY: 16,
-	useUniqueLeft: true,
-	coveredHair: -115,
-	isBald: false
-},
-	"-110": {
-	sheet: "hairstyles2",
-	tileX: 5,
-	tileY: 16,
-	useUniqueLeft: true,
-	coveredHair: -110,
-	isBald: false
-},
-	"-111": {
-	sheet: "hairstyles2",
-	tileX: 6,
-	tileY: 16,
-	useUniqueLeft: true,
-	coveredHair: -111,
-	isBald: false
-}
-};
-
-var shirtData = [
-	{
-		name: "shirts.name.0",
-		male: 0,
-		female: 0,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 1,
-		female: 1,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.2",
-		male: 2,
-		female: 2,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.3",
-		male: 3,
-		female: 3,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.4",
-		male: 4,
-		female: 4,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.5",
-		male: 5,
-		female: 5,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.6",
-		male: 6,
-		female: 6,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.7",
-		male: 7,
-		female: 7,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.8",
-		male: 8,
-		female: 8,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.9",
-		male: 9,
-		female: 9,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.10",
-		male: 10,
-		female: 10,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.11",
-		male: 11,
-		female: 11,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.12",
-		male: 12,
-		female: 12,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.13",
-		male: 13,
-		female: 13,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.14",
-		male: 14,
-		female: 14,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.15",
-		male: 15,
-		female: 15,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.16",
-		male: 16,
-		female: 16,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.17",
-		male: 17,
-		female: 17,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.18",
-		male: 18,
-		female: 18,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.19",
-		male: 19,
-		female: 19,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.20",
-		male: 20,
-		female: 20,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.21",
-		male: 21,
-		female: 21,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 22,
-		female: 22,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 23,
-		female: 23,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 24,
-		female: 24,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 25,
-		female: 25,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.26",
-		male: 26,
-		female: 26,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.27",
-		male: 27,
-		female: 27,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.28",
-		male: 28,
-		female: 28,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.29",
-		male: 29,
-		female: 29,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.30",
-		male: 30,
-		female: 30,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 31,
-		female: 31,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 32,
-		female: 32,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 33,
-		female: 33,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.34",
-		male: 34,
-		female: 34,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.35",
-		male: 35,
-		female: 35,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 36,
-		female: 36,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 37,
-		female: 37,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.38",
-		male: 38,
-		female: 41,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.39",
-		male: 39,
-		female: 39,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 40,
-		female: 40,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 41,
-		female: 41,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.42",
-		male: 42,
-		female: 42,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 43,
-		female: 43,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 44,
-		female: 44,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 45,
-		female: 45,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 46,
-		female: 46,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 47,
-		female: 47,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 48,
-		female: 48,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 49,
-		female: 49,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 50,
-		female: 50,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 51,
-		female: 51,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 52,
-		female: 52,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 53,
-		female: 53,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 54,
-		female: 54,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 55,
-		female: 55,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 56,
-		female: 56,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 57,
-		female: 57,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 58,
-		female: 58,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 59,
-		female: 59,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 60,
-		female: 60,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 61,
-		female: 61,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 62,
-		female: 62,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 63,
-		female: 63,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 64,
-		female: 64,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 65,
-		female: 65,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 66,
-		female: 66,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 67,
-		female: 67,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 68,
-		female: 68,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 69,
-		female: 69,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 70,
-		female: 70,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.71",
-		male: 71,
-		female: 71,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 72,
-		female: 72,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 73,
-		female: 73,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 74,
-		female: 74,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 75,
-		female: 75,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 76,
-		female: 76,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 77,
-		female: 77,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 78,
-		female: 78,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 79,
-		female: 79,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 80,
-		female: 80,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 81,
-		female: 81,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 82,
-		female: 82,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 83,
-		female: 83,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 84,
-		female: 84,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 85,
-		female: 85,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 86,
-		female: 86,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.87",
-		male: 87,
-		female: 87,
-		color: [
-			220,
-			48,
-			62
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 88,
-		female: 88,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 89,
-		female: 89,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 90,
-		female: 90,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 91,
-		female: 91,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 92,
-		female: 92,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 93,
-		female: 93,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 94,
-		female: 94,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 95,
-		female: 95,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 96,
-		female: 96,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 97,
-		female: 97,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 98,
-		female: 98,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 99,
-		female: 99,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 100,
-		female: 100,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 101,
-		female: 101,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 102,
-		female: 102,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 103,
-		female: 103,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 104,
-		female: 104,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 105,
-		female: 105,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 106,
-		female: 106,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 107,
-		female: 107,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 108,
-		female: 108,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 109,
-		female: 109,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 110,
-		female: 110,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 111,
-		female: 111,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 112,
-		female: 112,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 113,
-		female: 113,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 114,
-		female: 114,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 115,
-		female: 115,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 116,
-		female: 116,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 117,
-		female: 117,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 118,
-		female: 118,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 119,
-		female: 119,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 120,
-		female: 120,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 121,
-		female: 121,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 122,
-		female: 122,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.123",
-		male: 123,
-		female: 123,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 124,
-		female: 124,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 125,
-		female: 125,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 126,
-		female: 126,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.127",
-		male: 127,
-		female: 127,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.128",
-		male: 128,
-		female: 128,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.129",
-		male: 129,
-		female: 130,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.131",
-		male: 131,
-		female: 131,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.132",
-		male: 132,
-		female: 133,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.134",
-		male: 134,
-		female: 134,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.135",
-		male: 135,
-		female: 135,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.136",
-		male: 152,
-		female: 136,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.137",
-		male: 137,
-		female: 137,
-		color: [
-			207,
-			40,
-			21
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.138",
-		male: 138,
-		female: 138,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.139",
-		male: 139,
-		female: 139,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.140",
-		male: 140,
-		female: 140,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.141",
-		male: 141,
-		female: 141,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.142",
-		male: 142,
-		female: 142,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.143",
-		male: 143,
-		female: 143,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 144,
-		female: 144,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 145,
-		female: 145,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 146,
-		female: 146,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 147,
-		female: 147,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.148",
-		male: 148,
-		female: 148,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.149",
-		male: 149,
-		female: 149,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.150",
-		male: 150,
-		female: 150,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.151",
-		male: 151,
-		female: 151,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.153",
-		male: 153,
-		female: 153,
-		color: [
-			249,
-			174,
-			137
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.154",
-		male: 154,
-		female: 154,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.155",
-		male: 155,
-		female: 155,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.156",
-		male: 156,
-		female: 156,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.157",
-		male: 157,
-		female: 157,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.158",
-		male: 158,
-		female: 158,
-		color: [
-			150,
-			200,
-			100
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.159",
-		male: 159,
-		female: 159,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.160",
-		male: 160,
-		female: 160,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.161",
-		male: 161,
-		female: 161,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.162",
-		male: 162,
-		female: 162,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.163",
-		male: 163,
-		female: 163,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.164",
-		male: 164,
-		female: 164,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.165",
-		male: 165,
-		female: 165,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.166",
-		male: 166,
-		female: 166,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: true,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.167",
-		male: 167,
-		female: 167,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.168",
-		male: 168,
-		female: 168,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.169",
-		male: 169,
-		female: 169,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.170",
-		male: 170,
-		female: 170,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.171",
-		male: 171,
-		female: 171,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.172",
-		male: 172,
-		female: 172,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.173",
-		male: 173,
-		female: 173,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.174",
-		male: 174,
-		female: 174,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.175",
-		male: 175,
-		female: 175,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.176",
-		male: 176,
-		female: 177,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.178",
-		male: 178,
-		female: 178,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.179",
-		male: 179,
-		female: 179,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.180",
-		male: 180,
-		female: 180,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 181,
-		female: 181,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.default",
-		male: 182,
-		female: 182,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.183",
-		male: 183,
-		female: 183,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.184",
-		male: 184,
-		female: 184,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.185",
-		male: 185,
-		female: 185,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.186",
-		male: 186,
-		female: 186,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.187",
-		male: 187,
-		female: 187,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.188",
-		male: 188,
-		female: 188,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.189",
-		male: 189,
-		female: 189,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.190",
-		male: 190,
-		female: 190,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.191",
-		male: 191,
-		female: 191,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.192",
-		male: 192,
-		female: 192,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.193",
-		male: 193,
-		female: 193,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.194",
-		male: 194,
-		female: 194,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.195",
-		male: 195,
-		female: 195,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.196",
-		male: 196,
-		female: 196,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.197",
-		male: 197,
-		female: 197,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.198",
-		male: 198,
-		female: 198,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.199",
-		male: 199,
-		female: 199,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.200",
-		male: 200,
-		female: 200,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.201",
-		male: 201,
-		female: 202,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.203",
-		male: 203,
-		female: 203,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.204",
-		male: 204,
-		female: 204,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.205",
-		male: 205,
-		female: 205,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.206",
-		male: 206,
-		female: 206,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.207",
-		male: 207,
-		female: 207,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.208",
-		male: 208,
-		female: 208,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.209",
-		male: 209,
-		female: 209,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.210",
-		male: 210,
-		female: 210,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.211",
-		male: 211,
-		female: 211,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.212",
-		male: 212,
-		female: 212,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.213",
-		male: 213,
-		female: 213,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.214",
-		male: 214,
-		female: 214,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.215",
-		male: 215,
-		female: 215,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.216",
-		male: 216,
-		female: 216,
-		color: [
-			46,
-			85,
-			183
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.217",
-		male: 217,
-		female: 217,
-		color: [
-			46,
-			85,
-			183
-		],
-		dyeable: true,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.218",
-		male: 218,
-		female: 218,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.219",
-		male: 219,
-		female: 219,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.220",
-		male: 220,
-		female: 220,
-		color: [
-			178,
-			98,
-			51
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.221",
-		male: 221,
-		female: 221,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.222",
-		male: 222,
-		female: 222,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.223",
-		male: 223,
-		female: 223,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: true
-	},
-	{
-		name: "shirts.name.224",
-		male: 224,
-		female: 224,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.225",
-		male: 225,
-		female: 225,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.226",
-		male: 226,
-		female: 226,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.227",
-		male: 227,
-		female: 227,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.228",
-		male: 228,
-		female: 228,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.229",
-		male: 229,
-		female: 229,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.230",
-		male: 230,
-		female: 230,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.231",
-		male: 231,
-		female: 231,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.232",
-		male: 232,
-		female: 232,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.233",
-		male: 233,
-		female: 233,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.234",
-		male: 234,
-		female: 234,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.235",
-		male: 235,
-		female: 235,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.236",
-		male: 236,
-		female: 236,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.237",
-		male: 237,
-		female: 237,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.238",
-		male: 238,
-		female: 238,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.239",
-		male: 239,
-		female: 239,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.240",
-		male: 240,
-		female: 240,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.241",
-		male: 241,
-		female: 241,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.242",
-		male: 242,
-		female: 242,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.243",
-		male: 243,
-		female: 243,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.244",
-		male: 244,
-		female: 244,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.245",
-		male: 245,
-		female: 245,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.246",
-		male: 246,
-		female: 246,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.247",
-		male: 247,
-		female: 247,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.248",
-		male: 248,
-		female: 248,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.249",
-		male: 249,
-		female: 249,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.250",
-		male: 250,
-		female: 250,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.251",
-		male: 251,
-		female: 251,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.252",
-		male: 252,
-		female: 252,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.253",
-		male: 253,
-		female: 253,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.254",
-		male: 254,
-		female: 254,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.255",
-		male: 255,
-		female: 255,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.256",
-		male: 256,
-		female: 256,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.257",
-		male: 257,
-		female: 257,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.258",
-		male: 258,
-		female: 258,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.259",
-		male: 259,
-		female: 259,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.260",
-		male: 260,
-		female: 260,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.261",
-		male: 261,
-		female: 261,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.262",
-		male: 262,
-		female: 262,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.263",
-		male: 263,
-		female: 263,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.264",
-		male: 264,
-		female: 264,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.265",
-		male: 265,
-		female: 265,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.266",
-		male: 266,
-		female: 266,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.267",
-		male: 267,
-		female: 267,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.268",
-		male: 268,
-		female: 268,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.269",
-		male: 269,
-		female: 269,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.270",
-		male: 270,
-		female: 270,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.271",
-		male: 271,
-		female: 271,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.272",
-		male: 272,
-		female: 272,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.273",
-		male: 273,
-		female: 273,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.274",
-		male: 274,
-		female: 274,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.275",
-		male: 275,
-		female: 275,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.276",
-		male: 276,
-		female: 276,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.277",
-		male: 277,
-		female: 277,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.278",
-		male: 278,
-		female: 278,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.279",
-		male: 279,
-		female: 279,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.280",
-		male: 280,
-		female: 280,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.281",
-		male: 281,
-		female: 281,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.282",
-		male: 282,
-		female: 282,
-		color: [
-			255,
-			0,
-			0
-		],
-		dyeable: false,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.283",
-		male: 283,
-		female: 283,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: true,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.284",
-		male: 284,
-		female: 284,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: true,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.285",
-		male: 285,
-		female: 285,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.286",
-		male: 286,
-		female: 286,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.287",
-		male: 287,
-		female: 287,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.288",
-		male: 290,
-		female: 290,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.289",
-		male: 291,
-		female: 291,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.290",
-		male: 292,
-		female: 292,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.291",
-		male: 293,
-		female: 293,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.292",
-		male: 294,
-		female: 294,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.293",
-		male: 295,
-		female: 295,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.294",
-		male: 296,
-		female: 296,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.295",
-		male: 297,
-		female: 297,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.296",
-		male: 298,
-		female: 298,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.297",
-		male: 299,
-		female: 299,
-		color: [
-			255,
-			195,
-			0
-		],
-		dyeable: true,
-		sleeveless: true,
-		prismatic: false
-	},
-	{
-		name: "shirts.name.997",
-		male: 272,
-		female: 272,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: true
-	},
-	{
-		name: "shirts.name.998",
-		male: 289,
-		female: 289,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: true
-	},
-	{
-		name: "shirts.name.999",
-		male: 288,
-		female: 288,
-		color: [
-			0,
-			50,
-			200
-		],
-		dyeable: false,
-		sleeveless: false,
-		prismatic: true
-	}
-];
-
-var pantsData = [
-	{
-		name: "pants.name.0",
-		sheetIndex: 0,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		prismatic: false
-	},
-	{
-		name: "pants.name.1",
-		sheetIndex: 1,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		prismatic: false
-	},
-	{
-		name: "pants.name.2",
-		sheetIndex: 2,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		prismatic: false
-	},
-	{
-		name: "pants.name.3",
-		sheetIndex: 3,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		prismatic: false
-	},
-	{
-		name: "pants.name.4",
-		sheetIndex: 4,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		prismatic: false
-	},
-	{
-		name: "pants.name.5",
-		sheetIndex: 5,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		prismatic: false
-	},
-	{
-		name: "pants.name.6",
-		sheetIndex: 6,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		prismatic: false
-	},
-	{
-		name: "pants.name.7",
-		sheetIndex: 7,
-		color: [
-			255,
-			255,
-			255
-		],
-		dyeable: false,
-		prismatic: false
-	},
-	{
-		name: "pants.name.8",
-		sheetIndex: 8,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		prismatic: false
-	},
-	{
-		name: "pants.name.9",
-		sheetIndex: 9,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		prismatic: false
-	},
-	{
-		name: "pants.name.10",
-		sheetIndex: 10,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		prismatic: false
-	},
-	{
-		name: "pants.name.11",
-		sheetIndex: 11,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		prismatic: false
-	},
-	{
-		name: "pants.name.12",
-		sheetIndex: 12,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		prismatic: false
-	},
-	{
-		name: "pants.name.13",
-		sheetIndex: 13,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: true,
-		prismatic: false
-	},
-	{
-		name: "pants.name.15",
-		sheetIndex: 15,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: false,
-		prismatic: false
-	},
-	{
-		name: "pants.name.998",
-		sheetIndex: 0,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: false,
-		prismatic: true
-	},
-	{
-		name: "pants.name.999",
-		sheetIndex: 8,
-		color: [
-			255,
-			235,
-			203
-		],
-		dyeable: false,
-		prismatic: true
-	}
-];
-
-class FileStoreBox {
-  static id = "base";
-  static columns = 1;
-  static deltaX = 0;
-  static deltaY = 0;
-  static omittable = false;
-  static size = {
-    width: 20,
-    height: 20
-  };
-  _spritesheet = null;
-  _clothesData = null;
-
-  static getSpriteFromIndex(index, offsetX = 0, offsetY = 0) {
-    let x = index % this.columns * this.deltaX + offsetX;
-    let y = Math.floor(index / this.columns) * this.deltaY + offsetY;
-    return {
-      x,
-      y
-    };
-  }
-
-  setSpritesheet(file) {
-    this._spritesheet = file;
-  }
-
-  setClothesData(file) {
-    this._clothesData = file;
-  }
-
-  get getListItemKey() {
-    return index => `${this.constructor.id}-${index}`;
-  }
-
-  get getDefaultColor() {
-    return index => [255, 255, 255];
-  }
-
-  get getDyeable() {
-    return index => false;
-  }
-
-  get getPrismatic() {
-    return index => false;
-  }
-
-  get getItemNameFromIndex() {
-    return index => `${this.constructor.id}.name.${index}`;
-  }
-
-  get getDescriptionFromIndex() {
-    return index => `${this.constructor.id}.desc.${index}`;
-  }
-
-}
-
-class HatsFileStore extends FileStoreBox {
-  static id = "hats";
-  static columns = 12;
-  static deltaX = 20;
-  static deltaY = 80;
-  static omittable = true;
-  _clothesData = hatsData;
-
-  constructor() {
-    super();
-    makeObservable(this, {
-      _spritesheet: observable,
-      _clothesData: observable,
-      setSpritesheet: action,
-      setClothesData: action,
-      getUncoloredSpriteFromIndex: computed,
-      getColoredSpriteFromIndex: computed,
-      getPrismaticSpriteFromIndex: computed,
-      getHairDrawType: computed,
-      getIgnoreHairstyleOffset: computed,
-      count: computed
-    });
-  }
-
-  get getUncoloredSpriteFromIndex() {
-    return index => this.constructor.getSpriteFromIndex(index, 0, 0);
-  }
-
-  get getColoredSpriteFromIndex() {
-    return index => null;
-  }
-
-  get getPrismaticSpriteFromIndex() {
-    return index => null;
-  }
-
-  get getHairDrawType() {
-    return index => this._clothesData[index]?.hairDrawType ?? 0;
-  }
-
-  get getIgnoreHairstyleOffset() {
-    return index => this._clothesData[index]?.ignoreHairstyleOffset ?? false;
-  }
-
-  get count() {
-    return this._clothesData.length;
-  }
-
-}
-
-class HairstyleFileStore extends FileStoreBox {
-  static id = "hairstyle";
-  static columns = 8;
-  static deltaX = 16;
-  static deltaY = 96;
-  static size = {
-    width: 16,
-    height: 20
-  };
-  static coveredTable = [7, 1, 7, 11, 7, 5, 6, 7, 7, 9, 7, 11, 7, 7, 7, 7, 30, 17, 23, 23, 20, 23, 30, 23, 24, 25, 30, 27, 28, 29, 30, 23, 32, 33, 34, 30, 36, 30, 30, 39, 30, 41, 46, 43, 44, 45, 46, 47, 6, 52, 50, 51, 52, 53, 54, 55];
-  _clothesData = hairstyleData;
-  _additionalSheet = {
-    "hairstyle2": null
-  };
-
-  constructor() {
-    super();
-    makeObservable(this, {
-      _spritesheet: observable,
-      _clothesData: observable,
-      _additionalSheet: observable,
-      setSpritesheet: action,
-      setClothesData: action,
-      setAdditionalSheet: action,
-      getUncoloredSpriteFromIndex: computed,
-      getColoredSpriteFromIndex: computed,
-      getPrismaticSpriteFromIndex: computed,
-      getListItemKey: computed,
-      getInnerIndex: computed,
-      getSpriteFromInnerIndex: computed,
-      getCoveredHairIndex: computed,
-      hasUniqueLeftSprite: computed,
-      isBald: computed,
-      count: computed
-    });
-  }
-
-  setAdditionalSheet(data) {
-    _additionalSheet = { ..._additionalSheet,
-      ...data
-    };
-  }
-
-  get getListItemKey() {
-    return index => `${this.constructor.id}-${this.getInnerIndex(index)}`;
-  }
-
-  get getInnerIndex() {
-    const basicHairCount = (this._spritesheet === null ? 672 : this._spritesheet.height) / 96 * 8;
-    const additionalHairArray = Object.keys(this._clothesData).filter(idx => idx >= 0).sort((a, b) => a - b);
-    return index => {
-      if (index < basicHairCount) return index;
-      return additionalHairArray[index - basicHairCount];
-    };
-  }
-
-  get getSpriteFromInnerIndex() {
-    return index => {
-      if (index in this._clothesData) {
-        let {
-          tileX,
-          tileY,
-          sheet
-        } = this._clothesData[index];
-        return {
-          x: tileX * 16,
-          y: tileY * 16,
-          sheet
-        };
-      }
-
-      return this.constructor.getSpriteFromIndex(index, 0, 0);
-    };
-  }
-
-  get getUncoloredSpriteFromIndex() {
-    return index => null;
-  }
-
-  get getColoredSpriteFromIndex() {
-    return index => {
-      index = this.getInnerIndex(index);
-      return this.getSpriteFromInnerIndex(index);
-    };
-  }
-
-  get getPrismaticSpriteFromIndex() {
-    return index => null;
-  }
-
-  get getCoveredHairIndex() {
-    return index => {
-      if (index in this._clothesData) {
-        return this._clothesData[index].coveredHair;
-      }
-
-      if (index >= 56) return 30;
-      return this.constructor.coveredTable[index];
-    };
-  }
-
-  get hasUniqueLeftSprite() {
-    return index => {
-      if (index in this._clothesData) {
-        return this._clothesData[index].useUniqueLeft;
-      }
-
-      return false;
-    };
-  }
-
-  get isBald() {
-    return index => {
-      if (index in this._clothesData) {
-        return this._clothesData[index].isBald;
-      }
-
-      return index > 48 && index < 56;
-    };
-  }
-
-  get getDyeable() {
-    return index => true;
-  }
-
-  get count() {
-    const basicHairCount = (this._spritesheet === null ? 672 : this._spritesheet.height) / 96 * 8;
-    const additionalHairCount = Object.keys(this._clothesData).reduce((sum, key) => sum + (key > 0), 0);
-    return basicHairCount + additionalHairCount;
-  }
-
-}
-
-class ShirtsFileStore extends FileStoreBox {
-  static id = "shirts";
-  static columns = 16;
-  static deltaX = 8;
-  static deltaY = 32;
-  static size = {
-    width: 8,
-    height: 8
-  };
-  _clothesData = shirtData;
-  _gender = "male";
-
-  constructor() {
-    super();
-    makeObservable(this, {
-      _spritesheet: observable,
-      _clothesData: observable,
-      _gender: observable,
-      setSpritesheet: action,
-      setClothesData: action,
-      gender: computed,
-      setGender: action,
-      getUncoloredSpriteFromIndex: computed,
-      getColoredSpriteFromIndex: computed,
-      getPrismaticSpriteFromIndex: computed,
-      getDefaultColor: computed,
-      getDyeable: computed,
-      getSleeveless: computed,
-      getPrismatic: computed,
-      getItemNameFromIndex: computed,
-      count: computed
-    });
-  }
-
-  get gender() {
-    return this._gender;
-  }
-
-  setGender(value) {
-    this._gender = value;
-  }
-
-  get getUncoloredSpriteFromIndex() {
-    return index => {
-      const data = this._clothesData[index];
-      const spriteIndex = this.gender === "male" ? data.male : data.female;
-      return this.constructor.getSpriteFromIndex(spriteIndex, 0, 0);
-    };
-  }
-
-  get getColoredSpriteFromIndex() {
-    return index => {
-      const data = this._clothesData[index];
-      if (data.prismatic) return null;
-      const spriteIndex = this.gender === "male" ? data.male : data.female;
-      return this.constructor.getSpriteFromIndex(spriteIndex, 128, 0);
-    };
-  }
-
-  get getPrismaticSpriteFromIndex() {
-    return index => {
-      const data = this._clothesData[index];
-      if (!data.prismatic) return null;
-      const spriteIndex = this.gender === "male" ? data.male : data.female;
-      return this.constructor.getSpriteFromIndex(spriteIndex, 128, 0);
-    };
-  }
-
-  get getDefaultColor() {
-    return index => [...this._clothesData[index].color];
-  }
-
-  get getDyeable() {
-    return index => this._clothesData[index].dyeable;
-  }
-
-  get getSleeveless() {
-    return index => this._clothesData[index].sleeveless;
-  }
-
-  get getPrismatic() {
-    return index => this._clothesData[index].prismatic;
-  }
-
-  get getItemNameFromIndex() {
-    return index => this._clothesData[index].name;
-  }
-
-  get count() {
-    return this._clothesData.length;
-  }
-
-}
-
-class PantsFileStore extends FileStoreBox {
-  static id = "pants";
-  static columns = 10;
-  static deltaX = 192;
-  static deltaY = 688;
-  static size = {
-    width: 16,
-    height: 16
-  };
-  _clothesData = pantsData;
-
-  constructor() {
-    super();
-    makeObservable(this, {
-      _spritesheet: observable,
-      _clothesData: observable,
-      setSpritesheet: action,
-      setClothesData: action,
-      getUncoloredSpriteFromIndex: computed,
-      getColoredSpriteFromIndex: computed,
-      getPrismaticSpriteFromIndex: computed,
-      getDefaultColor: computed,
-      getDyeable: computed,
-      getPrismatic: computed,
-      getItemNameFromIndex: computed,
-      count: computed
-    });
-  }
-
-  get getUncoloredSpriteFromIndex() {
-    return index => {
-      const data = this._clothesData[index];
-      if (data.prismatic) return null;
-      if (!data.dyeable) return this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672);
-      return null;
-    };
-  }
-
-  get getColoredSpriteFromIndex() {
-    return index => {
-      const data = this._clothesData[index];
-      if (data.prismatic) return null;
-      if (data.dyeable) return this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672);
-      return null;
-    };
-  }
-
-  get getPrismaticSpriteFromIndex() {
-    return index => {
-      const data = this._clothesData[index];
-      return data.prismatic ? this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672) : null;
-    };
-  }
-
-  get getDefaultColor() {
-    return index => [...this._clothesData[index].color];
-  }
-
-  get getDyeable() {
-    return index => this._clothesData[index].dyeable;
-  }
-
-  get getPrismatic() {
-    return index => this._clothesData[index].prismatic;
-  }
-
-  get getItemNameFromIndex() {
-    return index => this._clothesData[index].name;
-  }
-
-  get count() {
-    return this._clothesData.length;
-  }
-
-}
-
-/* extract hats data */
-function hatsJsonProcessing(data) {
-  let result = [];
-  let index = 0;
-
-  for (let value of Object.values(data)) {
-    let [,, hairDrawType, ignoreHairstyleOffset] = value.split("/");
-    if (hairDrawType == "true") hairDrawType = 0;else if (hairDrawType == "false") hairDrawType = 1;else hairDrawType = 2;
-    ignoreHairstyleOffset = ignoreHairstyleOffset === "true";
-    result[index++] = {
-      hairDrawType,
-      ignoreHairstyleOffset
-    };
-  }
-
-  return result;
-}
-/* extract hairstyle data */
-
-
-function hairstyleJsonProcessing(data) {
-  let result = {};
-
-  for (let [key, value] of Object.entries(data)) {
-    let [sheet, tileX, tileY, useUniqueLeft, coveredHair, isBald] = value.split("/");
-    [tileX, tileY] = [+tileX, +tileY];
-    useUniqueLeft = useUniqueLeft === "true";
-    isBald = isBald === "true";
-    coveredHair = coveredHair === "-1" ? +key : +coveredHair;
-    result[key] = {
-      sheet,
-      tileX,
-      tileY,
-      useUniqueLeft,
-      coveredHair,
-      isBald
-    };
-  }
-
-  return result;
-}
-/* extract shirts&pants data */
-
-
-function extractRealCloth(data) {
-  const dataEntries = Object.entries(data);
-  const alreadyChecked = new Set();
-  let shirtsAvaliableIndex = dataEntries.filter(([key]) => +key >= 1000).map(([key, value]) => {
-    let [,,, man, woman] = value.split("/");
-    [man, woman] = [+man, +woman];
-    alreadyChecked.add(man);
-    if (woman !== -1) alreadyChecked.add(woman);
-    return +key;
-  });
-  let pantsAvaliableIndex = dataEntries.filter(([key]) => {
-    key = +key;
-    return key < 1000 && key >= 0 && key !== 14;
-  }).map(([key]) => +key);
-  const additionalShirts = Array.from({
-    length: 300
-  }, (_, i) => i).filter(i => !alreadyChecked.has(i)).map(i => i + 1000);
-  additionalShirts.push(1041); // can exist
-
-  shirtsAvaliableIndex = shirtsAvaliableIndex.concat(additionalShirts);
-  shirtsAvaliableIndex.sort((a, b) => a - b);
-  return [shirtsAvaliableIndex, pantsAvaliableIndex];
-}
-
-function extractClothData(str) {
-  let [,,, male, female,, color, dyeable,, additional] = str.split("/");
-  [male, female] = [+male, +female];
-  if (female === -1) female = male;
-  color = color.split(" ").map(value => +value);
-  dyeable = dyeable === "true";
-  prismatic = additional === "Prismatic";
-  sleeveless = additional === "Sleeveless";
-  return {
-    name,
-    male,
-    female,
-    color,
-    dyeable,
-    sleeveless,
-    prismatic
-  };
-}
-
-function clothesJsonProcessing(data) {
-  const [shirtsAvaliableIndex, pantsAvaliableIndex] = extractRealCloth(data);
-  const shirtData = shirtsAvaliableIndex.map(i => {
-    const index = data[i] !== undefined ? i : -2;
-    let {
-      male,
-      female,
-      color,
-      dyeable,
-      prismatic
-    } = extractClothData(data[index]);
-    if (index === -2) [male, female] = [i - 1000, i - 1000];
-    let name = `shirts.name.${index !== -2 ? index - 1000 : "default"}`;
-    return {
-      name,
-      male,
-      female,
-      color,
-      dyeable,
-      sleeveless,
-      prismatic
-    };
-  });
-  const pantsData = pantsAvaliableIndex.map(i => {
-    const index = data[i] !== undefined ? i : -1;
-    let {
-      male: sheetIndex,
-      color,
-      dyeable,
-      prismatic
-    } = extractClothData(data[index]);
-    let name = `pants.name.${index}`;
-    return {
-      name,
-      sheetIndex,
-      color,
-      dyeable,
-      prismatic
-    };
-  });
-  return [shirtData, pantsData];
-}
-
-class SpriteSheetFileData {
-  constructor() {
-    this.hats = new HatsFileStore();
-    this.hairstyle = new HairstyleFileStore();
-    this.shirts = new ShirtsFileStore();
-    this.pants = new PantsFileStore();
-  }
-
-  importHatsData(json) {
-    this.hats.clothesData = hatsJsonProcessing(json);
-  }
-
-  importHairstyleData(json) {
-    this.hairstyle.clothesData = hairstyleJsonProcessing(json);
-  }
-
-  importClothesData(json) {
-    [this.shirts.clothesData, this.pants.clothesData] = clothesJsonProcessing(json);
-  }
-
-}
-
-const spriteSheetFileData = new SpriteSheetFileData();
 
 /**
  * @this {Promise}
@@ -73237,7 +69903,7 @@ function registerCompressedTextures(url, resources, metadata) {
     return result;
 }
 
-var _a$1, _b$1;
+var _a$1$1, _b$1;
 // Set DDS files to be loaded as an ArrayBuffer
 LoaderResource.setExtensionXhrType('dds', LoaderResource.XHR_RESPONSE_TYPE.BUFFER);
 var DDS_MAGIC_SIZE = 4;
@@ -73447,11 +70113,11 @@ var DDS_RESOURCE_MISC_TEXTURECUBE = 0x4;
  *
  * @ignore
  */
-var FOURCC_TO_FORMAT = (_a$1 = {},
-    _a$1[FOURCC_DXT1] = INTERNAL_FORMATS.COMPRESSED_RGBA_S3TC_DXT1_EXT,
-    _a$1[FOURCC_DXT3] = INTERNAL_FORMATS.COMPRESSED_RGBA_S3TC_DXT3_EXT,
-    _a$1[FOURCC_DXT5] = INTERNAL_FORMATS.COMPRESSED_RGBA_S3TC_DXT5_EXT,
-    _a$1);
+var FOURCC_TO_FORMAT = (_a$1$1 = {},
+    _a$1$1[FOURCC_DXT1] = INTERNAL_FORMATS.COMPRESSED_RGBA_S3TC_DXT1_EXT,
+    _a$1$1[FOURCC_DXT3] = INTERNAL_FORMATS.COMPRESSED_RGBA_S3TC_DXT3_EXT,
+    _a$1$1[FOURCC_DXT5] = INTERNAL_FORMATS.COMPRESSED_RGBA_S3TC_DXT5_EXT,
+    _a$1$1);
 /**
  * Maps {@link DXGI_FORMAT} to types/internal-formats (see {@link PIXI.TYPES}, {@link PIXI.INTERNAL_FORMATS})
  *
@@ -75843,20 +72509,20 @@ var BatchPart = /** @class */ (function () {
  * @namespace graphicsUtils
  * @memberof PIXI
  */
-var _a;
+var _a$1;
 /**
  * Map of fill commands for each shape type.
  *
  * @memberof PIXI.graphicsUtils
  * @member {Object} FILL_COMMANDS
  */
-var FILL_COMMANDS = (_a = {},
-    _a[SHAPES.POLY] = buildPoly,
-    _a[SHAPES.CIRC] = buildCircle,
-    _a[SHAPES.ELIP] = buildCircle,
-    _a[SHAPES.RECT] = buildRectangle,
-    _a[SHAPES.RREC] = buildRoundedRectangle,
-    _a);
+var FILL_COMMANDS = (_a$1 = {},
+    _a$1[SHAPES.POLY] = buildPoly,
+    _a$1[SHAPES.CIRC] = buildCircle,
+    _a$1[SHAPES.ELIP] = buildCircle,
+    _a$1[SHAPES.RECT] = buildRectangle,
+    _a$1[SHAPES.RREC] = buildRoundedRectangle,
+    _a$1);
 /**
  * Batch pool, stores unused batches for preventing allocations.
  *
@@ -87155,548 +83821,14322 @@ var filters = {
     NoiseFilter: NoiseFilter,
 };
 
-class tintedContainer extends Container {
-  constructor(colorDataStore = null) {
-    super();
-    this.colorFilter = new filters.ColorMatrixFilter();
-    this.filters = [this.colorFilter];
-    this.reflectTarget = colorDataStore;
-  }
-
-  tint(rgb) {
-    this.colorFilter.tint(rgb);
-  }
-
-  reset() {
-    this.colorFilter.reset();
-  }
-
-  autoTint() {
-    if (this.reflectTarget === null) return;
-    this.tint(colorArrayToHex(this.reflectTarget.color));
-  }
-
+function isMobileView(screenWidth) {
+  const TABLET_MIN_SCREEN_WIDTH = 768;
+  return screenWidth < TABLET_MIN_SCREEN_WIDTH;
 }
 
-class prismaticContainer extends tintedContainer {
+function clamp(value, min, max) {
+  if (min > value) return min;
+  if (max < value) return max;
+  return value;
+}
+
+function lerp(a, b, v) {
+  return a * (1 - v) + b * v;
+} // stardew valley using HSB color system
+// from https://www.30secondsofcode.org/js/s/hsb-to-rgb
+
+
+function HSBtoRGB(hue, saturation, brightness) {
+  const S = saturation / 100;
+  const B = brightness / 100;
+
+  const k = n => (n + hue / 60) % 6;
+
+  const f = n => B * (1 - S * Math.max(0, Math.min(k(n), 4 - k(n), 1)));
+
+  return [5, 3, 1].map(i => Math.floor(255 * f(i)));
+}
+
+function colorArrayToHex(arr) {
+  return (arr[0] << 16) + (arr[1] << 8) + arr[2];
+}
+
+function getRedToHex(hex) {
+  return hex >> 16;
+}
+
+function getGreenToHex(hex) {
+  return (hex & 0xff << 8) >> 8;
+}
+
+function getBlueToHex(hex) {
+  return hex & 0xff;
+}
+
+function lerpColor(a, b, v) {
+  let red = lerp(getRedToHex(a), getRedToHex(b), v);
+  let green = lerp(getGreenToHex(a), getGreenToHex(b), v);
+  let blue = lerp(getBlueToHex(a), getBlueToHex(b), v);
+  return colorArrayToHex([red, green, blue]);
+}
+
+function getPrismaticColor(percent) {
+  const prismaticArray = [0xff0000, 0xff7800, 0xffd900, 0x00ff00, 0x00ffff, 0xee82ee];
+  const lerp = percent * 6 % 1;
+  const part = Math.floor(percent * 6);
+  return lerpColor(prismaticArray[part % 6], prismaticArray[(part + 1) % 6], lerp);
+}
+
+function easeOut(x) {
+  return 1 - Math.pow(1 - x, 5);
+}
+
+function makeDefaultTextures() {
+  const defaultTextureSrc = {
+    body_male: "/assets/farmer_base.png",
+    body_male_bald: "/assets/farmer_base_bald.png",
+    body_female: "/assets/farmer_girl_base.png",
+    body_female_bald: "/assets/farmer_girl_base_bald.png",
+    hats: "/assets/hats.png",
+    hairstyle: "/assets/hairstyle.png",
+    hairstyle2: "/assets/hairstyles2.png",
+    shirts: "/assets/shirts.png",
+    pants: "/assets/pants.png"
+  };
+  const map = new Map();
+
+  for (let [key, value] of Object.entries(defaultTextureSrc)) {
+    map.set(key, new BaseTexture(value));
+  }
+
+  return map;
+}
+
+class ResponsiveSprite extends Container {
   constructor() {
     super();
-    this.elapsedTime = 0;
-    this.tint(getPrismaticColor(0));
+    this.disposers = [];
   }
 
-  progress(deltaTime) {
-    const CYCLE = 3000;
-    this.elapsedTime = (this.elapsedTime + deltaTime) % CYCLE;
-    const lerpPercent = this.elapsedTime / CYCLE;
-    this.tint(getPrismaticColor(lerpPercent));
+  makeReaction(observeData, react, fireImmediately = true) {
+    let disposer = reaction(observeData, react, {
+      fireImmediately
+    });
+    this.disposers.push(disposer);
   }
 
-}
-
-const ITEM_GAP = 80;
-const DRAG_THRESHOLD = 30;
-const SWIPE_THRESHOLD = 6;
-const EPSILON = 1.5;
-const AXIS_X = Symbol.for('x');
-const AXIS_Y = Symbol.for('y');
-const MOBILE_MAX_SCREEN_WIDTH = 768;
-
-function getScaleMultifier(screenWidth) {
-  return isMobileView(screenWidth) ? 4 / 5 : 1;
-}
-
-function grid(i, multiplier = 1) {
-  return (i + 0.5) * ITEM_GAP * multiplier;
-}
-
-class GridedSprite extends Sprite {
-  constructor(index, texture) {
-    super(texture);
-    this.innerIndex = index;
-  }
-
-  setPosition(multiplier = 1) {
-    this.x = grid(this.innerIndex, multiplier);
-    this.y = 0;
-  }
-
-}
-
-function makeSheetMap(sheet, additionalSheet = {}) {
-  const additionalTexture = {};
-
-  for (let [key, value] of Object.entries(additionalSheet)) {
-    additionalTexture[key] = new BaseTexture(value);
-  }
-
-  return {
-    default: new BaseTexture(sheet),
-    ...additionalTexture
-  };
-}
-
-function generateItem(i, sheets, sheetPos, size = {
-  width: 20,
-  height: 20
-}, multiplier = 1) {
-  if (sheetPos === null) return;
-  const {
-    x,
-    y,
-    sheet = "default"
-  } = sheetPos;
-  const {
-    width,
-    height
-  } = size;
-  if (sheets === undefined || sheets[sheet] === undefined) return;
-  const rect = new Rectangle(x, y, width, height);
-  const clothTexture = new Texture(sheets[sheet], rect);
-  const cloth = new GridedSprite(i, clothTexture);
-  cloth.setPosition(multiplier);
-  cloth.anchor.set(0.5);
-  cloth.scale.set(3 * multiplier);
-  return cloth;
-}
-
-function arrangeItems(container, columns, axis = AXIS_X, multiplier = 1) {
-  for (let child of container.children) {
-    const index = child.innerIndex;
-    const x = index % columns;
-    const y = Math.floor(index / columns);
-    child.x = grid(x, multiplier);
-    child.y = axis === AXIS_Y ? grid(y, multiplier) : 0;
-  }
-}
-
-function adjustScale(container, scale) {
-  for (let child of container.children) {
-    child.scale.set(scale);
-  }
-}
-
-class RadioButtons {
-  static deselectedTexture = new Texture(Texture.EMPTY, new Rectangle(0, 0, 72, 72));
-  static selectedTexture = Texture.from("assets/selectedBorder.png");
-
-  constructor(selectBox) {
-    this.initialValue = 0;
-    this.selectBox = selectBox;
-    this.previousCheck = 0;
-    this.container = new Container();
-    this.parent = null;
-    this.buttons = [];
-    this.check = this.check.bind(this);
-  }
-
-  get current() {
-    return this.selectBox.value;
-  }
-
-  attachToParent(parent) {
-    parent.addChild(this.container);
-    this.parent = parent;
-  }
-
-  generateButton(i, x, multiplier = 1) {
-    const button = new GridedSprite(x);
-    if (i === this.initialValue) button.texture = this.constructor.selectedTexture;else button.texture = this.constructor.deselectedTexture;
-    button.interactive = true;
-    button.buttonMode = true;
-    button.anchor.set(0.5);
-    button.setPosition(multiplier);
-    button.scale.set(multiplier);
-    button.on('pointertap', this.check(i));
-    this.buttons[i] = button;
-    this.container.addChild(button);
-  }
-
-  flush() {
-    this.container.removeChildren();
-    this.buttons = [];
-  }
-
-  check(i) {
-    return e => {
-      // prevent selection while dragging
-      if (this.parent?.isDragged) return;
-
-      if (this.buttons[this.previousCheck] || this.previousCheck !== i) {
-        this.buttons[this.previousCheck].texture = this.constructor.deselectedTexture;
-      }
-
-      this.selectBox.changeSelect(i);
-      this.buttons[i].texture = this.constructor.selectedTexture;
-      this.previousCheck = i;
-    };
-  }
-
-  setInitialValue(i) {
-    this.initialValue = i;
-    this.previousCheck = i;
-  }
-
-}
-
-class ScrollSnappedContainer extends Container {
-  static transitionTime = 800;
-
-  constructor(container) {
-    super(); // properties for calculate the border
-
-    this.itemAmount = 0;
-    this.lineCount = 0;
-    this.container = container; // properties for scroll
-
-    this.scroll_index = 0;
-    this.scroll_time = 0;
-    this.scroll_prevPos = 0;
-    this.scroll_nextPos = 0;
-    this.scroll_axis = AXIS_X; // properties for drag
-
-    this.holding = false;
-    this.dragThreshold = 0;
-    this.dragPrevPos = 0;
-    this.velocity = 0;
-    this.interactive = true; // add event listeners
-
-    this.on('pointerdown', e => this.onDragStart(this.mousePos(e))).on('pointermove', e => this.onDragMove(this.mousePos(e))).on('pointerup', () => this.onDragEnd()).on('pointerupoutside', () => this.onDragEnd());
-  }
-
-  get gap() {
-    return ITEM_GAP * getScaleMultifier(document.body.clientWidth);
-  }
-
-  get containerSize() {
-    let target = !this.container ? this : this.container;
-    return this.scroll_axis === AXIS_Y ? target.height : target.width;
-  } // number of items visible on the screen
-
-
-  get screenItemNumber() {
-    return clamp(Math.floor(this.containerSize / this.gap), 1, Infinity);
-  } // When the mouse is dragged over a certain distance, it is treated as a drag and prevents the item selection action.
-
-
-  get isDragged() {
-    return this.dragThreshold > DRAG_THRESHOLD;
-  }
-
-  get rightBoundary() {
-    return this.lineCount - this.screenItemNumber;
-  } // main scroll position
-
-
-  get scroll_pos() {
-    return this.scroll_axis === AXIS_Y ? this.y : this.x;
-  }
-
-  set scroll_pos(value) {
-    if (this.scroll_axis === AXIS_Y) this.y = value;else this.x = value;
-  } // Invoke sliding with the specified offset index
-
-
-  slide(to, transitionTime = ScrollSnappedContainer.transitionTime) {
-    this.scroll_index = clamp(this.scroll_index + to, 0, this.rightBoundary);
-    this.scroll_time = clamp(transitionTime, 1, Infinity);
-    this.scroll_prevPos = this.scroll_pos;
-    this.scroll_nextPos = -this.gap * this.scroll_index;
-  }
-
-  slideLeft() {
-    this.slide(-this.screenItemNumber);
-  }
-
-  slideRight() {
-    this.slide(this.screenItemNumber);
-  } // ticker function
-
-
-  progress(deltaMS) {
-    // if this container is sliding
-    if (this.scroll_time > 0) {
-      this.scroll_time = clamp(this.scroll_time - deltaMS, 0, Infinity);
-      const percent = 1 - this.scroll_time / this.constructor.transitionTime;
-      this.scroll_pos = lerp(this.scroll_prevPos, this.scroll_nextPos, easeOut(percent));
-    } // if this container is swiped
-
-
-    if (!this.holding && Math.abs(this.velocity) > EPSILON) {
-      this.scroll_pos += this.velocity;
-      this.scroll_index = this.getCurrentScrollIndex();
-      this.velocity *= 0.98;
-
-      if (Math.abs(this.velocity) <= EPSILON || this.scroll_pos > this.gap || this.scroll_pos < -(this.rightBoundary + 1) * this.gap) {
-        this.velocity = 0;
-        this.slide(0);
-      }
+  dispose(n) {
+    if (typeof n === "number" && n >= 0 && n < this.disposers.length) {
+      this.disposers[n]();
+      this.disposers.splice(n, 1);
+      return;
     }
-  } // drag event handler function
 
-
-  onDragStart(mousePos) {
-    this.holding = true;
-    this.dragPrevPos = mousePos;
-    this.dragThreshold = 0;
-    this.velocity = 0;
-  }
-
-  onDragMove(mousePos) {
-    if (this.holding) {
-      const delta = mousePos - this.dragPrevPos;
-      this.scroll_pos += delta;
-      this.dragThreshold += Math.abs(delta);
-      this.velocity = delta;
-      this.scroll_index = this.getCurrentScrollIndex();
-      this.dragPrevPos = mousePos;
+    for (let i = 0; i < this.disposers.length; i++) {
+      this.disposers[i]();
     }
+
+    this.disposers = [];
   }
 
-  onDragEnd(e) {
-    this.dragThreshold > DRAG_THRESHOLD;
-    const isSwiped = Math.abs(this.velocity) > SWIPE_THRESHOLD;
-    this.holding = false;
-    this.dragPrevPos = 0;
-    this.dragThreshold = 0;
-
-    if (!isSwiped) {
-      this.velocity = 0;
-      this.slide(0);
-    }
-  }
-
-  getCurrentScrollIndex() {
-    return clamp(Math.round(-this.scroll_pos / this.gap), 0, this.rightBoundary);
-  }
-
-  mousePos(e) {
-    return this.scroll_axis === AXIS_Y ? e.data.global.y : e.data.global.x;
-  }
-
-  resetHitArea() {
-    this.hitArea = new Rectangle(0, this.scroll_axis === AXIS_Y ? 0 : -this.height / 2, this.width, this.height);
+  destroy(option) {
+    super.destroy(option);
+    this.dispose();
   }
 
 }
 
-class ItemListController {
-  constructor({
-    selectBox,
-    defaultImage,
-    additionalDefaultImage = {}
-  }) {
+class HatSprite extends ResponsiveSprite {
+  constructor(texture) {
+    super();
+    this.baseTexture = texture;
+    this.sprite = new Sprite();
+    this.prismatic = false;
+    this.addChild(this.sprite);
+  }
+
+  initialize(farmer) {
+    // change hats index or hairstyle index
+    this.makeReaction(() => {
+      return {
+        boundBox: farmer.hatBoundBox,
+        offsetY: farmer.hatYOffset
+      };
+    }, ({
+      boundBox,
+      offsetY
+    }) => {
+      console.log("yes!");
+      const texture = new Texture(this.baseTexture, boundBox);
+      this.sprite.texture = texture;
+      this.sprite.x = -2;
+      this.sprite.y = offsetY;
+    }); // change color
+
+    this.makeReaction(() => farmer.hatTint, tint => {
+      console.log("yearh!!");
+      this.prismatic = tint === "prismatic";
+      if (!this.prismatic) this.sprite.tint = 0xffffff;
+    }); // change sprite sheet
+
+    this.makeReaction(() => farmer.hatsSheet._spritesheet?.blobURL ?? "/assets/hats.png", assetURL => {
+      this.baseTexture = new BaseTexture(assetURL);
+      this.sprite.texture.baseTexture = this.baseTexture;
+    }, false);
+  }
+
+  applyTint(tint) {
+    this.sprite.tint = tint;
+  }
+
+}
+
+class ViewerPixi {
+  constructor(farmer) {
     // set application
     this.app = new Application({
       resolution: 1,
       antialias: true,
       backgroundColor: 0xffffff,
       autoResize: true
-    }); // make controllers
-
-    this.setContainer(selectBox); // optimize pixi.js setting to pixel environment
+    }); // optimize pixi.js setting to pixel environment
 
     settings.SCALE_MODE = SCALE_MODES$3.NEAREST;
-    settings.ROUND_PIXELS = true; // cache default image link
+    settings.ROUND_PIXELS = true;
+    this.app.stage.pivot.set(0.5);
+    this.container = new Container();
+    this.container.pivot.set(8, 16);
+    this.container.scale.set(5);
+    this.app.stage.addChild(this.container);
+    const debug = new Graphics();
+    debug.beginFill(0x24adaf);
+    debug.drawRect(0, 0, 16, 32);
+    debug.endFill();
+    this.container.addChild(debug);
+    this.baseTextures = makeDefaultTextures();
+    this.farmer = farmer; // for prismatic ticker
 
-    this.defaultImage = defaultImage;
-    this.additionalDefaultImage = additionalDefaultImage; // expanding toggler
+    this.elapsedTime = 0; // event listener
 
-    this.expanded = false; // mobile adjustment
-
-    this.screenSizeObserver = new ThresholdObserver(MOBILE_MAX_SCREEN_WIDTH, document.body.clientWidth); // mobx reaction
-
-    this.disposer = () => {}; // event dispatcher
-
-
-    this.resize = this.resize.bind(this);
     this.ticker = this.ticker.bind(this);
-    this.slideLeft = this.slideLeft.bind(this);
-    this.slideRight = this.slideRight.bind(this);
-    this.onWheel = this.onWheel.bind(this);
-    this.toggleExpantion = this.toggleExpantion.bind(this);
-  }
-
-  get multiplier() {
-    return getScaleMultifier(document.body.clientWidth);
-  }
-
-  setContainer(selectBox) {
-    // make main container
-    this.container = new ScrollSnappedContainer(this.app.screen);
-    this.container.pivot.set(0.5);
-    this.app.stage.addChild(this.container); // make container for the icon
-
-    this.radioButton = new RadioButtons(selectBox);
-    this.uncolored = new Container();
-    this.colored = new tintedContainer(selectBox);
-    this.prismatic = new prismaticContainer(); // attach to container
-
-    this.radioButton.attachToParent(this.container);
-    this.container.addChild(this.uncolored, this.colored, this.prismatic);
   } // attach to dom
 
 
   appendParent(dom) {
     dom.appendChild(this.app.view);
     this.app.resizeTo = dom;
+    console.log(dom.clientHeight);
     this.app.screen.height = dom.clientHeight;
     this.app.view.height = dom.clientHeight;
-    this.container.y = this.app.screen.height / 2;
+    this.app.stage.pivot.set(-this.app.screen.width / 2, -this.app.screen.height / 2); //		this.container.x = this.app.screen.width / 2;
+    //		this.container.y = this.app.screen.height / 2;
   }
 
-  initializeRadio(i) {
-    this.radioButton.setInitialValue(i);
-  }
+  initialize() {
+    this.app.start(); // add hat sprite
 
-  initialize(spritesheetData) {
-    this.app.start(); // add the mobx reaction for spritesheet data(image change or data change)
-
-    this.disposer = reaction(() => ({
-      sheet: spritesheetData._spritesheet?.blobURL ?? this.defaultImage,
-      clothesData: spritesheetData._clothesData,
-      additionalSheet: spritesheetData._additionalSheet ?? this.additionalDefaultImage
-    }), ({
-      sheet,
-      additionalSheet
-    }) => this.initializeSprites(spritesheetData, sheet, additionalSheet)); // add resize event listener
-
-    window.addEventListener("resize", this.resize); // add ticker
+    this.hatSprite = new HatSprite(this.baseTextures.get("hats"));
+    this.hatSprite.initialize(this.farmer);
+    this.container.addChild(this.hatSprite); // add ticker
 
     this.app.ticker.add(this.ticker);
   }
 
-  initializeSprites(spritesheetData, sheet, additionalSheet) {
-    const size = spritesheetData.constructor.size;
-    const omittable = spritesheetData.constructor.omittable;
-    const shift = omittable ? 1 : 0; // remove all icons
-
-    this.flushChildren(); // make baseTexture map ( Dict<String, PIXI.BaseTexture> )
-
-    const sheets = makeSheetMap(sheet, additionalSheet); // make icon generator
-
-    const makeItemArray = [{
-      parent: this.uncolored,
-      positioner: spritesheetData.getUncoloredSpriteFromIndex
-    }, {
-      parent: this.colored,
-      positioner: spritesheetData.getColoredSpriteFromIndex
-    }, {
-      parent: this.prismatic,
-      positioner: spritesheetData.getPrismaticSpriteFromIndex
-    }].map(({
-      parent,
-      positioner
-    }) => i => {
-      const child = generateItem(i + shift, sheets, positioner(i), size, this.multiplier);
-      if (child) parent.addChild(child);
-    }); // make icons and attach to parent
-
-    for (let i = -shift; i < spritesheetData.count; i++) {
-      this.radioButton.generateButton(i, i + shift, this.multiplier);
-      makeItemArray.forEach(makeItem => makeItem(i));
-    } // reset container's item amount & hit area
-
-
-    this.container.itemAmount = spritesheetData.count + shift;
-    this.container.lineCount = this.container.itemAmount;
-    this.container.resetHitArea();
-  }
-
   ticker(dt) {
-    const FPS = 60;
-    this.colored.autoTint();
-    this.prismatic.progress(dt * FPS);
-    this.container.progress(dt * FPS);
+    const deltaTime = 60 * dt; // get prismatic color
+
+    const CYCLE = 3000;
+    this.elapsedTime = (this.elapsedTime + deltaTime) % CYCLE;
+    const lerpPercent = this.elapsedTime / CYCLE;
+    const prismaticTint = getPrismaticColor(lerpPercent); // apply prismatic tint
+
+    if (this.hatSprite.prismatic) this.hatSprite.applyTint(prismaticTint);
   }
 
-  slideLeft() {
-    if (this.expanded) return;
-    this.container.slideLeft();
-  }
-
-  slideRight() {
-    if (this.expanded) return;
-    this.container.slideRight();
-  }
-
-  onWheel(delta) {
-    this.container.slide(delta);
-  }
-
-  arrangeContainerItems(multiplier) {
-    // calculate axis, itemAmout, lines
-    const axis = this.expanded ? AXIS_Y : AXIS_X;
-    const itemAmount = this.container.itemAmount;
-    const lines = this.expanded ? this.container.container.width / (ITEM_GAP * multiplier) : 1;
-    const columns = axis === AXIS_Y ? lines : Math.ceil(itemAmount / lines);
-
-    const arranger = container => arrangeItems(container, columns, axis, multiplier); // arrange items
-
-
-    arranger(this.radioButton.container);
-    arranger(this.uncolored);
-    arranger(this.colored);
-    arranger(this.prismatic);
-  }
-
-  toggleExpantion(state) {
-    this.app.resize(); // toggle expanded property
-
-    this.expanded = state ?? !this.expanded;
-    const lines = this.expanded ? this.container.container.width / (ITEM_GAP * this.multiplier) : 1; // arrange items
-
-    this.arrangeContainerItems(this.multiplier); // set container's scroll axis
-
-    this.container.scroll_axis = this.expanded ? AXIS_Y : AXIS_X; // fix container's position
-
-    if (this.expanded) {
-      this.container.x = 0;
-      this.container.y = 0;
-    } else this.container.y = this.app.screen.height / 2;
-
-    this.container.scroll_index = 0;
-    this.container.lineCount = Math.ceil(this.container.itemAmount / lines);
-    this.container.resetHitArea();
-    const currentLine = Math.floor(this.radioButton.current / lines) - 2;
-    this.container.slide(currentLine, 1);
-  }
-
-  adjustItemSize(multiplier) {
-    const radioButtonScale = 1 * multiplier;
-    const pixelIconScale = clamp(Math.floor(3 * multiplier), 1, Infinity); // adjust scale
-
-    adjustScale(this.radioButton.container, radioButtonScale);
-    adjustScale(this.uncolored, pixelIconScale);
-    adjustScale(this.colored, pixelIconScale);
-    adjustScale(this.prismatic, pixelIconScale);
-    this.arrangeContainerItems(multiplier);
-    this.container.resetHitArea();
-  }
-
-  flushChildren() {
-    this.radioButton.flush();
-    this.uncolored.removeChildren();
-    this.colored.removeChildren();
-    this.prismatic.removeChildren();
-  }
-
-  halt() {
-    this.app.stop();
-    this.disposer();
-    window.removeEventListener("resize", this.resize);
-    this.app.ticker.remove(this.ticker);
-  }
-
-  resize() {
-    this.container.y = this.app.screen.height / 2;
-    this.screenSizeObserver.update(document.body.clientWidth, () => {
-      const multiplier = getScaleMultifier(document.body.clientWidth);
-      this.adjustItemSize(multiplier);
+  destroy() {
+    this.container.destroy({
+      children: true
     });
   }
 
 }
+
+class ClothSelectorStore {
+  value = 0;
+  hue = 0;
+  saturation = 0;
+  brightness = 100;
+
+  constructor({
+    value = 0,
+    hue = 0,
+    saturation = 0,
+    brightness = 100
+  } = {}) {
+    makeObservable(this, {
+      value: observable,
+      hue: observable,
+      saturation: observable,
+      brightness: observable,
+      color: computed,
+      changeSelect: action,
+      changeHue: action,
+      changeSaturation: action,
+      changeBrightness: action
+    });
+    this.value = value;
+    this.hue = hue;
+    this.saturation = saturation;
+    this.brightness = brightness;
+  }
+
+  get color() {
+    return HSBtoRGB(this.hue, this.saturation, this.brightness);
+  }
+
+  changeSelect(value) {
+    this.value = value;
+  }
+
+  changeHue(hue) {
+    this.hue = +hue;
+  }
+
+  changeSaturation(saturation) {
+    this.saturation = +saturation;
+  }
+
+  changeBrightness(brightness) {
+    this.brightness = +brightness;
+  }
+
+}
+
+var hatsData = [
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: true,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: true,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: true,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: true,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: true,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: true,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: true
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: false,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 0,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 2,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	},
+	{
+		hairDrawType: 1,
+		ignoreHairstyleOffset: true,
+		isMask: false,
+		prismatic: false
+	}
+];
+
+var hairstyleData = {
+	"100": {
+	sheet: "hairstyles2",
+	tileX: 0,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: 100,
+	isBald: false
+},
+	"101": {
+	sheet: "hairstyles2",
+	tileX: 1,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: -101,
+	isBald: false
+},
+	"102": {
+	sheet: "hairstyles2",
+	tileX: 2,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: 102,
+	isBald: false
+},
+	"103": {
+	sheet: "hairstyles2",
+	tileX: 3,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: 103,
+	isBald: false
+},
+	"104": {
+	sheet: "hairstyles2",
+	tileX: 4,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: 103,
+	isBald: false
+},
+	"105": {
+	sheet: "hairstyles2",
+	tileX: 5,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: 105,
+	isBald: false
+},
+	"106": {
+	sheet: "hairstyles2",
+	tileX: 6,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: 105,
+	isBald: false
+},
+	"107": {
+	sheet: "hairstyles2",
+	tileX: 7,
+	tileY: 0,
+	useUniqueLeft: true,
+	coveredHair: -111,
+	isBald: false
+},
+	"108": {
+	sheet: "hairstyles2",
+	tileX: 0,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: 116,
+	isBald: false
+},
+	"109": {
+	sheet: "hairstyles2",
+	tileX: 1,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: -111,
+	isBald: false
+},
+	"110": {
+	sheet: "hairstyles2",
+	tileX: 2,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: -110,
+	isBald: false
+},
+	"111": {
+	sheet: "hairstyles2",
+	tileX: 3,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: 112,
+	isBald: false
+},
+	"112": {
+	sheet: "hairstyles2",
+	tileX: 4,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: 112,
+	isBald: false
+},
+	"113": {
+	sheet: "hairstyles2",
+	tileX: 5,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: 113,
+	isBald: false
+},
+	"114": {
+	sheet: "hairstyles2",
+	tileX: 6,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: -114,
+	isBald: false
+},
+	"115": {
+	sheet: "hairstyles2",
+	tileX: 7,
+	tileY: 8,
+	useUniqueLeft: true,
+	coveredHair: -115,
+	isBald: false
+},
+	"116": {
+	sheet: "hairstyles2",
+	tileX: 0,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: 116,
+	isBald: false
+},
+	"117": {
+	sheet: "hairstyles2",
+	tileX: 1,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: 112,
+	isBald: false
+},
+	"-101": {
+	sheet: "hairstyles2",
+	tileX: 2,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: -101,
+	isBald: false
+},
+	"-114": {
+	sheet: "hairstyles2",
+	tileX: 3,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: -114,
+	isBald: false
+},
+	"-115": {
+	sheet: "hairstyles2",
+	tileX: 4,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: -115,
+	isBald: false
+},
+	"-110": {
+	sheet: "hairstyles2",
+	tileX: 5,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: -110,
+	isBald: false
+},
+	"-111": {
+	sheet: "hairstyles2",
+	tileX: 6,
+	tileY: 16,
+	useUniqueLeft: true,
+	coveredHair: -111,
+	isBald: false
+}
+};
+
+var shirtData = [
+	{
+		name: "shirts.name.0",
+		male: 0,
+		female: 0,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 1,
+		female: 1,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.2",
+		male: 2,
+		female: 2,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.3",
+		male: 3,
+		female: 3,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.4",
+		male: 4,
+		female: 4,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.5",
+		male: 5,
+		female: 5,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.6",
+		male: 6,
+		female: 6,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.7",
+		male: 7,
+		female: 7,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.8",
+		male: 8,
+		female: 8,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.9",
+		male: 9,
+		female: 9,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.10",
+		male: 10,
+		female: 10,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.11",
+		male: 11,
+		female: 11,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.12",
+		male: 12,
+		female: 12,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.13",
+		male: 13,
+		female: 13,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.14",
+		male: 14,
+		female: 14,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.15",
+		male: 15,
+		female: 15,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.16",
+		male: 16,
+		female: 16,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.17",
+		male: 17,
+		female: 17,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.18",
+		male: 18,
+		female: 18,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.19",
+		male: 19,
+		female: 19,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.20",
+		male: 20,
+		female: 20,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.21",
+		male: 21,
+		female: 21,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 22,
+		female: 22,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 23,
+		female: 23,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 24,
+		female: 24,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 25,
+		female: 25,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.26",
+		male: 26,
+		female: 26,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.27",
+		male: 27,
+		female: 27,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.28",
+		male: 28,
+		female: 28,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.29",
+		male: 29,
+		female: 29,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.30",
+		male: 30,
+		female: 30,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 31,
+		female: 31,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 32,
+		female: 32,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 33,
+		female: 33,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.34",
+		male: 34,
+		female: 34,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.35",
+		male: 35,
+		female: 35,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 36,
+		female: 36,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 37,
+		female: 37,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.38",
+		male: 38,
+		female: 41,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.39",
+		male: 39,
+		female: 39,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 40,
+		female: 40,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 41,
+		female: 41,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.42",
+		male: 42,
+		female: 42,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 43,
+		female: 43,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 44,
+		female: 44,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 45,
+		female: 45,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 46,
+		female: 46,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 47,
+		female: 47,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 48,
+		female: 48,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 49,
+		female: 49,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 50,
+		female: 50,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 51,
+		female: 51,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 52,
+		female: 52,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 53,
+		female: 53,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 54,
+		female: 54,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 55,
+		female: 55,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 56,
+		female: 56,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 57,
+		female: 57,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 58,
+		female: 58,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 59,
+		female: 59,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 60,
+		female: 60,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 61,
+		female: 61,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 62,
+		female: 62,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 63,
+		female: 63,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 64,
+		female: 64,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 65,
+		female: 65,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 66,
+		female: 66,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 67,
+		female: 67,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 68,
+		female: 68,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 69,
+		female: 69,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 70,
+		female: 70,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.71",
+		male: 71,
+		female: 71,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 72,
+		female: 72,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 73,
+		female: 73,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 74,
+		female: 74,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 75,
+		female: 75,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 76,
+		female: 76,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 77,
+		female: 77,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 78,
+		female: 78,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 79,
+		female: 79,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 80,
+		female: 80,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 81,
+		female: 81,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 82,
+		female: 82,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 83,
+		female: 83,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 84,
+		female: 84,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 85,
+		female: 85,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 86,
+		female: 86,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.87",
+		male: 87,
+		female: 87,
+		color: [
+			220,
+			48,
+			62
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 88,
+		female: 88,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 89,
+		female: 89,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 90,
+		female: 90,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 91,
+		female: 91,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 92,
+		female: 92,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 93,
+		female: 93,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 94,
+		female: 94,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 95,
+		female: 95,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 96,
+		female: 96,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 97,
+		female: 97,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 98,
+		female: 98,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 99,
+		female: 99,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 100,
+		female: 100,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 101,
+		female: 101,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 102,
+		female: 102,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 103,
+		female: 103,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 104,
+		female: 104,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 105,
+		female: 105,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 106,
+		female: 106,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 107,
+		female: 107,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 108,
+		female: 108,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 109,
+		female: 109,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 110,
+		female: 110,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 111,
+		female: 111,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 112,
+		female: 112,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 113,
+		female: 113,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 114,
+		female: 114,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 115,
+		female: 115,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 116,
+		female: 116,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 117,
+		female: 117,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 118,
+		female: 118,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 119,
+		female: 119,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 120,
+		female: 120,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 121,
+		female: 121,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 122,
+		female: 122,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.123",
+		male: 123,
+		female: 123,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 124,
+		female: 124,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 125,
+		female: 125,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 126,
+		female: 126,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.127",
+		male: 127,
+		female: 127,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.128",
+		male: 128,
+		female: 128,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.129",
+		male: 129,
+		female: 130,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.131",
+		male: 131,
+		female: 131,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.132",
+		male: 132,
+		female: 133,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.134",
+		male: 134,
+		female: 134,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.135",
+		male: 135,
+		female: 135,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.136",
+		male: 152,
+		female: 136,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.137",
+		male: 137,
+		female: 137,
+		color: [
+			207,
+			40,
+			21
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.138",
+		male: 138,
+		female: 138,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.139",
+		male: 139,
+		female: 139,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.140",
+		male: 140,
+		female: 140,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.141",
+		male: 141,
+		female: 141,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.142",
+		male: 142,
+		female: 142,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.143",
+		male: 143,
+		female: 143,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 144,
+		female: 144,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 145,
+		female: 145,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 146,
+		female: 146,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 147,
+		female: 147,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.148",
+		male: 148,
+		female: 148,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.149",
+		male: 149,
+		female: 149,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.150",
+		male: 150,
+		female: 150,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.151",
+		male: 151,
+		female: 151,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.153",
+		male: 153,
+		female: 153,
+		color: [
+			249,
+			174,
+			137
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.154",
+		male: 154,
+		female: 154,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.155",
+		male: 155,
+		female: 155,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.156",
+		male: 156,
+		female: 156,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.157",
+		male: 157,
+		female: 157,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.158",
+		male: 158,
+		female: 158,
+		color: [
+			150,
+			200,
+			100
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.159",
+		male: 159,
+		female: 159,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.160",
+		male: 160,
+		female: 160,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.161",
+		male: 161,
+		female: 161,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.162",
+		male: 162,
+		female: 162,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.163",
+		male: 163,
+		female: 163,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.164",
+		male: 164,
+		female: 164,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.165",
+		male: 165,
+		female: 165,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.166",
+		male: 166,
+		female: 166,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: true,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.167",
+		male: 167,
+		female: 167,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.168",
+		male: 168,
+		female: 168,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.169",
+		male: 169,
+		female: 169,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.170",
+		male: 170,
+		female: 170,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.171",
+		male: 171,
+		female: 171,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.172",
+		male: 172,
+		female: 172,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.173",
+		male: 173,
+		female: 173,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.174",
+		male: 174,
+		female: 174,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.175",
+		male: 175,
+		female: 175,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.176",
+		male: 176,
+		female: 177,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.178",
+		male: 178,
+		female: 178,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.179",
+		male: 179,
+		female: 179,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.180",
+		male: 180,
+		female: 180,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 181,
+		female: 181,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.default",
+		male: 182,
+		female: 182,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.183",
+		male: 183,
+		female: 183,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.184",
+		male: 184,
+		female: 184,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.185",
+		male: 185,
+		female: 185,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.186",
+		male: 186,
+		female: 186,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.187",
+		male: 187,
+		female: 187,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.188",
+		male: 188,
+		female: 188,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.189",
+		male: 189,
+		female: 189,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.190",
+		male: 190,
+		female: 190,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.191",
+		male: 191,
+		female: 191,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.192",
+		male: 192,
+		female: 192,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.193",
+		male: 193,
+		female: 193,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.194",
+		male: 194,
+		female: 194,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.195",
+		male: 195,
+		female: 195,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.196",
+		male: 196,
+		female: 196,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.197",
+		male: 197,
+		female: 197,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.198",
+		male: 198,
+		female: 198,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.199",
+		male: 199,
+		female: 199,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.200",
+		male: 200,
+		female: 200,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.201",
+		male: 201,
+		female: 202,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.203",
+		male: 203,
+		female: 203,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.204",
+		male: 204,
+		female: 204,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.205",
+		male: 205,
+		female: 205,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.206",
+		male: 206,
+		female: 206,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.207",
+		male: 207,
+		female: 207,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.208",
+		male: 208,
+		female: 208,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.209",
+		male: 209,
+		female: 209,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.210",
+		male: 210,
+		female: 210,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.211",
+		male: 211,
+		female: 211,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.212",
+		male: 212,
+		female: 212,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.213",
+		male: 213,
+		female: 213,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.214",
+		male: 214,
+		female: 214,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.215",
+		male: 215,
+		female: 215,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.216",
+		male: 216,
+		female: 216,
+		color: [
+			46,
+			85,
+			183
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.217",
+		male: 217,
+		female: 217,
+		color: [
+			46,
+			85,
+			183
+		],
+		dyeable: true,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.218",
+		male: 218,
+		female: 218,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.219",
+		male: 219,
+		female: 219,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.220",
+		male: 220,
+		female: 220,
+		color: [
+			178,
+			98,
+			51
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.221",
+		male: 221,
+		female: 221,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.222",
+		male: 222,
+		female: 222,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.223",
+		male: 223,
+		female: 223,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: true
+	},
+	{
+		name: "shirts.name.224",
+		male: 224,
+		female: 224,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.225",
+		male: 225,
+		female: 225,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.226",
+		male: 226,
+		female: 226,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.227",
+		male: 227,
+		female: 227,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.228",
+		male: 228,
+		female: 228,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.229",
+		male: 229,
+		female: 229,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.230",
+		male: 230,
+		female: 230,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.231",
+		male: 231,
+		female: 231,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.232",
+		male: 232,
+		female: 232,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.233",
+		male: 233,
+		female: 233,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.234",
+		male: 234,
+		female: 234,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.235",
+		male: 235,
+		female: 235,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.236",
+		male: 236,
+		female: 236,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.237",
+		male: 237,
+		female: 237,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.238",
+		male: 238,
+		female: 238,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.239",
+		male: 239,
+		female: 239,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.240",
+		male: 240,
+		female: 240,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.241",
+		male: 241,
+		female: 241,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.242",
+		male: 242,
+		female: 242,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.243",
+		male: 243,
+		female: 243,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.244",
+		male: 244,
+		female: 244,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.245",
+		male: 245,
+		female: 245,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.246",
+		male: 246,
+		female: 246,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.247",
+		male: 247,
+		female: 247,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.248",
+		male: 248,
+		female: 248,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.249",
+		male: 249,
+		female: 249,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.250",
+		male: 250,
+		female: 250,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.251",
+		male: 251,
+		female: 251,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.252",
+		male: 252,
+		female: 252,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.253",
+		male: 253,
+		female: 253,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.254",
+		male: 254,
+		female: 254,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.255",
+		male: 255,
+		female: 255,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.256",
+		male: 256,
+		female: 256,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.257",
+		male: 257,
+		female: 257,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.258",
+		male: 258,
+		female: 258,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.259",
+		male: 259,
+		female: 259,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.260",
+		male: 260,
+		female: 260,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.261",
+		male: 261,
+		female: 261,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.262",
+		male: 262,
+		female: 262,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.263",
+		male: 263,
+		female: 263,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.264",
+		male: 264,
+		female: 264,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.265",
+		male: 265,
+		female: 265,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.266",
+		male: 266,
+		female: 266,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.267",
+		male: 267,
+		female: 267,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.268",
+		male: 268,
+		female: 268,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.269",
+		male: 269,
+		female: 269,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.270",
+		male: 270,
+		female: 270,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.271",
+		male: 271,
+		female: 271,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.272",
+		male: 272,
+		female: 272,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.273",
+		male: 273,
+		female: 273,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.274",
+		male: 274,
+		female: 274,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.275",
+		male: 275,
+		female: 275,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.276",
+		male: 276,
+		female: 276,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.277",
+		male: 277,
+		female: 277,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.278",
+		male: 278,
+		female: 278,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.279",
+		male: 279,
+		female: 279,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.280",
+		male: 280,
+		female: 280,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.281",
+		male: 281,
+		female: 281,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.282",
+		male: 282,
+		female: 282,
+		color: [
+			255,
+			0,
+			0
+		],
+		dyeable: false,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.283",
+		male: 283,
+		female: 283,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: true,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.284",
+		male: 284,
+		female: 284,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: true,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.285",
+		male: 285,
+		female: 285,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.286",
+		male: 286,
+		female: 286,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.287",
+		male: 287,
+		female: 287,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.288",
+		male: 290,
+		female: 290,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.289",
+		male: 291,
+		female: 291,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.290",
+		male: 292,
+		female: 292,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.291",
+		male: 293,
+		female: 293,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.292",
+		male: 294,
+		female: 294,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.293",
+		male: 295,
+		female: 295,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.294",
+		male: 296,
+		female: 296,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.295",
+		male: 297,
+		female: 297,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.296",
+		male: 298,
+		female: 298,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.297",
+		male: 299,
+		female: 299,
+		color: [
+			255,
+			195,
+			0
+		],
+		dyeable: true,
+		sleeveless: true,
+		prismatic: false
+	},
+	{
+		name: "shirts.name.997",
+		male: 272,
+		female: 272,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: true
+	},
+	{
+		name: "shirts.name.998",
+		male: 289,
+		female: 289,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: true
+	},
+	{
+		name: "shirts.name.999",
+		male: 288,
+		female: 288,
+		color: [
+			0,
+			50,
+			200
+		],
+		dyeable: false,
+		sleeveless: false,
+		prismatic: true
+	}
+];
+
+var pantsData = [
+	{
+		name: "pants.name.0",
+		sheetIndex: 0,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.1",
+		sheetIndex: 1,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.2",
+		sheetIndex: 2,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.3",
+		sheetIndex: 3,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.4",
+		sheetIndex: 4,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.5",
+		sheetIndex: 5,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "pants.name.6",
+		sheetIndex: 6,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "pants.name.7",
+		sheetIndex: 7,
+		color: [
+			255,
+			255,
+			255
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "pants.name.8",
+		sheetIndex: 8,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.9",
+		sheetIndex: 9,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.10",
+		sheetIndex: 10,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.11",
+		sheetIndex: 11,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.12",
+		sheetIndex: 12,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.13",
+		sheetIndex: 13,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: true,
+		prismatic: false
+	},
+	{
+		name: "pants.name.15",
+		sheetIndex: 15,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: false,
+		prismatic: false
+	},
+	{
+		name: "pants.name.998",
+		sheetIndex: 0,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: false,
+		prismatic: true
+	},
+	{
+		name: "pants.name.999",
+		sheetIndex: 8,
+		color: [
+			255,
+			235,
+			203
+		],
+		dyeable: false,
+		prismatic: true
+	}
+];
+
+class SheetDataStore {
+  static id = "base";
+  static columns = 1;
+  static deltaX = 0;
+  static deltaY = 0;
+  static omittable = false;
+  static size = {
+    width: 20,
+    height: 20
+  };
+  _spritesheet = null;
+  _clothesData = null;
+
+  static getSpriteFromIndex(index, offsetX = 0, offsetY = 0) {
+    let x = index % this.columns * this.deltaX + offsetX;
+    let y = Math.floor(index / this.columns) * this.deltaY + offsetY;
+    return {
+      x,
+      y
+    };
+  }
+
+  setSpritesheet(file) {
+    this._spritesheet = file;
+  }
+
+  setClothesData(file) {
+    this._clothesData = file;
+  }
+
+  get getListItemKey() {
+    return index => `${this.constructor.id}-${index}`;
+  }
+
+  get getDefaultColor() {
+    return index => [255, 255, 255];
+  }
+
+  get getDyeable() {
+    return index => false;
+  }
+
+  get getPrismatic() {
+    return index => false;
+  }
+
+  get getItemNameFromIndex() {
+    return index => `${this.constructor.id}.name.${index}`;
+  }
+
+  get getDescriptionFromIndex() {
+    return index => `${this.constructor.id}.desc.${index}`;
+  }
+
+}
+
+class HatsSheetStore extends SheetDataStore {
+  static id = "hats";
+  static columns = 12;
+  static deltaX = 20;
+  static deltaY = 80;
+  static omittable = true;
+  _clothesData = hatsData;
+
+  constructor() {
+    super();
+    makeObservable(this, {
+      _spritesheet: observable,
+      _clothesData: observable,
+      setSpritesheet: action,
+      setClothesData: action,
+      getUncoloredSpriteFromIndex: computed,
+      getColoredSpriteFromIndex: computed,
+      getPrismaticSpriteFromIndex: computed,
+      getHairDrawType: computed,
+      getIgnoreHairstyleOffset: computed,
+      count: computed
+    });
+  }
+
+  get getUncoloredSpriteFromIndex() {
+    return index => {
+      const data = this._clothesData[index];
+      if (data === undefined) return null;
+      return data.prismatic ? null : this.constructor.getSpriteFromIndex(index, 0, 0);
+    };
+  }
+
+  get getColoredSpriteFromIndex() {
+    return index => null;
+  }
+
+  get getPrismaticSpriteFromIndex() {
+    return index => {
+      const data = this._clothesData[index];
+      if (data === undefined) return null;
+      return data.prismatic ? this.constructor.getSpriteFromIndex(index, 0, 0) : null;
+    };
+  }
+
+  get getHairDrawType() {
+    return index => this._clothesData[index]?.hairDrawType ?? 0;
+  }
+
+  get getIgnoreHairstyleOffset() {
+    return index => this._clothesData[index]?.ignoreHairstyleOffset ?? false;
+  }
+
+  get getMask() {
+    return index => this._clothesData[index]?.isMask ?? false;
+  }
+
+  get getPrismatic() {
+    return index => this._clothesData[index]?.prismatic ?? false;
+  }
+
+  get count() {
+    return this._clothesData.length;
+  }
+
+}
+
+class HairstyleSheetStore extends SheetDataStore {
+  static id = "hairstyle";
+  static columns = 8;
+  static deltaX = 16;
+  static deltaY = 96;
+  static size = {
+    width: 16,
+    height: 20
+  };
+  static coveredTable = [7, 1, 7, 11, 7, 5, 6, 7, 7, 9, 7, 11, 7, 7, 7, 7, 30, 17, 23, 23, 20, 23, 30, 23, 24, 25, 30, 27, 28, 29, 30, 23, 32, 33, 34, 30, 36, 30, 30, 39, 30, 41, 46, 43, 44, 45, 46, 47, 6, 52, 50, 51, 52, 53, 54, 55];
+  _clothesData = hairstyleData;
+  _additionalSheet = {
+    "hairstyle2": null
+  };
+
+  constructor() {
+    super();
+    makeObservable(this, {
+      _spritesheet: observable,
+      _clothesData: observable,
+      _additionalSheet: observable,
+      setSpritesheet: action,
+      setClothesData: action,
+      setAdditionalSheet: action,
+      getUncoloredSpriteFromIndex: computed,
+      getColoredSpriteFromIndex: computed,
+      getPrismaticSpriteFromIndex: computed,
+      getListItemKey: computed,
+      getInnerIndex: computed,
+      getSpriteFromInnerIndex: computed,
+      getCoveredHairIndex: computed,
+      hasUniqueLeftSprite: computed,
+      isBald: computed,
+      count: computed
+    });
+  }
+
+  setAdditionalSheet(data) {
+    _additionalSheet = { ..._additionalSheet,
+      ...data
+    };
+  }
+
+  get getListItemKey() {
+    return index => `${this.constructor.id}-${this.getInnerIndex(index)}`;
+  }
+
+  get getInnerIndex() {
+    const basicHairCount = (this._spritesheet === null ? 672 : this._spritesheet.height) / 96 * 8;
+    const additionalHairArray = Object.keys(this._clothesData).filter(idx => idx >= 0).sort((a, b) => a - b);
+    return index => {
+      if (index < basicHairCount) return index;
+      return additionalHairArray[index - basicHairCount];
+    };
+  }
+
+  get getSpriteFromInnerIndex() {
+    return index => {
+      if (index in this._clothesData) {
+        let {
+          tileX,
+          tileY,
+          sheet
+        } = this._clothesData[index];
+        return {
+          x: tileX * 16,
+          y: tileY * 16,
+          sheet
+        };
+      }
+
+      return this.constructor.getSpriteFromIndex(index, 0, 0);
+    };
+  }
+
+  get getUncoloredSpriteFromIndex() {
+    return index => null;
+  }
+
+  get getColoredSpriteFromIndex() {
+    return index => {
+      index = this.getInnerIndex(index);
+      return this.getSpriteFromInnerIndex(index);
+    };
+  }
+
+  get getPrismaticSpriteFromIndex() {
+    return index => null;
+  }
+
+  get getCoveredHairIndex() {
+    return index => {
+      if (index in this._clothesData) {
+        return this._clothesData[index].coveredHair;
+      }
+
+      if (index >= 56) return 30;
+      return this.constructor.coveredTable[index];
+    };
+  }
+
+  get hasUniqueLeftSprite() {
+    return index => {
+      if (index in this._clothesData) {
+        return this._clothesData[index].useUniqueLeft;
+      }
+
+      return false;
+    };
+  }
+
+  get isBald() {
+    return index => {
+      if (index in this._clothesData) {
+        return this._clothesData[index].isBald;
+      }
+
+      return index > 48 && index < 56;
+    };
+  }
+
+  get getDyeable() {
+    return index => true;
+  }
+
+  get count() {
+    const basicHairCount = (this._spritesheet === null ? 672 : this._spritesheet.height) / 96 * 8;
+    const additionalHairCount = Object.keys(this._clothesData).reduce((sum, key) => sum + (key > 0), 0);
+    return basicHairCount + additionalHairCount;
+  }
+
+}
+
+class ShirtsSheetStore extends SheetDataStore {
+  static id = "shirts";
+  static columns = 16;
+  static deltaX = 8;
+  static deltaY = 32;
+  static size = {
+    width: 8,
+    height: 8
+  };
+  _clothesData = shirtData;
+  _gender = "male";
+
+  constructor() {
+    super();
+    makeObservable(this, {
+      _spritesheet: observable,
+      _clothesData: observable,
+      _gender: observable,
+      setSpritesheet: action,
+      setClothesData: action,
+      gender: computed,
+      setGender: action,
+      getUncoloredSpriteFromIndex: computed,
+      getColoredSpriteFromIndex: computed,
+      getPrismaticSpriteFromIndex: computed,
+      getDefaultColor: computed,
+      getDyeable: computed,
+      getSleeveless: computed,
+      getPrismatic: computed,
+      getItemNameFromIndex: computed,
+      count: computed
+    });
+  }
+
+  get gender() {
+    return this._gender;
+  }
+
+  setGender(value) {
+    this._gender = value;
+  }
+
+  get getUncoloredSpriteFromIndex() {
+    return index => {
+      const data = this._clothesData[index];
+      const spriteIndex = this.gender === "male" ? data.male : data.female;
+      return this.constructor.getSpriteFromIndex(spriteIndex, 0, 0);
+    };
+  }
+
+  get getColoredSpriteFromIndex() {
+    return index => {
+      const data = this._clothesData[index];
+      if (data.prismatic) return null;
+      const spriteIndex = this.gender === "male" ? data.male : data.female;
+      return this.constructor.getSpriteFromIndex(spriteIndex, 128, 0);
+    };
+  }
+
+  get getPrismaticSpriteFromIndex() {
+    return index => {
+      const data = this._clothesData[index];
+      if (!data.prismatic) return null;
+      const spriteIndex = this.gender === "male" ? data.male : data.female;
+      return this.constructor.getSpriteFromIndex(spriteIndex, 128, 0);
+    };
+  }
+
+  get getDefaultColor() {
+    return index => [...this._clothesData[index].color];
+  }
+
+  get getDyeable() {
+    return index => this._clothesData[index].dyeable;
+  }
+
+  get getSleeveless() {
+    return index => this._clothesData[index].sleeveless;
+  }
+
+  get getPrismatic() {
+    return index => this._clothesData[index].prismatic;
+  }
+
+  get getItemNameFromIndex() {
+    return index => this._clothesData[index].name;
+  }
+
+  get count() {
+    return this._clothesData.length;
+  }
+
+}
+
+class PantsSheetStore extends SheetDataStore {
+  static id = "pants";
+  static columns = 10;
+  static deltaX = 192;
+  static deltaY = 688;
+  static size = {
+    width: 16,
+    height: 16
+  };
+  _clothesData = pantsData;
+
+  constructor() {
+    super();
+    makeObservable(this, {
+      _spritesheet: observable,
+      _clothesData: observable,
+      setSpritesheet: action,
+      setClothesData: action,
+      getUncoloredSpriteFromIndex: computed,
+      getColoredSpriteFromIndex: computed,
+      getPrismaticSpriteFromIndex: computed,
+      getDefaultColor: computed,
+      getDyeable: computed,
+      getPrismatic: computed,
+      getItemNameFromIndex: computed,
+      count: computed
+    });
+  }
+
+  get getUncoloredSpriteFromIndex() {
+    return index => {
+      const data = this._clothesData[index];
+      if (data.prismatic) return null;
+      if (!data.dyeable) return this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672);
+      return null;
+    };
+  }
+
+  get getColoredSpriteFromIndex() {
+    return index => {
+      const data = this._clothesData[index];
+      if (data.prismatic) return null;
+      if (data.dyeable) return this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672);
+      return null;
+    };
+  }
+
+  get getPrismaticSpriteFromIndex() {
+    return index => {
+      const data = this._clothesData[index];
+      return data.prismatic ? this.constructor.getSpriteFromIndex(data.sheetIndex, 0, 672) : null;
+    };
+  }
+
+  get getDefaultColor() {
+    return index => [...this._clothesData[index].color];
+  }
+
+  get getDyeable() {
+    return index => this._clothesData[index].dyeable;
+  }
+
+  get getPrismatic() {
+    return index => this._clothesData[index].prismatic;
+  }
+
+  get getItemNameFromIndex() {
+    return index => this._clothesData[index].name;
+  }
+
+  get count() {
+    return this._clothesData.length;
+  }
+
+}
+
+/* extract hats data */
+function hatsJsonProcessing(data) {
+  let result = [];
+  let index = 0;
+
+  for (let value of Object.values(data)) {
+    let [name,, hairDrawType, ignoreHairstyleOffset, additional] = value.split("/");
+    if (hairDrawType == "true") hairDrawType = 0; // original
+    else if (hairDrawType == "false") hairDrawType = 1; // cover
+    else hairDrawType = 2; // hide
+
+    let isMask = false;
+    if (hairDrawType !== 2 && name.includes("Mask")) isMask = true;
+    ignoreHairstyleOffset = ignoreHairstyleOffset === "true";
+    let prismatic = additional === "Prismatic";
+    result[index++] = {
+      hairDrawType,
+      ignoreHairstyleOffset,
+      isMask,
+      prismatic
+    };
+  }
+
+  return result;
+}
+/* extract hairstyle data */
+
+
+function hairstyleJsonProcessing(data) {
+  let result = {};
+
+  for (let [key, value] of Object.entries(data)) {
+    let [sheet, tileX, tileY, useUniqueLeft, coveredHair, isBald] = value.split("/");
+    [tileX, tileY] = [+tileX, +tileY];
+    useUniqueLeft = useUniqueLeft === "true";
+    isBald = isBald === "true";
+    coveredHair = coveredHair === "-1" ? +key : +coveredHair;
+    result[key] = {
+      sheet,
+      tileX,
+      tileY,
+      useUniqueLeft,
+      coveredHair,
+      isBald
+    };
+  }
+
+  return result;
+}
+/* extract shirts&pants data */
+
+
+function extractRealCloth(data) {
+  const dataEntries = Object.entries(data);
+  const alreadyChecked = new Set();
+  let shirtsAvaliableIndex = dataEntries.filter(([key]) => +key >= 1000).map(([key, value]) => {
+    let [,,, man, woman] = value.split("/");
+    [man, woman] = [+man, +woman];
+    alreadyChecked.add(man);
+    if (woman !== -1) alreadyChecked.add(woman);
+    return +key;
+  });
+  let pantsAvaliableIndex = dataEntries.filter(([key]) => {
+    key = +key;
+    return key < 1000 && key >= 0 && key !== 14;
+  }).map(([key]) => +key);
+  const additionalShirts = Array.from({
+    length: 300
+  }, (_, i) => i).filter(i => !alreadyChecked.has(i)).map(i => i + 1000);
+  additionalShirts.push(1041); // can exist
+
+  shirtsAvaliableIndex = shirtsAvaliableIndex.concat(additionalShirts);
+  shirtsAvaliableIndex.sort((a, b) => a - b);
+  return [shirtsAvaliableIndex, pantsAvaliableIndex];
+}
+
+function extractClothData(str) {
+  let [,,, male, female,, color, dyeable,, additional] = str.split("/");
+  [male, female] = [+male, +female];
+  if (female === -1) female = male;
+  color = color.split(" ").map(value => +value);
+  dyeable = dyeable === "true";
+  let prismatic = additional === "Prismatic";
+  let sleeveless = additional === "Sleeveless";
+  return {
+    name,
+    male,
+    female,
+    color,
+    dyeable,
+    sleeveless,
+    prismatic
+  };
+}
+
+function clothesJsonProcessing(data) {
+  const [shirtsAvaliableIndex, pantsAvaliableIndex] = extractRealCloth(data);
+  const shirtData = shirtsAvaliableIndex.map(i => {
+    const index = data[i] !== undefined ? i : -2;
+    let {
+      male,
+      female,
+      color,
+      dyeable,
+      prismatic
+    } = extractClothData(data[index]);
+    if (index === -2) [male, female] = [i - 1000, i - 1000];
+    let name = `shirts.name.${index !== -2 ? index - 1000 : "default"}`;
+    return {
+      name,
+      male,
+      female,
+      color,
+      dyeable,
+      sleeveless,
+      prismatic
+    };
+  });
+  const pantsData = pantsAvaliableIndex.map(i => {
+    const index = data[i] !== undefined ? i : -1;
+    let {
+      male: sheetIndex,
+      color,
+      dyeable,
+      prismatic
+    } = extractClothData(data[index]);
+    let name = `pants.name.${index}`;
+    return {
+      name,
+      sheetIndex,
+      color,
+      dyeable,
+      prismatic
+    };
+  });
+  return [shirtData, pantsData];
+}
+
+const FRONT = 2;
+const BACK = 0;
+const LEFT = 3;
+const RIGHT = 1; // direction value for actual sprite sheet
+
+function dirSheetIdx(direction, hasLeft = false) {
+  switch (direction) {
+    case FRONT:
+      return 0;
+
+    case BACK:
+      return hasLeft ? 3 : 2;
+
+    case RIGHT:
+      return 1;
+
+    case LEFT:
+      return hasLeft ? 2 : 1;
+  }
+}
+
+class CharacterStore {
+  // selector store
+  hatsSelector = new ClothSelectorStore({
+    value: -1
+  });
+  hairstyleSelector = new ClothSelectorStore({
+    hue: 4 * 360 / 100,
+    saturation: 74,
+    brightness: 75
+  });
+  shirtsSelector = new ClothSelectorStore();
+  pantsSelector = new ClothSelectorStore({
+    hue: 61 * 360 / 100,
+    saturation: 74,
+    brightness: 71
+  }); // sprite sheet data store
+
+  hatsSheet = new HatsSheetStore();
+  hairstyleSheet = new HairstyleSheetStore();
+  shirtsSheet = new ShirtsSheetStore();
+  pantsSheet = new PantsSheetStore(); // character props
+
+  direction = FRONT;
+  isMale = true;
+
+  constructor() {
+    makeAutoObservable(this);
+  } // computed
+
+
+  get isFemale() {
+    return !this.isMale;
+  }
+
+  get body() {
+    let gender = this.isMale ? "male" : "female";
+    let bald = this.hair.isBald ? "_bald" : "";
+    return `body_${gender}${bald}`;
+  }
+
+  get hat() {
+    const index = this.hatsSelector.value;
+    return {
+      index,
+      ignoreYOffset: this.hatsSheet.getIgnoreHairstyleOffset(index),
+      isMask: this.hatsSheet.getMask(index)
+    };
+  }
+
+  get hair() {
+    let index = this.hairstyleSheet.getInnerIndex(this.hairstyleSelector.value);
+    const hairDrawType = this.hatsSheet.getHairDrawType(this.hatsSelector.value); // get hair
+
+    const [ORIGINAL, COVERED, HIDE] = [0, 1, 2];
+
+    switch (hairDrawType) {
+      case HIDE:
+        index = 52;
+        break;
+
+      case COVERED:
+        index = this.hairstyleSheet.getCoveredHairIndex(index);
+        break;
+    }
+
+    return {
+      index,
+      hasUniqueLeftSprite: this.hairstyleSheet.hasUniqueLeftSprite(index),
+      isBald: hairDrawType !== HIDE && this.hairstyleSheet.isBald(index)
+    };
+  }
+
+  get shirt() {
+    const index = this.shirtsSelector.value;
+    return {
+      index,
+      sleeveless: this.shirtsSheet.getSleeveless(index)
+    };
+  }
+
+  get pants() {
+    return {
+      index: this.pantsSelector.value
+    };
+  }
+
+  get hatYOffset() {
+    let offset = -2;
+    if (this.direction === BACK) offset -= 1;
+
+    if (this.hat.ignoreYOffset === false) {
+      const hairtype = this.hair.index % 16;
+      if (hairtype === 3 || hairtype === 6 || hairtype === 8) offset += 1;
+    }
+
+    if (this.isFemale) offset += 1;
+    return offset;
+  }
+
+  get hairstyleYOffset() {
+    let offset = 1;
+    if (this.hair.index >= 16) offset -= 1;
+    if (this.isFemale) offset += 1;
+    return offset;
+  }
+
+  get shirtsYOffset() {
+    let offset = 15;
+    if (this.direction === BACK) offset -= 1;
+    if (this.isFemale) offset += 1;
+    return offset;
+  }
+
+  get hatBoundBox() {
+    const {
+      width,
+      height
+    } = HatsSheetStore.size;
+    const yOffset = dirSheetIdx(this.direction) * height;
+    const {
+      x,
+      y
+    } = HatsSheetStore.getSpriteFromIndex(this.hat.index, 0, yOffset);
+    const rect = new Rectangle(x, y, width, height);
+    return rect;
+  }
+
+  get hairBoundBox() {
+    const width = 16,
+          height = 32;
+    const yOffset = dirSheetIdx(this.direction) * height;
+    const {
+      x,
+      y,
+      sheet
+    } = this.hairstyleSheet.getSpriteFromInnerIndex(this.hair.index);
+    const rect = new Rectangle(x, y + yOffset, width, height);
+    return {
+      rect,
+      sheet
+    };
+  }
+
+  get shirtBoundBox() {
+    const {
+      width,
+      height
+    } = ShirtsSheetStore.size;
+    const yOffset = dirSheetIdx(this.direction) * height;
+    const {
+      x,
+      y
+    } = this.shirtsSheet.getUncoloredSpriteFromIndex(this.shirt.index);
+    const uncolored = new Rectangle(x, y + yOffset, width, height);
+    const colored = new Rectangle(x + 128, y + yOffset, width, height);
+    return {
+      uncolored,
+      colored
+    };
+  }
+
+  get pantsBoundBox() {
+    const width = 16,
+          height = 32;
+    const yOffset = dirSheetIdx(this.direction) * height;
+    const {
+      columns,
+      deltaX,
+      deltaY
+    } = PantsSheetStore;
+    const index = this.pants.index;
+    let x = index % columns * deltaX;
+    let y = Math.floor(index / columns) * deltaY + yOffset;
+    const rect = new Rectangle(x, y, width, height);
+    return rect;
+  }
+
+  get hatTint() {
+    if (this.hatsSheet.getPrismatic(this.hat.index)) return "prismatic";
+    return 0xffffff;
+  }
+
+  get hairTint() {
+    return colorArrayToHex(this.hairstyleSelector.color);
+  }
+
+  get shirtTint() {
+    if (this.shirtsSheet.getPrismatic(this.shirt.index)) return "prismatic";
+    return colorArrayToHex(this.shirtsSelector.color);
+  }
+
+  get pantsTint() {
+    if (this.pantsSheet.getPrismatic(this.pants.index)) return "prismatic";
+    if (this.pantsSheet.getDyeable(this.pants.index)) return colorArrayToHex(this.pantsSelector.color);
+    return 0xffffff;
+  } // action
+
+
+  turnLeft() {
+    this.direction--;
+    if (this.direction < 0) this.direction = 3;
+  }
+
+  turnRight() {
+    this.direction++;
+    if (this.direction > 3) this.direction = 0;
+  }
+
+  setGender(value) {
+    if (value === "male") {
+      this.isMale = true;
+      this.shirtsSheet.setGender(value);
+    }
+
+    if (value === "female") {
+      this.isMale = false;
+      this.shirtsSheet.setGender(value);
+    }
+  } // for <ClothesController /> component
+
+
+  getProps(name) {
+    return {
+      selection: this[`${name}Selector`],
+      dataSet: this[`${name}Sheet`],
+      defaultImage: `assets/${name}.png`
+    };
+  } // import json data
+
+
+  importHatsData(json) {
+    this.hatsSheet.setClothesData(hatsJsonProcessing(json));
+  }
+
+  importHairstyleData(json) {
+    this.hairstyleSheet.setClothesData(hairstyleJsonProcessing(json));
+  }
+
+  importClothesData(json) {
+    const [shirtsData, pantsData] = clothesJsonProcessing(json);
+    this.shirtsSheet.setClothesData(shirtsData);
+    this.pantsSheet.setClothesData(shirtsData);
+  }
+
+}
+
+const characterStore = new CharacterStore();
+
+var jsxRuntime = {exports: {}};
+
+var reactJsxRuntime_development = {};
+
+/**
+ * @license React
+ * react-jsx-runtime.development.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+{
+  (function() {
+
+var React = react.exports;
+
+// -----------------------------------------------------------------------------
+
+var enableScopeAPI = false; // Experimental Create Event Handle API.
+var enableCacheElement = false;
+var enableTransitionTracing = false; // No known bugs, but needs performance testing
+
+var enableLegacyHidden = false; // Enables unstable_avoidThisFallback feature in Fiber
+// stuff. Intended to enable React core members to more easily debug scheduling
+// issues in DEV builds.
+
+var enableDebugTracing = false; // Track which Fiber(s) schedule render work.
+
+// ATTENTION
+
+var REACT_ELEMENT_TYPE =  Symbol.for('react.element');
+var REACT_PORTAL_TYPE =  Symbol.for('react.portal');
+var REACT_FRAGMENT_TYPE =  Symbol.for('react.fragment');
+var REACT_STRICT_MODE_TYPE =  Symbol.for('react.strict_mode');
+var REACT_PROFILER_TYPE =  Symbol.for('react.profiler');
+var REACT_PROVIDER_TYPE =  Symbol.for('react.provider');
+var REACT_CONTEXT_TYPE =  Symbol.for('react.context');
+var REACT_FORWARD_REF_TYPE =  Symbol.for('react.forward_ref');
+var REACT_SUSPENSE_TYPE =  Symbol.for('react.suspense');
+var REACT_SUSPENSE_LIST_TYPE =  Symbol.for('react.suspense_list');
+var REACT_MEMO_TYPE =  Symbol.for('react.memo');
+var REACT_LAZY_TYPE =  Symbol.for('react.lazy');
+var REACT_OFFSCREEN_TYPE =  Symbol.for('react.offscreen');
+var MAYBE_ITERATOR_SYMBOL =  Symbol.iterator;
+var FAUX_ITERATOR_SYMBOL = '@@iterator';
+function getIteratorFn(maybeIterable) {
+  if (maybeIterable === null || typeof maybeIterable !== 'object') {
+    return null;
+  }
+
+  var maybeIterator = MAYBE_ITERATOR_SYMBOL && maybeIterable[MAYBE_ITERATOR_SYMBOL] || maybeIterable[FAUX_ITERATOR_SYMBOL];
+
+  if (typeof maybeIterator === 'function') {
+    return maybeIterator;
+  }
+
+  return null;
+}
+
+var ReactSharedInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+
+function error(format) {
+  {
+    {
+      for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        args[_key2 - 1] = arguments[_key2];
+      }
+
+      printWarning('error', format, args);
+    }
+  }
+}
+
+function printWarning(level, format, args) {
+  // When changing this logic, you might want to also
+  // update consoleWithStackDev.www.js as well.
+  {
+    var ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
+    var stack = ReactDebugCurrentFrame.getStackAddendum();
+
+    if (stack !== '') {
+      format += '%s';
+      args = args.concat([stack]);
+    } // eslint-disable-next-line react-internal/safe-string-coercion
+
+
+    var argsWithFormat = args.map(function (item) {
+      return String(item);
+    }); // Careful: RN currently depends on this prefix
+
+    argsWithFormat.unshift('Warning: ' + format); // We intentionally don't use spread (or .apply) directly because it
+    // breaks IE9: https://github.com/facebook/react/issues/13610
+    // eslint-disable-next-line react-internal/no-production-logging
+
+    Function.prototype.apply.call(console[level], console, argsWithFormat);
+  }
+}
+
+var REACT_MODULE_REFERENCE;
+
+{
+  REACT_MODULE_REFERENCE = Symbol.for('react.module.reference');
+}
+
+function isValidElementType(type) {
+  if (typeof type === 'string' || typeof type === 'function') {
+    return true;
+  } // Note: typeof might be other than 'symbol' or 'number' (e.g. if it's a polyfill).
+
+
+  if (type === REACT_FRAGMENT_TYPE || type === REACT_PROFILER_TYPE || enableDebugTracing  || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || type === REACT_SUSPENSE_LIST_TYPE || enableLegacyHidden  || type === REACT_OFFSCREEN_TYPE || enableScopeAPI  || enableCacheElement  || enableTransitionTracing ) {
+    return true;
+  }
+
+  if (typeof type === 'object' && type !== null) {
+    if (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE || // This needs to include all possible module reference object
+    // types supported by any Flight configuration anywhere since
+    // we don't know which Flight build this will end up being used
+    // with.
+    type.$$typeof === REACT_MODULE_REFERENCE || type.getModuleId !== undefined) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function getWrappedName(outerType, innerType, wrapperName) {
+  var displayName = outerType.displayName;
+
+  if (displayName) {
+    return displayName;
+  }
+
+  var functionName = innerType.displayName || innerType.name || '';
+  return functionName !== '' ? wrapperName + "(" + functionName + ")" : wrapperName;
+} // Keep in sync with react-reconciler/getComponentNameFromFiber
+
+
+function getContextName(type) {
+  return type.displayName || 'Context';
+} // Note that the reconciler package should generally prefer to use getComponentNameFromFiber() instead.
+
+
+function getComponentNameFromType(type) {
+  if (type == null) {
+    // Host root, text node or just invalid type.
+    return null;
+  }
+
+  {
+    if (typeof type.tag === 'number') {
+      error('Received an unexpected object in getComponentNameFromType(). ' + 'This is likely a bug in React. Please file an issue.');
+    }
+  }
+
+  if (typeof type === 'function') {
+    return type.displayName || type.name || null;
+  }
+
+  if (typeof type === 'string') {
+    return type;
+  }
+
+  switch (type) {
+    case REACT_FRAGMENT_TYPE:
+      return 'Fragment';
+
+    case REACT_PORTAL_TYPE:
+      return 'Portal';
+
+    case REACT_PROFILER_TYPE:
+      return 'Profiler';
+
+    case REACT_STRICT_MODE_TYPE:
+      return 'StrictMode';
+
+    case REACT_SUSPENSE_TYPE:
+      return 'Suspense';
+
+    case REACT_SUSPENSE_LIST_TYPE:
+      return 'SuspenseList';
+
+  }
+
+  if (typeof type === 'object') {
+    switch (type.$$typeof) {
+      case REACT_CONTEXT_TYPE:
+        var context = type;
+        return getContextName(context) + '.Consumer';
+
+      case REACT_PROVIDER_TYPE:
+        var provider = type;
+        return getContextName(provider._context) + '.Provider';
+
+      case REACT_FORWARD_REF_TYPE:
+        return getWrappedName(type, type.render, 'ForwardRef');
+
+      case REACT_MEMO_TYPE:
+        var outerName = type.displayName || null;
+
+        if (outerName !== null) {
+          return outerName;
+        }
+
+        return getComponentNameFromType(type.type) || 'Memo';
+
+      case REACT_LAZY_TYPE:
+        {
+          var lazyComponent = type;
+          var payload = lazyComponent._payload;
+          var init = lazyComponent._init;
+
+          try {
+            return getComponentNameFromType(init(payload));
+          } catch (x) {
+            return null;
+          }
+        }
+
+      // eslint-disable-next-line no-fallthrough
+    }
+  }
+
+  return null;
+}
+
+var assign = Object.assign;
+
+// Helpers to patch console.logs to avoid logging during side-effect free
+// replaying on render function. This currently only patches the object
+// lazily which won't cover if the log function was extracted eagerly.
+// We could also eagerly patch the method.
+var disabledDepth = 0;
+var prevLog;
+var prevInfo;
+var prevWarn;
+var prevError;
+var prevGroup;
+var prevGroupCollapsed;
+var prevGroupEnd;
+
+function disabledLog() {}
+
+disabledLog.__reactDisabledLog = true;
+function disableLogs() {
+  {
+    if (disabledDepth === 0) {
+      /* eslint-disable react-internal/no-production-logging */
+      prevLog = console.log;
+      prevInfo = console.info;
+      prevWarn = console.warn;
+      prevError = console.error;
+      prevGroup = console.group;
+      prevGroupCollapsed = console.groupCollapsed;
+      prevGroupEnd = console.groupEnd; // https://github.com/facebook/react/issues/19099
+
+      var props = {
+        configurable: true,
+        enumerable: true,
+        value: disabledLog,
+        writable: true
+      }; // $FlowFixMe Flow thinks console is immutable.
+
+      Object.defineProperties(console, {
+        info: props,
+        log: props,
+        warn: props,
+        error: props,
+        group: props,
+        groupCollapsed: props,
+        groupEnd: props
+      });
+      /* eslint-enable react-internal/no-production-logging */
+    }
+
+    disabledDepth++;
+  }
+}
+function reenableLogs() {
+  {
+    disabledDepth--;
+
+    if (disabledDepth === 0) {
+      /* eslint-disable react-internal/no-production-logging */
+      var props = {
+        configurable: true,
+        enumerable: true,
+        writable: true
+      }; // $FlowFixMe Flow thinks console is immutable.
+
+      Object.defineProperties(console, {
+        log: assign({}, props, {
+          value: prevLog
+        }),
+        info: assign({}, props, {
+          value: prevInfo
+        }),
+        warn: assign({}, props, {
+          value: prevWarn
+        }),
+        error: assign({}, props, {
+          value: prevError
+        }),
+        group: assign({}, props, {
+          value: prevGroup
+        }),
+        groupCollapsed: assign({}, props, {
+          value: prevGroupCollapsed
+        }),
+        groupEnd: assign({}, props, {
+          value: prevGroupEnd
+        })
+      });
+      /* eslint-enable react-internal/no-production-logging */
+    }
+
+    if (disabledDepth < 0) {
+      error('disabledDepth fell below zero. ' + 'This is a bug in React. Please file an issue.');
+    }
+  }
+}
+
+var ReactCurrentDispatcher = ReactSharedInternals.ReactCurrentDispatcher;
+var prefix;
+function describeBuiltInComponentFrame(name, source, ownerFn) {
+  {
+    if (prefix === undefined) {
+      // Extract the VM specific prefix used by each line.
+      try {
+        throw Error();
+      } catch (x) {
+        var match = x.stack.trim().match(/\n( *(at )?)/);
+        prefix = match && match[1] || '';
+      }
+    } // We use the prefix to ensure our stacks line up with native stack frames.
+
+
+    return '\n' + prefix + name;
+  }
+}
+var reentry = false;
+var componentFrameCache;
+
+{
+  var PossiblyWeakMap = typeof WeakMap === 'function' ? WeakMap : Map;
+  componentFrameCache = new PossiblyWeakMap();
+}
+
+function describeNativeComponentFrame(fn, construct) {
+  // If something asked for a stack inside a fake render, it should get ignored.
+  if ( !fn || reentry) {
+    return '';
+  }
+
+  {
+    var frame = componentFrameCache.get(fn);
+
+    if (frame !== undefined) {
+      return frame;
+    }
+  }
+
+  var control;
+  reentry = true;
+  var previousPrepareStackTrace = Error.prepareStackTrace; // $FlowFixMe It does accept undefined.
+
+  Error.prepareStackTrace = undefined;
+  var previousDispatcher;
+
+  {
+    previousDispatcher = ReactCurrentDispatcher.current; // Set the dispatcher in DEV because this might be call in the render function
+    // for warnings.
+
+    ReactCurrentDispatcher.current = null;
+    disableLogs();
+  }
+
+  try {
+    // This should throw.
+    if (construct) {
+      // Something should be setting the props in the constructor.
+      var Fake = function () {
+        throw Error();
+      }; // $FlowFixMe
+
+
+      Object.defineProperty(Fake.prototype, 'props', {
+        set: function () {
+          // We use a throwing setter instead of frozen or non-writable props
+          // because that won't throw in a non-strict mode function.
+          throw Error();
+        }
+      });
+
+      if (typeof Reflect === 'object' && Reflect.construct) {
+        // We construct a different control for this case to include any extra
+        // frames added by the construct call.
+        try {
+          Reflect.construct(Fake, []);
+        } catch (x) {
+          control = x;
+        }
+
+        Reflect.construct(fn, [], Fake);
+      } else {
+        try {
+          Fake.call();
+        } catch (x) {
+          control = x;
+        }
+
+        fn.call(Fake.prototype);
+      }
+    } else {
+      try {
+        throw Error();
+      } catch (x) {
+        control = x;
+      }
+
+      fn();
+    }
+  } catch (sample) {
+    // This is inlined manually because closure doesn't do it for us.
+    if (sample && control && typeof sample.stack === 'string') {
+      // This extracts the first frame from the sample that isn't also in the control.
+      // Skipping one frame that we assume is the frame that calls the two.
+      var sampleLines = sample.stack.split('\n');
+      var controlLines = control.stack.split('\n');
+      var s = sampleLines.length - 1;
+      var c = controlLines.length - 1;
+
+      while (s >= 1 && c >= 0 && sampleLines[s] !== controlLines[c]) {
+        // We expect at least one stack frame to be shared.
+        // Typically this will be the root most one. However, stack frames may be
+        // cut off due to maximum stack limits. In this case, one maybe cut off
+        // earlier than the other. We assume that the sample is longer or the same
+        // and there for cut off earlier. So we should find the root most frame in
+        // the sample somewhere in the control.
+        c--;
+      }
+
+      for (; s >= 1 && c >= 0; s--, c--) {
+        // Next we find the first one that isn't the same which should be the
+        // frame that called our sample function and the control.
+        if (sampleLines[s] !== controlLines[c]) {
+          // In V8, the first line is describing the message but other VMs don't.
+          // If we're about to return the first line, and the control is also on the same
+          // line, that's a pretty good indicator that our sample threw at same line as
+          // the control. I.e. before we entered the sample frame. So we ignore this result.
+          // This can happen if you passed a class to function component, or non-function.
+          if (s !== 1 || c !== 1) {
+            do {
+              s--;
+              c--; // We may still have similar intermediate frames from the construct call.
+              // The next one that isn't the same should be our match though.
+
+              if (c < 0 || sampleLines[s] !== controlLines[c]) {
+                // V8 adds a "new" prefix for native classes. Let's remove it to make it prettier.
+                var _frame = '\n' + sampleLines[s].replace(' at new ', ' at '); // If our component frame is labeled "<anonymous>"
+                // but we have a user-provided "displayName"
+                // splice it in to make the stack more readable.
+
+
+                if (fn.displayName && _frame.includes('<anonymous>')) {
+                  _frame = _frame.replace('<anonymous>', fn.displayName);
+                }
+
+                {
+                  if (typeof fn === 'function') {
+                    componentFrameCache.set(fn, _frame);
+                  }
+                } // Return the line we found.
+
+
+                return _frame;
+              }
+            } while (s >= 1 && c >= 0);
+          }
+
+          break;
+        }
+      }
+    }
+  } finally {
+    reentry = false;
+
+    {
+      ReactCurrentDispatcher.current = previousDispatcher;
+      reenableLogs();
+    }
+
+    Error.prepareStackTrace = previousPrepareStackTrace;
+  } // Fallback to just using the name if we couldn't make it throw.
+
+
+  var name = fn ? fn.displayName || fn.name : '';
+  var syntheticFrame = name ? describeBuiltInComponentFrame(name) : '';
+
+  {
+    if (typeof fn === 'function') {
+      componentFrameCache.set(fn, syntheticFrame);
+    }
+  }
+
+  return syntheticFrame;
+}
+function describeFunctionComponentFrame(fn, source, ownerFn) {
+  {
+    return describeNativeComponentFrame(fn, false);
+  }
+}
+
+function shouldConstruct(Component) {
+  var prototype = Component.prototype;
+  return !!(prototype && prototype.isReactComponent);
+}
+
+function describeUnknownElementTypeFrameInDEV(type, source, ownerFn) {
+
+  if (type == null) {
+    return '';
+  }
+
+  if (typeof type === 'function') {
+    {
+      return describeNativeComponentFrame(type, shouldConstruct(type));
+    }
+  }
+
+  if (typeof type === 'string') {
+    return describeBuiltInComponentFrame(type);
+  }
+
+  switch (type) {
+    case REACT_SUSPENSE_TYPE:
+      return describeBuiltInComponentFrame('Suspense');
+
+    case REACT_SUSPENSE_LIST_TYPE:
+      return describeBuiltInComponentFrame('SuspenseList');
+  }
+
+  if (typeof type === 'object') {
+    switch (type.$$typeof) {
+      case REACT_FORWARD_REF_TYPE:
+        return describeFunctionComponentFrame(type.render);
+
+      case REACT_MEMO_TYPE:
+        // Memo may contain any component type so we recursively resolve it.
+        return describeUnknownElementTypeFrameInDEV(type.type, source, ownerFn);
+
+      case REACT_LAZY_TYPE:
+        {
+          var lazyComponent = type;
+          var payload = lazyComponent._payload;
+          var init = lazyComponent._init;
+
+          try {
+            // Lazy may contain any component type so we recursively resolve it.
+            return describeUnknownElementTypeFrameInDEV(init(payload), source, ownerFn);
+          } catch (x) {}
+        }
+    }
+  }
+
+  return '';
+}
+
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+var loggedTypeFailures = {};
+var ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
+
+function setCurrentlyValidatingElement(element) {
+  {
+    if (element) {
+      var owner = element._owner;
+      var stack = describeUnknownElementTypeFrameInDEV(element.type, element._source, owner ? owner.type : null);
+      ReactDebugCurrentFrame.setExtraStackFrame(stack);
+    } else {
+      ReactDebugCurrentFrame.setExtraStackFrame(null);
+    }
+  }
+}
+
+function checkPropTypes(typeSpecs, values, location, componentName, element) {
+  {
+    // $FlowFixMe This is okay but Flow doesn't know it.
+    var has = Function.call.bind(hasOwnProperty);
+
+    for (var typeSpecName in typeSpecs) {
+      if (has(typeSpecs, typeSpecName)) {
+        var error$1 = void 0; // Prop type validation may throw. In case they do, we don't want to
+        // fail the render phase where it didn't fail before. So we log it.
+        // After these have been cleaned up, we'll let them throw.
+
+        try {
+          // This is intentionally an invariant that gets caught. It's the same
+          // behavior as without this statement except with a better message.
+          if (typeof typeSpecs[typeSpecName] !== 'function') {
+            // eslint-disable-next-line react-internal/prod-error-codes
+            var err = Error((componentName || 'React class') + ': ' + location + ' type `' + typeSpecName + '` is invalid; ' + 'it must be a function, usually from the `prop-types` package, but received `' + typeof typeSpecs[typeSpecName] + '`.' + 'This often happens because of typos such as `PropTypes.function` instead of `PropTypes.func`.');
+            err.name = 'Invariant Violation';
+            throw err;
+          }
+
+          error$1 = typeSpecs[typeSpecName](values, typeSpecName, componentName, location, null, 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED');
+        } catch (ex) {
+          error$1 = ex;
+        }
+
+        if (error$1 && !(error$1 instanceof Error)) {
+          setCurrentlyValidatingElement(element);
+
+          error('%s: type specification of %s' + ' `%s` is invalid; the type checker ' + 'function must return `null` or an `Error` but returned a %s. ' + 'You may have forgotten to pass an argument to the type checker ' + 'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ' + 'shape all require an argument).', componentName || 'React class', location, typeSpecName, typeof error$1);
+
+          setCurrentlyValidatingElement(null);
+        }
+
+        if (error$1 instanceof Error && !(error$1.message in loggedTypeFailures)) {
+          // Only monitor this failure once because there tends to be a lot of the
+          // same error.
+          loggedTypeFailures[error$1.message] = true;
+          setCurrentlyValidatingElement(element);
+
+          error('Failed %s type: %s', location, error$1.message);
+
+          setCurrentlyValidatingElement(null);
+        }
+      }
+    }
+  }
+}
+
+var isArrayImpl = Array.isArray; // eslint-disable-next-line no-redeclare
+
+function isArray(a) {
+  return isArrayImpl(a);
+}
+
+/*
+ * The `'' + value` pattern (used in in perf-sensitive code) throws for Symbol
+ * and Temporal.* types. See https://github.com/facebook/react/pull/22064.
+ *
+ * The functions in this module will throw an easier-to-understand,
+ * easier-to-debug exception with a clear errors message message explaining the
+ * problem. (Instead of a confusing exception thrown inside the implementation
+ * of the `value` object).
+ */
+// $FlowFixMe only called in DEV, so void return is not possible.
+function typeName(value) {
+  {
+    // toStringTag is needed for namespaced types like Temporal.Instant
+    var hasToStringTag = typeof Symbol === 'function' && Symbol.toStringTag;
+    var type = hasToStringTag && value[Symbol.toStringTag] || value.constructor.name || 'Object';
+    return type;
+  }
+} // $FlowFixMe only called in DEV, so void return is not possible.
+
+
+function willCoercionThrow(value) {
+  {
+    try {
+      testStringCoercion(value);
+      return false;
+    } catch (e) {
+      return true;
+    }
+  }
+}
+
+function testStringCoercion(value) {
+  // If you ended up here by following an exception call stack, here's what's
+  // happened: you supplied an object or symbol value to React (as a prop, key,
+  // DOM attribute, CSS property, string ref, etc.) and when React tried to
+  // coerce it to a string using `'' + value`, an exception was thrown.
+  //
+  // The most common types that will cause this exception are `Symbol` instances
+  // and Temporal objects like `Temporal.Instant`. But any object that has a
+  // `valueOf` or `[Symbol.toPrimitive]` method that throws will also cause this
+  // exception. (Library authors do this to prevent users from using built-in
+  // numeric operators like `+` or comparison operators like `>=` because custom
+  // methods are needed to perform accurate arithmetic or comparison.)
+  //
+  // To fix the problem, coerce this object or symbol value to a string before
+  // passing it to React. The most reliable way is usually `String(value)`.
+  //
+  // To find which value is throwing, check the browser or debugger console.
+  // Before this exception was thrown, there should be `console.error` output
+  // that shows the type (Symbol, Temporal.PlainDate, etc.) that caused the
+  // problem and how that type was used: key, atrribute, input value prop, etc.
+  // In most cases, this console output also shows the component and its
+  // ancestor components where the exception happened.
+  //
+  // eslint-disable-next-line react-internal/safe-string-coercion
+  return '' + value;
+}
+function checkKeyStringCoercion(value) {
+  {
+    if (willCoercionThrow(value)) {
+      error('The provided key is an unsupported type %s.' + ' This value must be coerced to a string before before using it here.', typeName(value));
+
+      return testStringCoercion(value); // throw (to help callers find troubleshooting comments)
+    }
+  }
+}
+
+var ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
+var RESERVED_PROPS = {
+  key: true,
+  ref: true,
+  __self: true,
+  __source: true
+};
+var specialPropKeyWarningShown;
+var specialPropRefWarningShown;
+var didWarnAboutStringRefs;
+
+{
+  didWarnAboutStringRefs = {};
+}
+
+function hasValidRef(config) {
+  {
+    if (hasOwnProperty.call(config, 'ref')) {
+      var getter = Object.getOwnPropertyDescriptor(config, 'ref').get;
+
+      if (getter && getter.isReactWarning) {
+        return false;
+      }
+    }
+  }
+
+  return config.ref !== undefined;
+}
+
+function hasValidKey(config) {
+  {
+    if (hasOwnProperty.call(config, 'key')) {
+      var getter = Object.getOwnPropertyDescriptor(config, 'key').get;
+
+      if (getter && getter.isReactWarning) {
+        return false;
+      }
+    }
+  }
+
+  return config.key !== undefined;
+}
+
+function warnIfStringRefCannotBeAutoConverted(config, self) {
+  {
+    if (typeof config.ref === 'string' && ReactCurrentOwner.current && self && ReactCurrentOwner.current.stateNode !== self) {
+      var componentName = getComponentNameFromType(ReactCurrentOwner.current.type);
+
+      if (!didWarnAboutStringRefs[componentName]) {
+        error('Component "%s" contains the string ref "%s". ' + 'Support for string refs will be removed in a future major release. ' + 'This case cannot be automatically converted to an arrow function. ' + 'We ask you to manually fix this case by using useRef() or createRef() instead. ' + 'Learn more about using refs safely here: ' + 'https://reactjs.org/link/strict-mode-string-ref', getComponentNameFromType(ReactCurrentOwner.current.type), config.ref);
+
+        didWarnAboutStringRefs[componentName] = true;
+      }
+    }
+  }
+}
+
+function defineKeyPropWarningGetter(props, displayName) {
+  {
+    var warnAboutAccessingKey = function () {
+      if (!specialPropKeyWarningShown) {
+        specialPropKeyWarningShown = true;
+
+        error('%s: `key` is not a prop. Trying to access it will result ' + 'in `undefined` being returned. If you need to access the same ' + 'value within the child component, you should pass it as a different ' + 'prop. (https://reactjs.org/link/special-props)', displayName);
+      }
+    };
+
+    warnAboutAccessingKey.isReactWarning = true;
+    Object.defineProperty(props, 'key', {
+      get: warnAboutAccessingKey,
+      configurable: true
+    });
+  }
+}
+
+function defineRefPropWarningGetter(props, displayName) {
+  {
+    var warnAboutAccessingRef = function () {
+      if (!specialPropRefWarningShown) {
+        specialPropRefWarningShown = true;
+
+        error('%s: `ref` is not a prop. Trying to access it will result ' + 'in `undefined` being returned. If you need to access the same ' + 'value within the child component, you should pass it as a different ' + 'prop. (https://reactjs.org/link/special-props)', displayName);
+      }
+    };
+
+    warnAboutAccessingRef.isReactWarning = true;
+    Object.defineProperty(props, 'ref', {
+      get: warnAboutAccessingRef,
+      configurable: true
+    });
+  }
+}
+/**
+ * Factory method to create a new React element. This no longer adheres to
+ * the class pattern, so do not use new to call it. Also, instanceof check
+ * will not work. Instead test $$typeof field against Symbol.for('react.element') to check
+ * if something is a React Element.
+ *
+ * @param {*} type
+ * @param {*} props
+ * @param {*} key
+ * @param {string|object} ref
+ * @param {*} owner
+ * @param {*} self A *temporary* helper to detect places where `this` is
+ * different from the `owner` when React.createElement is called, so that we
+ * can warn. We want to get rid of owner and replace string `ref`s with arrow
+ * functions, and as long as `this` and owner are the same, there will be no
+ * change in behavior.
+ * @param {*} source An annotation object (added by a transpiler or otherwise)
+ * indicating filename, line number, and/or other information.
+ * @internal
+ */
+
+
+var ReactElement = function (type, key, ref, self, source, owner, props) {
+  var element = {
+    // This tag allows us to uniquely identify this as a React Element
+    $$typeof: REACT_ELEMENT_TYPE,
+    // Built-in properties that belong on the element
+    type: type,
+    key: key,
+    ref: ref,
+    props: props,
+    // Record the component responsible for creating this element.
+    _owner: owner
+  };
+
+  {
+    // The validation flag is currently mutative. We put it on
+    // an external backing store so that we can freeze the whole object.
+    // This can be replaced with a WeakMap once they are implemented in
+    // commonly used development environments.
+    element._store = {}; // To make comparing ReactElements easier for testing purposes, we make
+    // the validation flag non-enumerable (where possible, which should
+    // include every environment we run tests in), so the test framework
+    // ignores it.
+
+    Object.defineProperty(element._store, 'validated', {
+      configurable: false,
+      enumerable: false,
+      writable: true,
+      value: false
+    }); // self and source are DEV only properties.
+
+    Object.defineProperty(element, '_self', {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: self
+    }); // Two elements created in two different places should be considered
+    // equal for testing purposes and therefore we hide it from enumeration.
+
+    Object.defineProperty(element, '_source', {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: source
+    });
+
+    if (Object.freeze) {
+      Object.freeze(element.props);
+      Object.freeze(element);
+    }
+  }
+
+  return element;
+};
+/**
+ * https://github.com/reactjs/rfcs/pull/107
+ * @param {*} type
+ * @param {object} props
+ * @param {string} key
+ */
+
+function jsxDEV(type, config, maybeKey, source, self) {
+  {
+    var propName; // Reserved names are extracted
+
+    var props = {};
+    var key = null;
+    var ref = null; // Currently, key can be spread in as a prop. This causes a potential
+    // issue if key is also explicitly declared (ie. <div {...props} key="Hi" />
+    // or <div key="Hi" {...props} /> ). We want to deprecate key spread,
+    // but as an intermediary step, we will use jsxDEV for everything except
+    // <div {...props} key="Hi" />, because we aren't currently able to tell if
+    // key is explicitly declared to be undefined or not.
+
+    if (maybeKey !== undefined) {
+      {
+        checkKeyStringCoercion(maybeKey);
+      }
+
+      key = '' + maybeKey;
+    }
+
+    if (hasValidKey(config)) {
+      {
+        checkKeyStringCoercion(config.key);
+      }
+
+      key = '' + config.key;
+    }
+
+    if (hasValidRef(config)) {
+      ref = config.ref;
+      warnIfStringRefCannotBeAutoConverted(config, self);
+    } // Remaining properties are added to a new props object
+
+
+    for (propName in config) {
+      if (hasOwnProperty.call(config, propName) && !RESERVED_PROPS.hasOwnProperty(propName)) {
+        props[propName] = config[propName];
+      }
+    } // Resolve default props
+
+
+    if (type && type.defaultProps) {
+      var defaultProps = type.defaultProps;
+
+      for (propName in defaultProps) {
+        if (props[propName] === undefined) {
+          props[propName] = defaultProps[propName];
+        }
+      }
+    }
+
+    if (key || ref) {
+      var displayName = typeof type === 'function' ? type.displayName || type.name || 'Unknown' : type;
+
+      if (key) {
+        defineKeyPropWarningGetter(props, displayName);
+      }
+
+      if (ref) {
+        defineRefPropWarningGetter(props, displayName);
+      }
+    }
+
+    return ReactElement(type, key, ref, self, source, ReactCurrentOwner.current, props);
+  }
+}
+
+var ReactCurrentOwner$1 = ReactSharedInternals.ReactCurrentOwner;
+var ReactDebugCurrentFrame$1 = ReactSharedInternals.ReactDebugCurrentFrame;
+
+function setCurrentlyValidatingElement$1(element) {
+  {
+    if (element) {
+      var owner = element._owner;
+      var stack = describeUnknownElementTypeFrameInDEV(element.type, element._source, owner ? owner.type : null);
+      ReactDebugCurrentFrame$1.setExtraStackFrame(stack);
+    } else {
+      ReactDebugCurrentFrame$1.setExtraStackFrame(null);
+    }
+  }
+}
+
+var propTypesMisspellWarningShown;
+
+{
+  propTypesMisspellWarningShown = false;
+}
+/**
+ * Verifies the object is a ReactElement.
+ * See https://reactjs.org/docs/react-api.html#isvalidelement
+ * @param {?object} object
+ * @return {boolean} True if `object` is a ReactElement.
+ * @final
+ */
+
+
+function isValidElement(object) {
+  {
+    return typeof object === 'object' && object !== null && object.$$typeof === REACT_ELEMENT_TYPE;
+  }
+}
+
+function getDeclarationErrorAddendum() {
+  {
+    if (ReactCurrentOwner$1.current) {
+      var name = getComponentNameFromType(ReactCurrentOwner$1.current.type);
+
+      if (name) {
+        return '\n\nCheck the render method of `' + name + '`.';
+      }
+    }
+
+    return '';
+  }
+}
+
+function getSourceInfoErrorAddendum(source) {
+  {
+    if (source !== undefined) {
+      var fileName = source.fileName.replace(/^.*[\\\/]/, '');
+      var lineNumber = source.lineNumber;
+      return '\n\nCheck your code at ' + fileName + ':' + lineNumber + '.';
+    }
+
+    return '';
+  }
+}
+/**
+ * Warn if there's no key explicitly set on dynamic arrays of children or
+ * object keys are not valid. This allows us to keep track of children between
+ * updates.
+ */
+
+
+var ownerHasKeyUseWarning = {};
+
+function getCurrentComponentErrorInfo(parentType) {
+  {
+    var info = getDeclarationErrorAddendum();
+
+    if (!info) {
+      var parentName = typeof parentType === 'string' ? parentType : parentType.displayName || parentType.name;
+
+      if (parentName) {
+        info = "\n\nCheck the top-level render call using <" + parentName + ">.";
+      }
+    }
+
+    return info;
+  }
+}
+/**
+ * Warn if the element doesn't have an explicit key assigned to it.
+ * This element is in an array. The array could grow and shrink or be
+ * reordered. All children that haven't already been validated are required to
+ * have a "key" property assigned to it. Error statuses are cached so a warning
+ * will only be shown once.
+ *
+ * @internal
+ * @param {ReactElement} element Element that requires a key.
+ * @param {*} parentType element's parent's type.
+ */
+
+
+function validateExplicitKey(element, parentType) {
+  {
+    if (!element._store || element._store.validated || element.key != null) {
+      return;
+    }
+
+    element._store.validated = true;
+    var currentComponentErrorInfo = getCurrentComponentErrorInfo(parentType);
+
+    if (ownerHasKeyUseWarning[currentComponentErrorInfo]) {
+      return;
+    }
+
+    ownerHasKeyUseWarning[currentComponentErrorInfo] = true; // Usually the current owner is the offender, but if it accepts children as a
+    // property, it may be the creator of the child that's responsible for
+    // assigning it a key.
+
+    var childOwner = '';
+
+    if (element && element._owner && element._owner !== ReactCurrentOwner$1.current) {
+      // Give the component that originally created this child.
+      childOwner = " It was passed a child from " + getComponentNameFromType(element._owner.type) + ".";
+    }
+
+    setCurrentlyValidatingElement$1(element);
+
+    error('Each child in a list should have a unique "key" prop.' + '%s%s See https://reactjs.org/link/warning-keys for more information.', currentComponentErrorInfo, childOwner);
+
+    setCurrentlyValidatingElement$1(null);
+  }
+}
+/**
+ * Ensure that every element either is passed in a static location, in an
+ * array with an explicit keys property defined, or in an object literal
+ * with valid key property.
+ *
+ * @internal
+ * @param {ReactNode} node Statically passed child of any type.
+ * @param {*} parentType node's parent's type.
+ */
+
+
+function validateChildKeys(node, parentType) {
+  {
+    if (typeof node !== 'object') {
+      return;
+    }
+
+    if (isArray(node)) {
+      for (var i = 0; i < node.length; i++) {
+        var child = node[i];
+
+        if (isValidElement(child)) {
+          validateExplicitKey(child, parentType);
+        }
+      }
+    } else if (isValidElement(node)) {
+      // This element was passed in a valid location.
+      if (node._store) {
+        node._store.validated = true;
+      }
+    } else if (node) {
+      var iteratorFn = getIteratorFn(node);
+
+      if (typeof iteratorFn === 'function') {
+        // Entry iterators used to provide implicit keys,
+        // but now we print a separate warning for them later.
+        if (iteratorFn !== node.entries) {
+          var iterator = iteratorFn.call(node);
+          var step;
+
+          while (!(step = iterator.next()).done) {
+            if (isValidElement(step.value)) {
+              validateExplicitKey(step.value, parentType);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+/**
+ * Given an element, validate that its props follow the propTypes definition,
+ * provided by the type.
+ *
+ * @param {ReactElement} element
+ */
+
+
+function validatePropTypes(element) {
+  {
+    var type = element.type;
+
+    if (type === null || type === undefined || typeof type === 'string') {
+      return;
+    }
+
+    var propTypes;
+
+    if (typeof type === 'function') {
+      propTypes = type.propTypes;
+    } else if (typeof type === 'object' && (type.$$typeof === REACT_FORWARD_REF_TYPE || // Note: Memo only checks outer props here.
+    // Inner props are checked in the reconciler.
+    type.$$typeof === REACT_MEMO_TYPE)) {
+      propTypes = type.propTypes;
+    } else {
+      return;
+    }
+
+    if (propTypes) {
+      // Intentionally inside to avoid triggering lazy initializers:
+      var name = getComponentNameFromType(type);
+      checkPropTypes(propTypes, element.props, 'prop', name, element);
+    } else if (type.PropTypes !== undefined && !propTypesMisspellWarningShown) {
+      propTypesMisspellWarningShown = true; // Intentionally inside to avoid triggering lazy initializers:
+
+      var _name = getComponentNameFromType(type);
+
+      error('Component %s declared `PropTypes` instead of `propTypes`. Did you misspell the property assignment?', _name || 'Unknown');
+    }
+
+    if (typeof type.getDefaultProps === 'function' && !type.getDefaultProps.isReactClassApproved) {
+      error('getDefaultProps is only used on classic React.createClass ' + 'definitions. Use a static property named `defaultProps` instead.');
+    }
+  }
+}
+/**
+ * Given a fragment, validate that it can only be provided with fragment props
+ * @param {ReactElement} fragment
+ */
+
+
+function validateFragmentProps(fragment) {
+  {
+    var keys = Object.keys(fragment.props);
+
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+
+      if (key !== 'children' && key !== 'key') {
+        setCurrentlyValidatingElement$1(fragment);
+
+        error('Invalid prop `%s` supplied to `React.Fragment`. ' + 'React.Fragment can only have `key` and `children` props.', key);
+
+        setCurrentlyValidatingElement$1(null);
+        break;
+      }
+    }
+
+    if (fragment.ref !== null) {
+      setCurrentlyValidatingElement$1(fragment);
+
+      error('Invalid attribute `ref` supplied to `React.Fragment`.');
+
+      setCurrentlyValidatingElement$1(null);
+    }
+  }
+}
+
+function jsxWithValidation(type, props, key, isStaticChildren, source, self) {
+  {
+    var validType = isValidElementType(type); // We warn in this case but don't throw. We expect the element creation to
+    // succeed and there will likely be errors in render.
+
+    if (!validType) {
+      var info = '';
+
+      if (type === undefined || typeof type === 'object' && type !== null && Object.keys(type).length === 0) {
+        info += ' You likely forgot to export your component from the file ' + "it's defined in, or you might have mixed up default and named imports.";
+      }
+
+      var sourceInfo = getSourceInfoErrorAddendum(source);
+
+      if (sourceInfo) {
+        info += sourceInfo;
+      } else {
+        info += getDeclarationErrorAddendum();
+      }
+
+      var typeString;
+
+      if (type === null) {
+        typeString = 'null';
+      } else if (isArray(type)) {
+        typeString = 'array';
+      } else if (type !== undefined && type.$$typeof === REACT_ELEMENT_TYPE) {
+        typeString = "<" + (getComponentNameFromType(type.type) || 'Unknown') + " />";
+        info = ' Did you accidentally export a JSX literal instead of a component?';
+      } else {
+        typeString = typeof type;
+      }
+
+      error('React.jsx: type is invalid -- expected a string (for ' + 'built-in components) or a class/function (for composite ' + 'components) but got: %s.%s', typeString, info);
+    }
+
+    var element = jsxDEV(type, props, key, source, self); // The result can be nullish if a mock or a custom function is used.
+    // TODO: Drop this when these are no longer allowed as the type argument.
+
+    if (element == null) {
+      return element;
+    } // Skip key warning if the type isn't valid since our key validation logic
+    // doesn't expect a non-string/function type and can throw confusing errors.
+    // We don't want exception behavior to differ between dev and prod.
+    // (Rendering will throw with a helpful message and as soon as the type is
+    // fixed, the key warnings will appear.)
+
+
+    if (validType) {
+      var children = props.children;
+
+      if (children !== undefined) {
+        if (isStaticChildren) {
+          if (isArray(children)) {
+            for (var i = 0; i < children.length; i++) {
+              validateChildKeys(children[i], type);
+            }
+
+            if (Object.freeze) {
+              Object.freeze(children);
+            }
+          } else {
+            error('React.jsx: Static children should always be an array. ' + 'You are likely explicitly calling React.jsxs or React.jsxDEV. ' + 'Use the Babel transform instead.');
+          }
+        } else {
+          validateChildKeys(children, type);
+        }
+      }
+    }
+
+    if (type === REACT_FRAGMENT_TYPE) {
+      validateFragmentProps(element);
+    } else {
+      validatePropTypes(element);
+    }
+
+    return element;
+  }
+} // These two functions exist to still get child warnings in dev
+// even with the prod transform. This means that jsxDEV is purely
+// opt-in behavior for better messages but that we won't stop
+// giving you warnings if you use production apis.
+
+function jsxWithValidationStatic(type, props, key) {
+  {
+    return jsxWithValidation(type, props, key, true);
+  }
+}
+function jsxWithValidationDynamic(type, props, key) {
+  {
+    return jsxWithValidation(type, props, key, false);
+  }
+}
+
+var jsx =  jsxWithValidationDynamic ; // we may want to special case jsxs internally to take advantage of static children.
+// for now we can ship identical prod functions
+
+var jsxs =  jsxWithValidationStatic ;
+
+reactJsxRuntime_development.Fragment = REACT_FRAGMENT_TYPE;
+reactJsxRuntime_development.jsx = jsx;
+reactJsxRuntime_development.jsxs = jsxs;
+  })();
+}
+
+(function (module) {
+
+	{
+	  module.exports = reactJsxRuntime_development;
+	}
+} (jsxRuntime));
+
+class ViewerCanvas extends react.exports.Component {
+  constructor() {
+    super(); // make item list controller pixi.js canvas
+
+    this.hud = new ViewerPixi(characterStore); // for attach canvas
+
+    this.canvasDom = /*#__PURE__*/react.exports.createRef();
+  }
+
+  componentDidMount() {
+    if (this.canvasDom.current) {
+      this.hud.appendParent(this.canvasDom.current);
+      this.hud.initialize();
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.canvasDom.current) {
+      this.hud.destroy();
+    }
+  }
+
+  render() {
+    return /*#__PURE__*/jsxRuntime.exports.jsx("div", {
+      className: "viewer-canvas",
+      ref: this.canvasDom
+    });
+  }
+
+}
+
+const Viewer = () => {
+  return /*#__PURE__*/jsxRuntime.exports.jsx("div", {
+    className: "viewer",
+    children: /*#__PURE__*/jsxRuntime.exports.jsx("div", {
+      className: "viewer-wrapper",
+      children: /*#__PURE__*/jsxRuntime.exports.jsx(ViewerCanvas, {})
+    })
+  });
+};
+
+/**
+ * SSR Window 4.0.2
+ * Better handling for window object in SSR environment
+ * https://github.com/nolimits4web/ssr-window
+ *
+ * Copyright 2021, Vladimir Kharlampidi
+ *
+ * Licensed under MIT
+ *
+ * Released on: December 13, 2021
+ */
+/* eslint-disable no-param-reassign */
+function isObject$3(obj) {
+    return (obj !== null &&
+        typeof obj === 'object' &&
+        'constructor' in obj &&
+        obj.constructor === Object);
+}
+function extend$2(target = {}, src = {}) {
+    Object.keys(src).forEach((key) => {
+        if (typeof target[key] === 'undefined')
+            target[key] = src[key];
+        else if (isObject$3(src[key]) &&
+            isObject$3(target[key]) &&
+            Object.keys(src[key]).length > 0) {
+            extend$2(target[key], src[key]);
+        }
+    });
+}
+
+const ssrDocument = {
+    body: {},
+    addEventListener() { },
+    removeEventListener() { },
+    activeElement: {
+        blur() { },
+        nodeName: '',
+    },
+    querySelector() {
+        return null;
+    },
+    querySelectorAll() {
+        return [];
+    },
+    getElementById() {
+        return null;
+    },
+    createEvent() {
+        return {
+            initEvent() { },
+        };
+    },
+    createElement() {
+        return {
+            children: [],
+            childNodes: [],
+            style: {},
+            setAttribute() { },
+            getElementsByTagName() {
+                return [];
+            },
+        };
+    },
+    createElementNS() {
+        return {};
+    },
+    importNode() {
+        return null;
+    },
+    location: {
+        hash: '',
+        host: '',
+        hostname: '',
+        href: '',
+        origin: '',
+        pathname: '',
+        protocol: '',
+        search: '',
+    },
+};
+function getDocument() {
+    const doc = typeof document !== 'undefined' ? document : {};
+    extend$2(doc, ssrDocument);
+    return doc;
+}
+
+const ssrWindow = {
+    document: ssrDocument,
+    navigator: {
+        userAgent: '',
+    },
+    location: {
+        hash: '',
+        host: '',
+        hostname: '',
+        href: '',
+        origin: '',
+        pathname: '',
+        protocol: '',
+        search: '',
+    },
+    history: {
+        replaceState() { },
+        pushState() { },
+        go() { },
+        back() { },
+    },
+    CustomEvent: function CustomEvent() {
+        return this;
+    },
+    addEventListener() { },
+    removeEventListener() { },
+    getComputedStyle() {
+        return {
+            getPropertyValue() {
+                return '';
+            },
+        };
+    },
+    Image() { },
+    Date() { },
+    screen: {},
+    setTimeout() { },
+    clearTimeout() { },
+    matchMedia() {
+        return {};
+    },
+    requestAnimationFrame(callback) {
+        if (typeof setTimeout === 'undefined') {
+            callback();
+            return null;
+        }
+        return setTimeout(callback, 0);
+    },
+    cancelAnimationFrame(id) {
+        if (typeof setTimeout === 'undefined') {
+            return;
+        }
+        clearTimeout(id);
+    },
+};
+function getWindow() {
+    const win = typeof window !== 'undefined' ? window : {};
+    extend$2(win, ssrWindow);
+    return win;
+}
+
+/**
+ * Dom7 4.0.4
+ * Minimalistic JavaScript library for DOM manipulation, with a jQuery-compatible API
+ * https://framework7.io/docs/dom7.html
+ *
+ * Copyright 2022, Vladimir Kharlampidi
+ *
+ * Licensed under MIT
+ *
+ * Released on: January 11, 2022
+ */
+
+/* eslint-disable no-proto */
+function makeReactive(obj) {
+  const proto = obj.__proto__;
+  Object.defineProperty(obj, '__proto__', {
+    get() {
+      return proto;
+    },
+
+    set(value) {
+      proto.__proto__ = value;
+    }
+
+  });
+}
+
+class Dom7 extends Array {
+  constructor(items) {
+    if (typeof items === 'number') {
+      super(items);
+    } else {
+      super(...(items || []));
+      makeReactive(this);
+    }
+  }
+
+}
+
+function arrayFlat(arr = []) {
+  const res = [];
+  arr.forEach(el => {
+    if (Array.isArray(el)) {
+      res.push(...arrayFlat(el));
+    } else {
+      res.push(el);
+    }
+  });
+  return res;
+}
+function arrayFilter(arr, callback) {
+  return Array.prototype.filter.call(arr, callback);
+}
+function arrayUnique(arr) {
+  const uniqueArray = [];
+
+  for (let i = 0; i < arr.length; i += 1) {
+    if (uniqueArray.indexOf(arr[i]) === -1) uniqueArray.push(arr[i]);
+  }
+
+  return uniqueArray;
+}
+
+// eslint-disable-next-line
+
+function qsa(selector, context) {
+  if (typeof selector !== 'string') {
+    return [selector];
+  }
+
+  const a = [];
+  const res = context.querySelectorAll(selector);
+
+  for (let i = 0; i < res.length; i += 1) {
+    a.push(res[i]);
+  }
+
+  return a;
+}
+
+function $(selector, context) {
+  const window = getWindow();
+  const document = getDocument();
+  let arr = [];
+
+  if (!context && selector instanceof Dom7) {
+    return selector;
+  }
+
+  if (!selector) {
+    return new Dom7(arr);
+  }
+
+  if (typeof selector === 'string') {
+    const html = selector.trim();
+
+    if (html.indexOf('<') >= 0 && html.indexOf('>') >= 0) {
+      let toCreate = 'div';
+      if (html.indexOf('<li') === 0) toCreate = 'ul';
+      if (html.indexOf('<tr') === 0) toCreate = 'tbody';
+      if (html.indexOf('<td') === 0 || html.indexOf('<th') === 0) toCreate = 'tr';
+      if (html.indexOf('<tbody') === 0) toCreate = 'table';
+      if (html.indexOf('<option') === 0) toCreate = 'select';
+      const tempParent = document.createElement(toCreate);
+      tempParent.innerHTML = html;
+
+      for (let i = 0; i < tempParent.childNodes.length; i += 1) {
+        arr.push(tempParent.childNodes[i]);
+      }
+    } else {
+      arr = qsa(selector.trim(), context || document);
+    } // arr = qsa(selector, document);
+
+  } else if (selector.nodeType || selector === window || selector === document) {
+    arr.push(selector);
+  } else if (Array.isArray(selector)) {
+    if (selector instanceof Dom7) return selector;
+    arr = selector;
+  }
+
+  return new Dom7(arrayUnique(arr));
+}
+
+$.fn = Dom7.prototype;
+
+// eslint-disable-next-line
+
+function addClass(...classes) {
+  const classNames = arrayFlat(classes.map(c => c.split(' ')));
+  this.forEach(el => {
+    el.classList.add(...classNames);
+  });
+  return this;
+}
+
+function removeClass(...classes) {
+  const classNames = arrayFlat(classes.map(c => c.split(' ')));
+  this.forEach(el => {
+    el.classList.remove(...classNames);
+  });
+  return this;
+}
+
+function toggleClass(...classes) {
+  const classNames = arrayFlat(classes.map(c => c.split(' ')));
+  this.forEach(el => {
+    classNames.forEach(className => {
+      el.classList.toggle(className);
+    });
+  });
+}
+
+function hasClass(...classes) {
+  const classNames = arrayFlat(classes.map(c => c.split(' ')));
+  return arrayFilter(this, el => {
+    return classNames.filter(className => el.classList.contains(className)).length > 0;
+  }).length > 0;
+}
+
+function attr(attrs, value) {
+  if (arguments.length === 1 && typeof attrs === 'string') {
+    // Get attr
+    if (this[0]) return this[0].getAttribute(attrs);
+    return undefined;
+  } // Set attrs
+
+
+  for (let i = 0; i < this.length; i += 1) {
+    if (arguments.length === 2) {
+      // String
+      this[i].setAttribute(attrs, value);
+    } else {
+      // Object
+      for (const attrName in attrs) {
+        this[i][attrName] = attrs[attrName];
+        this[i].setAttribute(attrName, attrs[attrName]);
+      }
+    }
+  }
+
+  return this;
+}
+
+function removeAttr(attr) {
+  for (let i = 0; i < this.length; i += 1) {
+    this[i].removeAttribute(attr);
+  }
+
+  return this;
+}
+
+function transform(transform) {
+  for (let i = 0; i < this.length; i += 1) {
+    this[i].style.transform = transform;
+  }
+
+  return this;
+}
+
+function transition$1(duration) {
+  for (let i = 0; i < this.length; i += 1) {
+    this[i].style.transitionDuration = typeof duration !== 'string' ? `${duration}ms` : duration;
+  }
+
+  return this;
+}
+
+function on(...args) {
+  let [eventType, targetSelector, listener, capture] = args;
+
+  if (typeof args[1] === 'function') {
+    [eventType, listener, capture] = args;
+    targetSelector = undefined;
+  }
+
+  if (!capture) capture = false;
+
+  function handleLiveEvent(e) {
+    const target = e.target;
+    if (!target) return;
+    const eventData = e.target.dom7EventData || [];
+
+    if (eventData.indexOf(e) < 0) {
+      eventData.unshift(e);
+    }
+
+    if ($(target).is(targetSelector)) listener.apply(target, eventData);else {
+      const parents = $(target).parents(); // eslint-disable-line
+
+      for (let k = 0; k < parents.length; k += 1) {
+        if ($(parents[k]).is(targetSelector)) listener.apply(parents[k], eventData);
+      }
+    }
+  }
+
+  function handleEvent(e) {
+    const eventData = e && e.target ? e.target.dom7EventData || [] : [];
+
+    if (eventData.indexOf(e) < 0) {
+      eventData.unshift(e);
+    }
+
+    listener.apply(this, eventData);
+  }
+
+  const events = eventType.split(' ');
+  let j;
+
+  for (let i = 0; i < this.length; i += 1) {
+    const el = this[i];
+
+    if (!targetSelector) {
+      for (j = 0; j < events.length; j += 1) {
+        const event = events[j];
+        if (!el.dom7Listeners) el.dom7Listeners = {};
+        if (!el.dom7Listeners[event]) el.dom7Listeners[event] = [];
+        el.dom7Listeners[event].push({
+          listener,
+          proxyListener: handleEvent
+        });
+        el.addEventListener(event, handleEvent, capture);
+      }
+    } else {
+      // Live events
+      for (j = 0; j < events.length; j += 1) {
+        const event = events[j];
+        if (!el.dom7LiveListeners) el.dom7LiveListeners = {};
+        if (!el.dom7LiveListeners[event]) el.dom7LiveListeners[event] = [];
+        el.dom7LiveListeners[event].push({
+          listener,
+          proxyListener: handleLiveEvent
+        });
+        el.addEventListener(event, handleLiveEvent, capture);
+      }
+    }
+  }
+
+  return this;
+}
+
+function off(...args) {
+  let [eventType, targetSelector, listener, capture] = args;
+
+  if (typeof args[1] === 'function') {
+    [eventType, listener, capture] = args;
+    targetSelector = undefined;
+  }
+
+  if (!capture) capture = false;
+  const events = eventType.split(' ');
+
+  for (let i = 0; i < events.length; i += 1) {
+    const event = events[i];
+
+    for (let j = 0; j < this.length; j += 1) {
+      const el = this[j];
+      let handlers;
+
+      if (!targetSelector && el.dom7Listeners) {
+        handlers = el.dom7Listeners[event];
+      } else if (targetSelector && el.dom7LiveListeners) {
+        handlers = el.dom7LiveListeners[event];
+      }
+
+      if (handlers && handlers.length) {
+        for (let k = handlers.length - 1; k >= 0; k -= 1) {
+          const handler = handlers[k];
+
+          if (listener && handler.listener === listener) {
+            el.removeEventListener(event, handler.proxyListener, capture);
+            handlers.splice(k, 1);
+          } else if (listener && handler.listener && handler.listener.dom7proxy && handler.listener.dom7proxy === listener) {
+            el.removeEventListener(event, handler.proxyListener, capture);
+            handlers.splice(k, 1);
+          } else if (!listener) {
+            el.removeEventListener(event, handler.proxyListener, capture);
+            handlers.splice(k, 1);
+          }
+        }
+      }
+    }
+  }
+
+  return this;
+}
+
+function trigger(...args) {
+  const window = getWindow();
+  const events = args[0].split(' ');
+  const eventData = args[1];
+
+  for (let i = 0; i < events.length; i += 1) {
+    const event = events[i];
+
+    for (let j = 0; j < this.length; j += 1) {
+      const el = this[j];
+
+      if (window.CustomEvent) {
+        const evt = new window.CustomEvent(event, {
+          detail: eventData,
+          bubbles: true,
+          cancelable: true
+        });
+        el.dom7EventData = args.filter((data, dataIndex) => dataIndex > 0);
+        el.dispatchEvent(evt);
+        el.dom7EventData = [];
+        delete el.dom7EventData;
+      }
+    }
+  }
+
+  return this;
+}
+
+function transitionEnd$1(callback) {
+  const dom = this;
+
+  function fireCallBack(e) {
+    if (e.target !== this) return;
+    callback.call(this, e);
+    dom.off('transitionend', fireCallBack);
+  }
+
+  if (callback) {
+    dom.on('transitionend', fireCallBack);
+  }
+
+  return this;
+}
+
+function outerWidth(includeMargins) {
+  if (this.length > 0) {
+    if (includeMargins) {
+      const styles = this.styles();
+      return this[0].offsetWidth + parseFloat(styles.getPropertyValue('margin-right')) + parseFloat(styles.getPropertyValue('margin-left'));
+    }
+
+    return this[0].offsetWidth;
+  }
+
+  return null;
+}
+
+function outerHeight(includeMargins) {
+  if (this.length > 0) {
+    if (includeMargins) {
+      const styles = this.styles();
+      return this[0].offsetHeight + parseFloat(styles.getPropertyValue('margin-top')) + parseFloat(styles.getPropertyValue('margin-bottom'));
+    }
+
+    return this[0].offsetHeight;
+  }
+
+  return null;
+}
+
+function offset() {
+  if (this.length > 0) {
+    const window = getWindow();
+    const document = getDocument();
+    const el = this[0];
+    const box = el.getBoundingClientRect();
+    const body = document.body;
+    const clientTop = el.clientTop || body.clientTop || 0;
+    const clientLeft = el.clientLeft || body.clientLeft || 0;
+    const scrollTop = el === window ? window.scrollY : el.scrollTop;
+    const scrollLeft = el === window ? window.scrollX : el.scrollLeft;
+    return {
+      top: box.top + scrollTop - clientTop,
+      left: box.left + scrollLeft - clientLeft
+    };
+  }
+
+  return null;
+}
+
+function styles() {
+  const window = getWindow();
+  if (this[0]) return window.getComputedStyle(this[0], null);
+  return {};
+}
+
+function css(props, value) {
+  const window = getWindow();
+  let i;
+
+  if (arguments.length === 1) {
+    if (typeof props === 'string') {
+      // .css('width')
+      if (this[0]) return window.getComputedStyle(this[0], null).getPropertyValue(props);
+    } else {
+      // .css({ width: '100px' })
+      for (i = 0; i < this.length; i += 1) {
+        for (const prop in props) {
+          this[i].style[prop] = props[prop];
+        }
+      }
+
+      return this;
+    }
+  }
+
+  if (arguments.length === 2 && typeof props === 'string') {
+    // .css('width', '100px')
+    for (i = 0; i < this.length; i += 1) {
+      this[i].style[props] = value;
+    }
+
+    return this;
+  }
+
+  return this;
+}
+
+function each(callback) {
+  if (!callback) return this;
+  this.forEach((el, index) => {
+    callback.apply(el, [el, index]);
+  });
+  return this;
+}
+
+function filter(callback) {
+  const result = arrayFilter(this, callback);
+  return $(result);
+}
+
+function html(html) {
+  if (typeof html === 'undefined') {
+    return this[0] ? this[0].innerHTML : null;
+  }
+
+  for (let i = 0; i < this.length; i += 1) {
+    this[i].innerHTML = html;
+  }
+
+  return this;
+}
+
+function text(text) {
+  if (typeof text === 'undefined') {
+    return this[0] ? this[0].textContent.trim() : null;
+  }
+
+  for (let i = 0; i < this.length; i += 1) {
+    this[i].textContent = text;
+  }
+
+  return this;
+}
+
+function is(selector) {
+  const window = getWindow();
+  const document = getDocument();
+  const el = this[0];
+  let compareWith;
+  let i;
+  if (!el || typeof selector === 'undefined') return false;
+
+  if (typeof selector === 'string') {
+    if (el.matches) return el.matches(selector);
+    if (el.webkitMatchesSelector) return el.webkitMatchesSelector(selector);
+    if (el.msMatchesSelector) return el.msMatchesSelector(selector);
+    compareWith = $(selector);
+
+    for (i = 0; i < compareWith.length; i += 1) {
+      if (compareWith[i] === el) return true;
+    }
+
+    return false;
+  }
+
+  if (selector === document) {
+    return el === document;
+  }
+
+  if (selector === window) {
+    return el === window;
+  }
+
+  if (selector.nodeType || selector instanceof Dom7) {
+    compareWith = selector.nodeType ? [selector] : selector;
+
+    for (i = 0; i < compareWith.length; i += 1) {
+      if (compareWith[i] === el) return true;
+    }
+
+    return false;
+  }
+
+  return false;
+}
+
+function index() {
+  let child = this[0];
+  let i;
+
+  if (child) {
+    i = 0; // eslint-disable-next-line
+
+    while ((child = child.previousSibling) !== null) {
+      if (child.nodeType === 1) i += 1;
+    }
+
+    return i;
+  }
+
+  return undefined;
+}
+
+function eq(index) {
+  if (typeof index === 'undefined') return this;
+  const length = this.length;
+
+  if (index > length - 1) {
+    return $([]);
+  }
+
+  if (index < 0) {
+    const returnIndex = length + index;
+    if (returnIndex < 0) return $([]);
+    return $([this[returnIndex]]);
+  }
+
+  return $([this[index]]);
+}
+
+function append(...els) {
+  let newChild;
+  const document = getDocument();
+
+  for (let k = 0; k < els.length; k += 1) {
+    newChild = els[k];
+
+    for (let i = 0; i < this.length; i += 1) {
+      if (typeof newChild === 'string') {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newChild;
+
+        while (tempDiv.firstChild) {
+          this[i].appendChild(tempDiv.firstChild);
+        }
+      } else if (newChild instanceof Dom7) {
+        for (let j = 0; j < newChild.length; j += 1) {
+          this[i].appendChild(newChild[j]);
+        }
+      } else {
+        this[i].appendChild(newChild);
+      }
+    }
+  }
+
+  return this;
+}
+
+function prepend(newChild) {
+  const document = getDocument();
+  let i;
+  let j;
+
+  for (i = 0; i < this.length; i += 1) {
+    if (typeof newChild === 'string') {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = newChild;
+
+      for (j = tempDiv.childNodes.length - 1; j >= 0; j -= 1) {
+        this[i].insertBefore(tempDiv.childNodes[j], this[i].childNodes[0]);
+      }
+    } else if (newChild instanceof Dom7) {
+      for (j = 0; j < newChild.length; j += 1) {
+        this[i].insertBefore(newChild[j], this[i].childNodes[0]);
+      }
+    } else {
+      this[i].insertBefore(newChild, this[i].childNodes[0]);
+    }
+  }
+
+  return this;
+}
+
+function next(selector) {
+  if (this.length > 0) {
+    if (selector) {
+      if (this[0].nextElementSibling && $(this[0].nextElementSibling).is(selector)) {
+        return $([this[0].nextElementSibling]);
+      }
+
+      return $([]);
+    }
+
+    if (this[0].nextElementSibling) return $([this[0].nextElementSibling]);
+    return $([]);
+  }
+
+  return $([]);
+}
+
+function nextAll(selector) {
+  const nextEls = [];
+  let el = this[0];
+  if (!el) return $([]);
+
+  while (el.nextElementSibling) {
+    const next = el.nextElementSibling; // eslint-disable-line
+
+    if (selector) {
+      if ($(next).is(selector)) nextEls.push(next);
+    } else nextEls.push(next);
+
+    el = next;
+  }
+
+  return $(nextEls);
+}
+
+function prev(selector) {
+  if (this.length > 0) {
+    const el = this[0];
+
+    if (selector) {
+      if (el.previousElementSibling && $(el.previousElementSibling).is(selector)) {
+        return $([el.previousElementSibling]);
+      }
+
+      return $([]);
+    }
+
+    if (el.previousElementSibling) return $([el.previousElementSibling]);
+    return $([]);
+  }
+
+  return $([]);
+}
+
+function prevAll(selector) {
+  const prevEls = [];
+  let el = this[0];
+  if (!el) return $([]);
+
+  while (el.previousElementSibling) {
+    const prev = el.previousElementSibling; // eslint-disable-line
+
+    if (selector) {
+      if ($(prev).is(selector)) prevEls.push(prev);
+    } else prevEls.push(prev);
+
+    el = prev;
+  }
+
+  return $(prevEls);
+}
+
+function parent(selector) {
+  const parents = []; // eslint-disable-line
+
+  for (let i = 0; i < this.length; i += 1) {
+    if (this[i].parentNode !== null) {
+      if (selector) {
+        if ($(this[i].parentNode).is(selector)) parents.push(this[i].parentNode);
+      } else {
+        parents.push(this[i].parentNode);
+      }
+    }
+  }
+
+  return $(parents);
+}
+
+function parents(selector) {
+  const parents = []; // eslint-disable-line
+
+  for (let i = 0; i < this.length; i += 1) {
+    let parent = this[i].parentNode; // eslint-disable-line
+
+    while (parent) {
+      if (selector) {
+        if ($(parent).is(selector)) parents.push(parent);
+      } else {
+        parents.push(parent);
+      }
+
+      parent = parent.parentNode;
+    }
+  }
+
+  return $(parents);
+}
+
+function closest(selector) {
+  let closest = this; // eslint-disable-line
+
+  if (typeof selector === 'undefined') {
+    return $([]);
+  }
+
+  if (!closest.is(selector)) {
+    closest = closest.parents(selector).eq(0);
+  }
+
+  return closest;
+}
+
+function find(selector) {
+  const foundElements = [];
+
+  for (let i = 0; i < this.length; i += 1) {
+    const found = this[i].querySelectorAll(selector);
+
+    for (let j = 0; j < found.length; j += 1) {
+      foundElements.push(found[j]);
+    }
+  }
+
+  return $(foundElements);
+}
+
+function children(selector) {
+  const children = []; // eslint-disable-line
+
+  for (let i = 0; i < this.length; i += 1) {
+    const childNodes = this[i].children;
+
+    for (let j = 0; j < childNodes.length; j += 1) {
+      if (!selector || $(childNodes[j]).is(selector)) {
+        children.push(childNodes[j]);
+      }
+    }
+  }
+
+  return $(children);
+}
+
+function remove() {
+  for (let i = 0; i < this.length; i += 1) {
+    if (this[i].parentNode) this[i].parentNode.removeChild(this[i]);
+  }
+
+  return this;
+}
+
+const Methods = {
+  addClass,
+  removeClass,
+  hasClass,
+  toggleClass,
+  attr,
+  removeAttr,
+  transform,
+  transition: transition$1,
+  on,
+  off,
+  trigger,
+  transitionEnd: transitionEnd$1,
+  outerWidth,
+  outerHeight,
+  styles,
+  offset,
+  css,
+  each,
+  html,
+  text,
+  is,
+  index,
+  eq,
+  append,
+  prepend,
+  next,
+  nextAll,
+  prev,
+  prevAll,
+  parent,
+  parents,
+  closest,
+  find,
+  children,
+  filter,
+  remove
+};
+Object.keys(Methods).forEach(methodName => {
+  Object.defineProperty($.fn, methodName, {
+    value: Methods[methodName],
+    writable: true
+  });
+});
+
+function deleteProps(obj) {
+  const object = obj;
+  Object.keys(object).forEach(key => {
+    try {
+      object[key] = null;
+    } catch (e) {// no getter for object
+    }
+
+    try {
+      delete object[key];
+    } catch (e) {// something got wrong
+    }
+  });
+}
+
+function nextTick(callback, delay) {
+  if (delay === void 0) {
+    delay = 0;
+  }
+
+  return setTimeout(callback, delay);
+}
+
+function now$1() {
+  return Date.now();
+}
+
+function getComputedStyle$1(el) {
+  const window = getWindow();
+  let style;
+
+  if (window.getComputedStyle) {
+    style = window.getComputedStyle(el, null);
+  }
+
+  if (!style && el.currentStyle) {
+    style = el.currentStyle;
+  }
+
+  if (!style) {
+    style = el.style;
+  }
+
+  return style;
+}
+
+function getTranslate(el, axis) {
+  if (axis === void 0) {
+    axis = 'x';
+  }
+
+  const window = getWindow();
+  let matrix;
+  let curTransform;
+  let transformMatrix;
+  const curStyle = getComputedStyle$1(el);
+
+  if (window.WebKitCSSMatrix) {
+    curTransform = curStyle.transform || curStyle.webkitTransform;
+
+    if (curTransform.split(',').length > 6) {
+      curTransform = curTransform.split(', ').map(a => a.replace(',', '.')).join(', ');
+    } // Some old versions of Webkit choke when 'none' is passed; pass
+    // empty string instead in this case
+
+
+    transformMatrix = new window.WebKitCSSMatrix(curTransform === 'none' ? '' : curTransform);
+  } else {
+    transformMatrix = curStyle.MozTransform || curStyle.OTransform || curStyle.MsTransform || curStyle.msTransform || curStyle.transform || curStyle.getPropertyValue('transform').replace('translate(', 'matrix(1, 0, 0, 1,');
+    matrix = transformMatrix.toString().split(',');
+  }
+
+  if (axis === 'x') {
+    // Latest Chrome and webkits Fix
+    if (window.WebKitCSSMatrix) curTransform = transformMatrix.m41; // Crazy IE10 Matrix
+    else if (matrix.length === 16) curTransform = parseFloat(matrix[12]); // Normal Browsers
+    else curTransform = parseFloat(matrix[4]);
+  }
+
+  if (axis === 'y') {
+    // Latest Chrome and webkits Fix
+    if (window.WebKitCSSMatrix) curTransform = transformMatrix.m42; // Crazy IE10 Matrix
+    else if (matrix.length === 16) curTransform = parseFloat(matrix[13]); // Normal Browsers
+    else curTransform = parseFloat(matrix[5]);
+  }
+
+  return curTransform || 0;
+}
+
+function isObject$2(o) {
+  return typeof o === 'object' && o !== null && o.constructor && Object.prototype.toString.call(o).slice(8, -1) === 'Object';
+}
+
+function isNode(node) {
+  // eslint-disable-next-line
+  if (typeof window !== 'undefined' && typeof window.HTMLElement !== 'undefined') {
+    return node instanceof HTMLElement;
+  }
+
+  return node && (node.nodeType === 1 || node.nodeType === 11);
+}
+
+function extend$1() {
+  const to = Object(arguments.length <= 0 ? undefined : arguments[0]);
+  const noExtend = ['__proto__', 'constructor', 'prototype'];
+
+  for (let i = 1; i < arguments.length; i += 1) {
+    const nextSource = i < 0 || arguments.length <= i ? undefined : arguments[i];
+
+    if (nextSource !== undefined && nextSource !== null && !isNode(nextSource)) {
+      const keysArray = Object.keys(Object(nextSource)).filter(key => noExtend.indexOf(key) < 0);
+
+      for (let nextIndex = 0, len = keysArray.length; nextIndex < len; nextIndex += 1) {
+        const nextKey = keysArray[nextIndex];
+        const desc = Object.getOwnPropertyDescriptor(nextSource, nextKey);
+
+        if (desc !== undefined && desc.enumerable) {
+          if (isObject$2(to[nextKey]) && isObject$2(nextSource[nextKey])) {
+            if (nextSource[nextKey].__swiper__) {
+              to[nextKey] = nextSource[nextKey];
+            } else {
+              extend$1(to[nextKey], nextSource[nextKey]);
+            }
+          } else if (!isObject$2(to[nextKey]) && isObject$2(nextSource[nextKey])) {
+            to[nextKey] = {};
+
+            if (nextSource[nextKey].__swiper__) {
+              to[nextKey] = nextSource[nextKey];
+            } else {
+              extend$1(to[nextKey], nextSource[nextKey]);
+            }
+          } else {
+            to[nextKey] = nextSource[nextKey];
+          }
+        }
+      }
+    }
+  }
+
+  return to;
+}
+
+function setCSSProperty(el, varName, varValue) {
+  el.style.setProperty(varName, varValue);
+}
+
+function animateCSSModeScroll(_ref) {
+  let {
+    swiper,
+    targetPosition,
+    side
+  } = _ref;
+  const window = getWindow();
+  const startPosition = -swiper.translate;
+  let startTime = null;
+  let time;
+  const duration = swiper.params.speed;
+  swiper.wrapperEl.style.scrollSnapType = 'none';
+  window.cancelAnimationFrame(swiper.cssModeFrameID);
+  const dir = targetPosition > startPosition ? 'next' : 'prev';
+
+  const isOutOfBound = (current, target) => {
+    return dir === 'next' && current >= target || dir === 'prev' && current <= target;
+  };
+
+  const animate = () => {
+    time = new Date().getTime();
+
+    if (startTime === null) {
+      startTime = time;
+    }
+
+    const progress = Math.max(Math.min((time - startTime) / duration, 1), 0);
+    const easeProgress = 0.5 - Math.cos(progress * Math.PI) / 2;
+    let currentPosition = startPosition + easeProgress * (targetPosition - startPosition);
+
+    if (isOutOfBound(currentPosition, targetPosition)) {
+      currentPosition = targetPosition;
+    }
+
+    swiper.wrapperEl.scrollTo({
+      [side]: currentPosition
+    });
+
+    if (isOutOfBound(currentPosition, targetPosition)) {
+      swiper.wrapperEl.style.overflow = 'hidden';
+      swiper.wrapperEl.style.scrollSnapType = '';
+      setTimeout(() => {
+        swiper.wrapperEl.style.overflow = '';
+        swiper.wrapperEl.scrollTo({
+          [side]: currentPosition
+        });
+      });
+      window.cancelAnimationFrame(swiper.cssModeFrameID);
+      return;
+    }
+
+    swiper.cssModeFrameID = window.requestAnimationFrame(animate);
+  };
+
+  animate();
+}
+
+let support;
+
+function calcSupport() {
+  const window = getWindow();
+  const document = getDocument();
+  return {
+    smoothScroll: document.documentElement && 'scrollBehavior' in document.documentElement.style,
+    touch: !!('ontouchstart' in window || window.DocumentTouch && document instanceof window.DocumentTouch),
+    passiveListener: function checkPassiveListener() {
+      let supportsPassive = false;
+
+      try {
+        const opts = Object.defineProperty({}, 'passive', {
+          // eslint-disable-next-line
+          get() {
+            supportsPassive = true;
+          }
+
+        });
+        window.addEventListener('testPassiveListener', null, opts);
+      } catch (e) {// No support
+      }
+
+      return supportsPassive;
+    }(),
+    gestures: function checkGestures() {
+      return 'ongesturestart' in window;
+    }()
+  };
+}
+
+function getSupport() {
+  if (!support) {
+    support = calcSupport();
+  }
+
+  return support;
+}
+
+let deviceCached;
+
+function calcDevice(_temp) {
+  let {
+    userAgent
+  } = _temp === void 0 ? {} : _temp;
+  const support = getSupport();
+  const window = getWindow();
+  const platform = window.navigator.platform;
+  const ua = userAgent || window.navigator.userAgent;
+  const device = {
+    ios: false,
+    android: false
+  };
+  const screenWidth = window.screen.width;
+  const screenHeight = window.screen.height;
+  const android = ua.match(/(Android);?[\s\/]+([\d.]+)?/); // eslint-disable-line
+
+  let ipad = ua.match(/(iPad).*OS\s([\d_]+)/);
+  const ipod = ua.match(/(iPod)(.*OS\s([\d_]+))?/);
+  const iphone = !ipad && ua.match(/(iPhone\sOS|iOS)\s([\d_]+)/);
+  const windows = platform === 'Win32';
+  let macos = platform === 'MacIntel'; // iPadOs 13 fix
+
+  const iPadScreens = ['1024x1366', '1366x1024', '834x1194', '1194x834', '834x1112', '1112x834', '768x1024', '1024x768', '820x1180', '1180x820', '810x1080', '1080x810'];
+
+  if (!ipad && macos && support.touch && iPadScreens.indexOf(`${screenWidth}x${screenHeight}`) >= 0) {
+    ipad = ua.match(/(Version)\/([\d.]+)/);
+    if (!ipad) ipad = [0, 1, '13_0_0'];
+    macos = false;
+  } // Android
+
+
+  if (android && !windows) {
+    device.os = 'android';
+    device.android = true;
+  }
+
+  if (ipad || iphone || ipod) {
+    device.os = 'ios';
+    device.ios = true;
+  } // Export object
+
+
+  return device;
+}
+
+function getDevice(overrides) {
+  if (overrides === void 0) {
+    overrides = {};
+  }
+
+  if (!deviceCached) {
+    deviceCached = calcDevice(overrides);
+  }
+
+  return deviceCached;
+}
+
+let browser;
+
+function calcBrowser() {
+  const window = getWindow();
+
+  function isSafari() {
+    const ua = window.navigator.userAgent.toLowerCase();
+    return ua.indexOf('safari') >= 0 && ua.indexOf('chrome') < 0 && ua.indexOf('android') < 0;
+  }
+
+  return {
+    isSafari: isSafari(),
+    isWebView: /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(window.navigator.userAgent)
+  };
+}
+
+function getBrowser() {
+  if (!browser) {
+    browser = calcBrowser();
+  }
+
+  return browser;
+}
+
+function Resize(_ref) {
+  let {
+    swiper,
+    on,
+    emit
+  } = _ref;
+  const window = getWindow();
+  let observer = null;
+  let animationFrame = null;
+
+  const resizeHandler = () => {
+    if (!swiper || swiper.destroyed || !swiper.initialized) return;
+    emit('beforeResize');
+    emit('resize');
+  };
+
+  const createObserver = () => {
+    if (!swiper || swiper.destroyed || !swiper.initialized) return;
+    observer = new ResizeObserver(entries => {
+      animationFrame = window.requestAnimationFrame(() => {
+        const {
+          width,
+          height
+        } = swiper;
+        let newWidth = width;
+        let newHeight = height;
+        entries.forEach(_ref2 => {
+          let {
+            contentBoxSize,
+            contentRect,
+            target
+          } = _ref2;
+          if (target && target !== swiper.el) return;
+          newWidth = contentRect ? contentRect.width : (contentBoxSize[0] || contentBoxSize).inlineSize;
+          newHeight = contentRect ? contentRect.height : (contentBoxSize[0] || contentBoxSize).blockSize;
+        });
+
+        if (newWidth !== width || newHeight !== height) {
+          resizeHandler();
+        }
+      });
+    });
+    observer.observe(swiper.el);
+  };
+
+  const removeObserver = () => {
+    if (animationFrame) {
+      window.cancelAnimationFrame(animationFrame);
+    }
+
+    if (observer && observer.unobserve && swiper.el) {
+      observer.unobserve(swiper.el);
+      observer = null;
+    }
+  };
+
+  const orientationChangeHandler = () => {
+    if (!swiper || swiper.destroyed || !swiper.initialized) return;
+    emit('orientationchange');
+  };
+
+  on('init', () => {
+    if (swiper.params.resizeObserver && typeof window.ResizeObserver !== 'undefined') {
+      createObserver();
+      return;
+    }
+
+    window.addEventListener('resize', resizeHandler);
+    window.addEventListener('orientationchange', orientationChangeHandler);
+  });
+  on('destroy', () => {
+    removeObserver();
+    window.removeEventListener('resize', resizeHandler);
+    window.removeEventListener('orientationchange', orientationChangeHandler);
+  });
+}
+
+function Observer(_ref) {
+  let {
+    swiper,
+    extendParams,
+    on,
+    emit
+  } = _ref;
+  const observers = [];
+  const window = getWindow();
+
+  const attach = function (target, options) {
+    if (options === void 0) {
+      options = {};
+    }
+
+    const ObserverFunc = window.MutationObserver || window.WebkitMutationObserver;
+    const observer = new ObserverFunc(mutations => {
+      // The observerUpdate event should only be triggered
+      // once despite the number of mutations.  Additional
+      // triggers are redundant and are very costly
+      if (mutations.length === 1) {
+        emit('observerUpdate', mutations[0]);
+        return;
+      }
+
+      const observerUpdate = function observerUpdate() {
+        emit('observerUpdate', mutations[0]);
+      };
+
+      if (window.requestAnimationFrame) {
+        window.requestAnimationFrame(observerUpdate);
+      } else {
+        window.setTimeout(observerUpdate, 0);
+      }
+    });
+    observer.observe(target, {
+      attributes: typeof options.attributes === 'undefined' ? true : options.attributes,
+      childList: typeof options.childList === 'undefined' ? true : options.childList,
+      characterData: typeof options.characterData === 'undefined' ? true : options.characterData
+    });
+    observers.push(observer);
+  };
+
+  const init = () => {
+    if (!swiper.params.observer) return;
+
+    if (swiper.params.observeParents) {
+      const containerParents = swiper.$el.parents();
+
+      for (let i = 0; i < containerParents.length; i += 1) {
+        attach(containerParents[i]);
+      }
+    } // Observe container
+
+
+    attach(swiper.$el[0], {
+      childList: swiper.params.observeSlideChildren
+    }); // Observe wrapper
+
+    attach(swiper.$wrapperEl[0], {
+      attributes: false
+    });
+  };
+
+  const destroy = () => {
+    observers.forEach(observer => {
+      observer.disconnect();
+    });
+    observers.splice(0, observers.length);
+  };
+
+  extendParams({
+    observer: false,
+    observeParents: false,
+    observeSlideChildren: false
+  });
+  on('init', init);
+  on('destroy', destroy);
+}
+
+/* eslint-disable no-underscore-dangle */
+var eventsEmitter = {
+  on(events, handler, priority) {
+    const self = this;
+    if (!self.eventsListeners || self.destroyed) return self;
+    if (typeof handler !== 'function') return self;
+    const method = priority ? 'unshift' : 'push';
+    events.split(' ').forEach(event => {
+      if (!self.eventsListeners[event]) self.eventsListeners[event] = [];
+      self.eventsListeners[event][method](handler);
+    });
+    return self;
+  },
+
+  once(events, handler, priority) {
+    const self = this;
+    if (!self.eventsListeners || self.destroyed) return self;
+    if (typeof handler !== 'function') return self;
+
+    function onceHandler() {
+      self.off(events, onceHandler);
+
+      if (onceHandler.__emitterProxy) {
+        delete onceHandler.__emitterProxy;
+      }
+
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      handler.apply(self, args);
+    }
+
+    onceHandler.__emitterProxy = handler;
+    return self.on(events, onceHandler, priority);
+  },
+
+  onAny(handler, priority) {
+    const self = this;
+    if (!self.eventsListeners || self.destroyed) return self;
+    if (typeof handler !== 'function') return self;
+    const method = priority ? 'unshift' : 'push';
+
+    if (self.eventsAnyListeners.indexOf(handler) < 0) {
+      self.eventsAnyListeners[method](handler);
+    }
+
+    return self;
+  },
+
+  offAny(handler) {
+    const self = this;
+    if (!self.eventsListeners || self.destroyed) return self;
+    if (!self.eventsAnyListeners) return self;
+    const index = self.eventsAnyListeners.indexOf(handler);
+
+    if (index >= 0) {
+      self.eventsAnyListeners.splice(index, 1);
+    }
+
+    return self;
+  },
+
+  off(events, handler) {
+    const self = this;
+    if (!self.eventsListeners || self.destroyed) return self;
+    if (!self.eventsListeners) return self;
+    events.split(' ').forEach(event => {
+      if (typeof handler === 'undefined') {
+        self.eventsListeners[event] = [];
+      } else if (self.eventsListeners[event]) {
+        self.eventsListeners[event].forEach((eventHandler, index) => {
+          if (eventHandler === handler || eventHandler.__emitterProxy && eventHandler.__emitterProxy === handler) {
+            self.eventsListeners[event].splice(index, 1);
+          }
+        });
+      }
+    });
+    return self;
+  },
+
+  emit() {
+    const self = this;
+    if (!self.eventsListeners || self.destroyed) return self;
+    if (!self.eventsListeners) return self;
+    let events;
+    let data;
+    let context;
+
+    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+
+    if (typeof args[0] === 'string' || Array.isArray(args[0])) {
+      events = args[0];
+      data = args.slice(1, args.length);
+      context = self;
+    } else {
+      events = args[0].events;
+      data = args[0].data;
+      context = args[0].context || self;
+    }
+
+    data.unshift(context);
+    const eventsArray = Array.isArray(events) ? events : events.split(' ');
+    eventsArray.forEach(event => {
+      if (self.eventsAnyListeners && self.eventsAnyListeners.length) {
+        self.eventsAnyListeners.forEach(eventHandler => {
+          eventHandler.apply(context, [event, ...data]);
+        });
+      }
+
+      if (self.eventsListeners && self.eventsListeners[event]) {
+        self.eventsListeners[event].forEach(eventHandler => {
+          eventHandler.apply(context, data);
+        });
+      }
+    });
+    return self;
+  }
+
+};
+
+function updateSize() {
+  const swiper = this;
+  let width;
+  let height;
+  const $el = swiper.$el;
+
+  if (typeof swiper.params.width !== 'undefined' && swiper.params.width !== null) {
+    width = swiper.params.width;
+  } else {
+    width = $el[0].clientWidth;
+  }
+
+  if (typeof swiper.params.height !== 'undefined' && swiper.params.height !== null) {
+    height = swiper.params.height;
+  } else {
+    height = $el[0].clientHeight;
+  }
+
+  if (width === 0 && swiper.isHorizontal() || height === 0 && swiper.isVertical()) {
+    return;
+  } // Subtract paddings
+
+
+  width = width - parseInt($el.css('padding-left') || 0, 10) - parseInt($el.css('padding-right') || 0, 10);
+  height = height - parseInt($el.css('padding-top') || 0, 10) - parseInt($el.css('padding-bottom') || 0, 10);
+  if (Number.isNaN(width)) width = 0;
+  if (Number.isNaN(height)) height = 0;
+  Object.assign(swiper, {
+    width,
+    height,
+    size: swiper.isHorizontal() ? width : height
+  });
+}
+
+function updateSlides() {
+  const swiper = this;
+
+  function getDirectionLabel(property) {
+    if (swiper.isHorizontal()) {
+      return property;
+    } // prettier-ignore
+
+
+    return {
+      'width': 'height',
+      'margin-top': 'margin-left',
+      'margin-bottom ': 'margin-right',
+      'margin-left': 'margin-top',
+      'margin-right': 'margin-bottom',
+      'padding-left': 'padding-top',
+      'padding-right': 'padding-bottom',
+      'marginRight': 'marginBottom'
+    }[property];
+  }
+
+  function getDirectionPropertyValue(node, label) {
+    return parseFloat(node.getPropertyValue(getDirectionLabel(label)) || 0);
+  }
+
+  const params = swiper.params;
+  const {
+    $wrapperEl,
+    size: swiperSize,
+    rtlTranslate: rtl,
+    wrongRTL
+  } = swiper;
+  const isVirtual = swiper.virtual && params.virtual.enabled;
+  const previousSlidesLength = isVirtual ? swiper.virtual.slides.length : swiper.slides.length;
+  const slides = $wrapperEl.children(`.${swiper.params.slideClass}`);
+  const slidesLength = isVirtual ? swiper.virtual.slides.length : slides.length;
+  let snapGrid = [];
+  const slidesGrid = [];
+  const slidesSizesGrid = [];
+  let offsetBefore = params.slidesOffsetBefore;
+
+  if (typeof offsetBefore === 'function') {
+    offsetBefore = params.slidesOffsetBefore.call(swiper);
+  }
+
+  let offsetAfter = params.slidesOffsetAfter;
+
+  if (typeof offsetAfter === 'function') {
+    offsetAfter = params.slidesOffsetAfter.call(swiper);
+  }
+
+  const previousSnapGridLength = swiper.snapGrid.length;
+  const previousSlidesGridLength = swiper.slidesGrid.length;
+  let spaceBetween = params.spaceBetween;
+  let slidePosition = -offsetBefore;
+  let prevSlideSize = 0;
+  let index = 0;
+
+  if (typeof swiperSize === 'undefined') {
+    return;
+  }
+
+  if (typeof spaceBetween === 'string' && spaceBetween.indexOf('%') >= 0) {
+    spaceBetween = parseFloat(spaceBetween.replace('%', '')) / 100 * swiperSize;
+  }
+
+  swiper.virtualSize = -spaceBetween; // reset margins
+
+  if (rtl) slides.css({
+    marginLeft: '',
+    marginBottom: '',
+    marginTop: ''
+  });else slides.css({
+    marginRight: '',
+    marginBottom: '',
+    marginTop: ''
+  }); // reset cssMode offsets
+
+  if (params.centeredSlides && params.cssMode) {
+    setCSSProperty(swiper.wrapperEl, '--swiper-centered-offset-before', '');
+    setCSSProperty(swiper.wrapperEl, '--swiper-centered-offset-after', '');
+  }
+
+  const gridEnabled = params.grid && params.grid.rows > 1 && swiper.grid;
+
+  if (gridEnabled) {
+    swiper.grid.initSlides(slidesLength);
+  } // Calc slides
+
+
+  let slideSize;
+  const shouldResetSlideSize = params.slidesPerView === 'auto' && params.breakpoints && Object.keys(params.breakpoints).filter(key => {
+    return typeof params.breakpoints[key].slidesPerView !== 'undefined';
+  }).length > 0;
+
+  for (let i = 0; i < slidesLength; i += 1) {
+    slideSize = 0;
+    const slide = slides.eq(i);
+
+    if (gridEnabled) {
+      swiper.grid.updateSlide(i, slide, slidesLength, getDirectionLabel);
+    }
+
+    if (slide.css('display') === 'none') continue; // eslint-disable-line
+
+    if (params.slidesPerView === 'auto') {
+      if (shouldResetSlideSize) {
+        slides[i].style[getDirectionLabel('width')] = ``;
+      }
+
+      const slideStyles = getComputedStyle(slide[0]);
+      const currentTransform = slide[0].style.transform;
+      const currentWebKitTransform = slide[0].style.webkitTransform;
+
+      if (currentTransform) {
+        slide[0].style.transform = 'none';
+      }
+
+      if (currentWebKitTransform) {
+        slide[0].style.webkitTransform = 'none';
+      }
+
+      if (params.roundLengths) {
+        slideSize = swiper.isHorizontal() ? slide.outerWidth(true) : slide.outerHeight(true);
+      } else {
+        // eslint-disable-next-line
+        const width = getDirectionPropertyValue(slideStyles, 'width');
+        const paddingLeft = getDirectionPropertyValue(slideStyles, 'padding-left');
+        const paddingRight = getDirectionPropertyValue(slideStyles, 'padding-right');
+        const marginLeft = getDirectionPropertyValue(slideStyles, 'margin-left');
+        const marginRight = getDirectionPropertyValue(slideStyles, 'margin-right');
+        const boxSizing = slideStyles.getPropertyValue('box-sizing');
+
+        if (boxSizing && boxSizing === 'border-box') {
+          slideSize = width + marginLeft + marginRight;
+        } else {
+          const {
+            clientWidth,
+            offsetWidth
+          } = slide[0];
+          slideSize = width + paddingLeft + paddingRight + marginLeft + marginRight + (offsetWidth - clientWidth);
+        }
+      }
+
+      if (currentTransform) {
+        slide[0].style.transform = currentTransform;
+      }
+
+      if (currentWebKitTransform) {
+        slide[0].style.webkitTransform = currentWebKitTransform;
+      }
+
+      if (params.roundLengths) slideSize = Math.floor(slideSize);
+    } else {
+      slideSize = (swiperSize - (params.slidesPerView - 1) * spaceBetween) / params.slidesPerView;
+      if (params.roundLengths) slideSize = Math.floor(slideSize);
+
+      if (slides[i]) {
+        slides[i].style[getDirectionLabel('width')] = `${slideSize}px`;
+      }
+    }
+
+    if (slides[i]) {
+      slides[i].swiperSlideSize = slideSize;
+    }
+
+    slidesSizesGrid.push(slideSize);
+
+    if (params.centeredSlides) {
+      slidePosition = slidePosition + slideSize / 2 + prevSlideSize / 2 + spaceBetween;
+      if (prevSlideSize === 0 && i !== 0) slidePosition = slidePosition - swiperSize / 2 - spaceBetween;
+      if (i === 0) slidePosition = slidePosition - swiperSize / 2 - spaceBetween;
+      if (Math.abs(slidePosition) < 1 / 1000) slidePosition = 0;
+      if (params.roundLengths) slidePosition = Math.floor(slidePosition);
+      if (index % params.slidesPerGroup === 0) snapGrid.push(slidePosition);
+      slidesGrid.push(slidePosition);
+    } else {
+      if (params.roundLengths) slidePosition = Math.floor(slidePosition);
+      if ((index - Math.min(swiper.params.slidesPerGroupSkip, index)) % swiper.params.slidesPerGroup === 0) snapGrid.push(slidePosition);
+      slidesGrid.push(slidePosition);
+      slidePosition = slidePosition + slideSize + spaceBetween;
+    }
+
+    swiper.virtualSize += slideSize + spaceBetween;
+    prevSlideSize = slideSize;
+    index += 1;
+  }
+
+  swiper.virtualSize = Math.max(swiper.virtualSize, swiperSize) + offsetAfter;
+
+  if (rtl && wrongRTL && (params.effect === 'slide' || params.effect === 'coverflow')) {
+    $wrapperEl.css({
+      width: `${swiper.virtualSize + params.spaceBetween}px`
+    });
+  }
+
+  if (params.setWrapperSize) {
+    $wrapperEl.css({
+      [getDirectionLabel('width')]: `${swiper.virtualSize + params.spaceBetween}px`
+    });
+  }
+
+  if (gridEnabled) {
+    swiper.grid.updateWrapperSize(slideSize, snapGrid, getDirectionLabel);
+  } // Remove last grid elements depending on width
+
+
+  if (!params.centeredSlides) {
+    const newSlidesGrid = [];
+
+    for (let i = 0; i < snapGrid.length; i += 1) {
+      let slidesGridItem = snapGrid[i];
+      if (params.roundLengths) slidesGridItem = Math.floor(slidesGridItem);
+
+      if (snapGrid[i] <= swiper.virtualSize - swiperSize) {
+        newSlidesGrid.push(slidesGridItem);
+      }
+    }
+
+    snapGrid = newSlidesGrid;
+
+    if (Math.floor(swiper.virtualSize - swiperSize) - Math.floor(snapGrid[snapGrid.length - 1]) > 1) {
+      snapGrid.push(swiper.virtualSize - swiperSize);
+    }
+  }
+
+  if (snapGrid.length === 0) snapGrid = [0];
+
+  if (params.spaceBetween !== 0) {
+    const key = swiper.isHorizontal() && rtl ? 'marginLeft' : getDirectionLabel('marginRight');
+    slides.filter((_, slideIndex) => {
+      if (!params.cssMode) return true;
+
+      if (slideIndex === slides.length - 1) {
+        return false;
+      }
+
+      return true;
+    }).css({
+      [key]: `${spaceBetween}px`
+    });
+  }
+
+  if (params.centeredSlides && params.centeredSlidesBounds) {
+    let allSlidesSize = 0;
+    slidesSizesGrid.forEach(slideSizeValue => {
+      allSlidesSize += slideSizeValue + (params.spaceBetween ? params.spaceBetween : 0);
+    });
+    allSlidesSize -= params.spaceBetween;
+    const maxSnap = allSlidesSize - swiperSize;
+    snapGrid = snapGrid.map(snap => {
+      if (snap < 0) return -offsetBefore;
+      if (snap > maxSnap) return maxSnap + offsetAfter;
+      return snap;
+    });
+  }
+
+  if (params.centerInsufficientSlides) {
+    let allSlidesSize = 0;
+    slidesSizesGrid.forEach(slideSizeValue => {
+      allSlidesSize += slideSizeValue + (params.spaceBetween ? params.spaceBetween : 0);
+    });
+    allSlidesSize -= params.spaceBetween;
+
+    if (allSlidesSize < swiperSize) {
+      const allSlidesOffset = (swiperSize - allSlidesSize) / 2;
+      snapGrid.forEach((snap, snapIndex) => {
+        snapGrid[snapIndex] = snap - allSlidesOffset;
+      });
+      slidesGrid.forEach((snap, snapIndex) => {
+        slidesGrid[snapIndex] = snap + allSlidesOffset;
+      });
+    }
+  }
+
+  Object.assign(swiper, {
+    slides,
+    snapGrid,
+    slidesGrid,
+    slidesSizesGrid
+  });
+
+  if (params.centeredSlides && params.cssMode && !params.centeredSlidesBounds) {
+    setCSSProperty(swiper.wrapperEl, '--swiper-centered-offset-before', `${-snapGrid[0]}px`);
+    setCSSProperty(swiper.wrapperEl, '--swiper-centered-offset-after', `${swiper.size / 2 - slidesSizesGrid[slidesSizesGrid.length - 1] / 2}px`);
+    const addToSnapGrid = -swiper.snapGrid[0];
+    const addToSlidesGrid = -swiper.slidesGrid[0];
+    swiper.snapGrid = swiper.snapGrid.map(v => v + addToSnapGrid);
+    swiper.slidesGrid = swiper.slidesGrid.map(v => v + addToSlidesGrid);
+  }
+
+  if (slidesLength !== previousSlidesLength) {
+    swiper.emit('slidesLengthChange');
+  }
+
+  if (snapGrid.length !== previousSnapGridLength) {
+    if (swiper.params.watchOverflow) swiper.checkOverflow();
+    swiper.emit('snapGridLengthChange');
+  }
+
+  if (slidesGrid.length !== previousSlidesGridLength) {
+    swiper.emit('slidesGridLengthChange');
+  }
+
+  if (params.watchSlidesProgress) {
+    swiper.updateSlidesOffset();
+  }
+
+  if (!isVirtual && !params.cssMode && (params.effect === 'slide' || params.effect === 'fade')) {
+    const backFaceHiddenClass = `${params.containerModifierClass}backface-hidden`;
+    const hasClassBackfaceClassAdded = swiper.$el.hasClass(backFaceHiddenClass);
+
+    if (slidesLength <= params.maxBackfaceHiddenSlides) {
+      if (!hasClassBackfaceClassAdded) swiper.$el.addClass(backFaceHiddenClass);
+    } else if (hasClassBackfaceClassAdded) {
+      swiper.$el.removeClass(backFaceHiddenClass);
+    }
+  }
+}
+
+function updateAutoHeight(speed) {
+  const swiper = this;
+  const activeSlides = [];
+  const isVirtual = swiper.virtual && swiper.params.virtual.enabled;
+  let newHeight = 0;
+  let i;
+
+  if (typeof speed === 'number') {
+    swiper.setTransition(speed);
+  } else if (speed === true) {
+    swiper.setTransition(swiper.params.speed);
+  }
+
+  const getSlideByIndex = index => {
+    if (isVirtual) {
+      return swiper.slides.filter(el => parseInt(el.getAttribute('data-swiper-slide-index'), 10) === index)[0];
+    }
+
+    return swiper.slides.eq(index)[0];
+  }; // Find slides currently in view
+
+
+  if (swiper.params.slidesPerView !== 'auto' && swiper.params.slidesPerView > 1) {
+    if (swiper.params.centeredSlides) {
+      (swiper.visibleSlides || $([])).each(slide => {
+        activeSlides.push(slide);
+      });
+    } else {
+      for (i = 0; i < Math.ceil(swiper.params.slidesPerView); i += 1) {
+        const index = swiper.activeIndex + i;
+        if (index > swiper.slides.length && !isVirtual) break;
+        activeSlides.push(getSlideByIndex(index));
+      }
+    }
+  } else {
+    activeSlides.push(getSlideByIndex(swiper.activeIndex));
+  } // Find new height from highest slide in view
+
+
+  for (i = 0; i < activeSlides.length; i += 1) {
+    if (typeof activeSlides[i] !== 'undefined') {
+      const height = activeSlides[i].offsetHeight;
+      newHeight = height > newHeight ? height : newHeight;
+    }
+  } // Update Height
+
+
+  if (newHeight || newHeight === 0) swiper.$wrapperEl.css('height', `${newHeight}px`);
+}
+
+function updateSlidesOffset() {
+  const swiper = this;
+  const slides = swiper.slides;
+
+  for (let i = 0; i < slides.length; i += 1) {
+    slides[i].swiperSlideOffset = swiper.isHorizontal() ? slides[i].offsetLeft : slides[i].offsetTop;
+  }
+}
+
+function updateSlidesProgress(translate) {
+  if (translate === void 0) {
+    translate = this && this.translate || 0;
+  }
+
+  const swiper = this;
+  const params = swiper.params;
+  const {
+    slides,
+    rtlTranslate: rtl,
+    snapGrid
+  } = swiper;
+  if (slides.length === 0) return;
+  if (typeof slides[0].swiperSlideOffset === 'undefined') swiper.updateSlidesOffset();
+  let offsetCenter = -translate;
+  if (rtl) offsetCenter = translate; // Visible Slides
+
+  slides.removeClass(params.slideVisibleClass);
+  swiper.visibleSlidesIndexes = [];
+  swiper.visibleSlides = [];
+
+  for (let i = 0; i < slides.length; i += 1) {
+    const slide = slides[i];
+    let slideOffset = slide.swiperSlideOffset;
+
+    if (params.cssMode && params.centeredSlides) {
+      slideOffset -= slides[0].swiperSlideOffset;
+    }
+
+    const slideProgress = (offsetCenter + (params.centeredSlides ? swiper.minTranslate() : 0) - slideOffset) / (slide.swiperSlideSize + params.spaceBetween);
+    const originalSlideProgress = (offsetCenter - snapGrid[0] + (params.centeredSlides ? swiper.minTranslate() : 0) - slideOffset) / (slide.swiperSlideSize + params.spaceBetween);
+    const slideBefore = -(offsetCenter - slideOffset);
+    const slideAfter = slideBefore + swiper.slidesSizesGrid[i];
+    const isVisible = slideBefore >= 0 && slideBefore < swiper.size - 1 || slideAfter > 1 && slideAfter <= swiper.size || slideBefore <= 0 && slideAfter >= swiper.size;
+
+    if (isVisible) {
+      swiper.visibleSlides.push(slide);
+      swiper.visibleSlidesIndexes.push(i);
+      slides.eq(i).addClass(params.slideVisibleClass);
+    }
+
+    slide.progress = rtl ? -slideProgress : slideProgress;
+    slide.originalProgress = rtl ? -originalSlideProgress : originalSlideProgress;
+  }
+
+  swiper.visibleSlides = $(swiper.visibleSlides);
+}
+
+function updateProgress(translate) {
+  const swiper = this;
+
+  if (typeof translate === 'undefined') {
+    const multiplier = swiper.rtlTranslate ? -1 : 1; // eslint-disable-next-line
+
+    translate = swiper && swiper.translate && swiper.translate * multiplier || 0;
+  }
+
+  const params = swiper.params;
+  const translatesDiff = swiper.maxTranslate() - swiper.minTranslate();
+  let {
+    progress,
+    isBeginning,
+    isEnd
+  } = swiper;
+  const wasBeginning = isBeginning;
+  const wasEnd = isEnd;
+
+  if (translatesDiff === 0) {
+    progress = 0;
+    isBeginning = true;
+    isEnd = true;
+  } else {
+    progress = (translate - swiper.minTranslate()) / translatesDiff;
+    isBeginning = progress <= 0;
+    isEnd = progress >= 1;
+  }
+
+  Object.assign(swiper, {
+    progress,
+    isBeginning,
+    isEnd
+  });
+  if (params.watchSlidesProgress || params.centeredSlides && params.autoHeight) swiper.updateSlidesProgress(translate);
+
+  if (isBeginning && !wasBeginning) {
+    swiper.emit('reachBeginning toEdge');
+  }
+
+  if (isEnd && !wasEnd) {
+    swiper.emit('reachEnd toEdge');
+  }
+
+  if (wasBeginning && !isBeginning || wasEnd && !isEnd) {
+    swiper.emit('fromEdge');
+  }
+
+  swiper.emit('progress', progress);
+}
+
+function updateSlidesClasses() {
+  const swiper = this;
+  const {
+    slides,
+    params,
+    $wrapperEl,
+    activeIndex,
+    realIndex
+  } = swiper;
+  const isVirtual = swiper.virtual && params.virtual.enabled;
+  slides.removeClass(`${params.slideActiveClass} ${params.slideNextClass} ${params.slidePrevClass} ${params.slideDuplicateActiveClass} ${params.slideDuplicateNextClass} ${params.slideDuplicatePrevClass}`);
+  let activeSlide;
+
+  if (isVirtual) {
+    activeSlide = swiper.$wrapperEl.find(`.${params.slideClass}[data-swiper-slide-index="${activeIndex}"]`);
+  } else {
+    activeSlide = slides.eq(activeIndex);
+  } // Active classes
+
+
+  activeSlide.addClass(params.slideActiveClass);
+
+  if (params.loop) {
+    // Duplicate to all looped slides
+    if (activeSlide.hasClass(params.slideDuplicateClass)) {
+      $wrapperEl.children(`.${params.slideClass}:not(.${params.slideDuplicateClass})[data-swiper-slide-index="${realIndex}"]`).addClass(params.slideDuplicateActiveClass);
+    } else {
+      $wrapperEl.children(`.${params.slideClass}.${params.slideDuplicateClass}[data-swiper-slide-index="${realIndex}"]`).addClass(params.slideDuplicateActiveClass);
+    }
+  } // Next Slide
+
+
+  let nextSlide = activeSlide.nextAll(`.${params.slideClass}`).eq(0).addClass(params.slideNextClass);
+
+  if (params.loop && nextSlide.length === 0) {
+    nextSlide = slides.eq(0);
+    nextSlide.addClass(params.slideNextClass);
+  } // Prev Slide
+
+
+  let prevSlide = activeSlide.prevAll(`.${params.slideClass}`).eq(0).addClass(params.slidePrevClass);
+
+  if (params.loop && prevSlide.length === 0) {
+    prevSlide = slides.eq(-1);
+    prevSlide.addClass(params.slidePrevClass);
+  }
+
+  if (params.loop) {
+    // Duplicate to all looped slides
+    if (nextSlide.hasClass(params.slideDuplicateClass)) {
+      $wrapperEl.children(`.${params.slideClass}:not(.${params.slideDuplicateClass})[data-swiper-slide-index="${nextSlide.attr('data-swiper-slide-index')}"]`).addClass(params.slideDuplicateNextClass);
+    } else {
+      $wrapperEl.children(`.${params.slideClass}.${params.slideDuplicateClass}[data-swiper-slide-index="${nextSlide.attr('data-swiper-slide-index')}"]`).addClass(params.slideDuplicateNextClass);
+    }
+
+    if (prevSlide.hasClass(params.slideDuplicateClass)) {
+      $wrapperEl.children(`.${params.slideClass}:not(.${params.slideDuplicateClass})[data-swiper-slide-index="${prevSlide.attr('data-swiper-slide-index')}"]`).addClass(params.slideDuplicatePrevClass);
+    } else {
+      $wrapperEl.children(`.${params.slideClass}.${params.slideDuplicateClass}[data-swiper-slide-index="${prevSlide.attr('data-swiper-slide-index')}"]`).addClass(params.slideDuplicatePrevClass);
+    }
+  }
+
+  swiper.emitSlidesClasses();
+}
+
+function updateActiveIndex(newActiveIndex) {
+  const swiper = this;
+  const translate = swiper.rtlTranslate ? swiper.translate : -swiper.translate;
+  const {
+    slidesGrid,
+    snapGrid,
+    params,
+    activeIndex: previousIndex,
+    realIndex: previousRealIndex,
+    snapIndex: previousSnapIndex
+  } = swiper;
+  let activeIndex = newActiveIndex;
+  let snapIndex;
+
+  if (typeof activeIndex === 'undefined') {
+    for (let i = 0; i < slidesGrid.length; i += 1) {
+      if (typeof slidesGrid[i + 1] !== 'undefined') {
+        if (translate >= slidesGrid[i] && translate < slidesGrid[i + 1] - (slidesGrid[i + 1] - slidesGrid[i]) / 2) {
+          activeIndex = i;
+        } else if (translate >= slidesGrid[i] && translate < slidesGrid[i + 1]) {
+          activeIndex = i + 1;
+        }
+      } else if (translate >= slidesGrid[i]) {
+        activeIndex = i;
+      }
+    } // Normalize slideIndex
+
+
+    if (params.normalizeSlideIndex) {
+      if (activeIndex < 0 || typeof activeIndex === 'undefined') activeIndex = 0;
+    }
+  }
+
+  if (snapGrid.indexOf(translate) >= 0) {
+    snapIndex = snapGrid.indexOf(translate);
+  } else {
+    const skip = Math.min(params.slidesPerGroupSkip, activeIndex);
+    snapIndex = skip + Math.floor((activeIndex - skip) / params.slidesPerGroup);
+  }
+
+  if (snapIndex >= snapGrid.length) snapIndex = snapGrid.length - 1;
+
+  if (activeIndex === previousIndex) {
+    if (snapIndex !== previousSnapIndex) {
+      swiper.snapIndex = snapIndex;
+      swiper.emit('snapIndexChange');
+    }
+
+    return;
+  } // Get real index
+
+
+  const realIndex = parseInt(swiper.slides.eq(activeIndex).attr('data-swiper-slide-index') || activeIndex, 10);
+  Object.assign(swiper, {
+    snapIndex,
+    realIndex,
+    previousIndex,
+    activeIndex
+  });
+  swiper.emit('activeIndexChange');
+  swiper.emit('snapIndexChange');
+
+  if (previousRealIndex !== realIndex) {
+    swiper.emit('realIndexChange');
+  }
+
+  if (swiper.initialized || swiper.params.runCallbacksOnInit) {
+    swiper.emit('slideChange');
+  }
+}
+
+function updateClickedSlide(e) {
+  const swiper = this;
+  const params = swiper.params;
+  const slide = $(e).closest(`.${params.slideClass}`)[0];
+  let slideFound = false;
+  let slideIndex;
+
+  if (slide) {
+    for (let i = 0; i < swiper.slides.length; i += 1) {
+      if (swiper.slides[i] === slide) {
+        slideFound = true;
+        slideIndex = i;
+        break;
+      }
+    }
+  }
+
+  if (slide && slideFound) {
+    swiper.clickedSlide = slide;
+
+    if (swiper.virtual && swiper.params.virtual.enabled) {
+      swiper.clickedIndex = parseInt($(slide).attr('data-swiper-slide-index'), 10);
+    } else {
+      swiper.clickedIndex = slideIndex;
+    }
+  } else {
+    swiper.clickedSlide = undefined;
+    swiper.clickedIndex = undefined;
+    return;
+  }
+
+  if (params.slideToClickedSlide && swiper.clickedIndex !== undefined && swiper.clickedIndex !== swiper.activeIndex) {
+    swiper.slideToClickedSlide();
+  }
+}
+
+var update = {
+  updateSize,
+  updateSlides,
+  updateAutoHeight,
+  updateSlidesOffset,
+  updateSlidesProgress,
+  updateProgress,
+  updateSlidesClasses,
+  updateActiveIndex,
+  updateClickedSlide
+};
+
+function getSwiperTranslate(axis) {
+  if (axis === void 0) {
+    axis = this.isHorizontal() ? 'x' : 'y';
+  }
+
+  const swiper = this;
+  const {
+    params,
+    rtlTranslate: rtl,
+    translate,
+    $wrapperEl
+  } = swiper;
+
+  if (params.virtualTranslate) {
+    return rtl ? -translate : translate;
+  }
+
+  if (params.cssMode) {
+    return translate;
+  }
+
+  let currentTranslate = getTranslate($wrapperEl[0], axis);
+  if (rtl) currentTranslate = -currentTranslate;
+  return currentTranslate || 0;
+}
+
+function setTranslate(translate, byController) {
+  const swiper = this;
+  const {
+    rtlTranslate: rtl,
+    params,
+    $wrapperEl,
+    wrapperEl,
+    progress
+  } = swiper;
+  let x = 0;
+  let y = 0;
+  const z = 0;
+
+  if (swiper.isHorizontal()) {
+    x = rtl ? -translate : translate;
+  } else {
+    y = translate;
+  }
+
+  if (params.roundLengths) {
+    x = Math.floor(x);
+    y = Math.floor(y);
+  }
+
+  if (params.cssMode) {
+    wrapperEl[swiper.isHorizontal() ? 'scrollLeft' : 'scrollTop'] = swiper.isHorizontal() ? -x : -y;
+  } else if (!params.virtualTranslate) {
+    $wrapperEl.transform(`translate3d(${x}px, ${y}px, ${z}px)`);
+  }
+
+  swiper.previousTranslate = swiper.translate;
+  swiper.translate = swiper.isHorizontal() ? x : y; // Check if we need to update progress
+
+  let newProgress;
+  const translatesDiff = swiper.maxTranslate() - swiper.minTranslate();
+
+  if (translatesDiff === 0) {
+    newProgress = 0;
+  } else {
+    newProgress = (translate - swiper.minTranslate()) / translatesDiff;
+  }
+
+  if (newProgress !== progress) {
+    swiper.updateProgress(translate);
+  }
+
+  swiper.emit('setTranslate', swiper.translate, byController);
+}
+
+function minTranslate() {
+  return -this.snapGrid[0];
+}
+
+function maxTranslate() {
+  return -this.snapGrid[this.snapGrid.length - 1];
+}
+
+function translateTo(translate, speed, runCallbacks, translateBounds, internal) {
+  if (translate === void 0) {
+    translate = 0;
+  }
+
+  if (speed === void 0) {
+    speed = this.params.speed;
+  }
+
+  if (runCallbacks === void 0) {
+    runCallbacks = true;
+  }
+
+  if (translateBounds === void 0) {
+    translateBounds = true;
+  }
+
+  const swiper = this;
+  const {
+    params,
+    wrapperEl
+  } = swiper;
+
+  if (swiper.animating && params.preventInteractionOnTransition) {
+    return false;
+  }
+
+  const minTranslate = swiper.minTranslate();
+  const maxTranslate = swiper.maxTranslate();
+  let newTranslate;
+  if (translateBounds && translate > minTranslate) newTranslate = minTranslate;else if (translateBounds && translate < maxTranslate) newTranslate = maxTranslate;else newTranslate = translate; // Update progress
+
+  swiper.updateProgress(newTranslate);
+
+  if (params.cssMode) {
+    const isH = swiper.isHorizontal();
+
+    if (speed === 0) {
+      wrapperEl[isH ? 'scrollLeft' : 'scrollTop'] = -newTranslate;
+    } else {
+      if (!swiper.support.smoothScroll) {
+        animateCSSModeScroll({
+          swiper,
+          targetPosition: -newTranslate,
+          side: isH ? 'left' : 'top'
+        });
+        return true;
+      }
+
+      wrapperEl.scrollTo({
+        [isH ? 'left' : 'top']: -newTranslate,
+        behavior: 'smooth'
+      });
+    }
+
+    return true;
+  }
+
+  if (speed === 0) {
+    swiper.setTransition(0);
+    swiper.setTranslate(newTranslate);
+
+    if (runCallbacks) {
+      swiper.emit('beforeTransitionStart', speed, internal);
+      swiper.emit('transitionEnd');
+    }
+  } else {
+    swiper.setTransition(speed);
+    swiper.setTranslate(newTranslate);
+
+    if (runCallbacks) {
+      swiper.emit('beforeTransitionStart', speed, internal);
+      swiper.emit('transitionStart');
+    }
+
+    if (!swiper.animating) {
+      swiper.animating = true;
+
+      if (!swiper.onTranslateToWrapperTransitionEnd) {
+        swiper.onTranslateToWrapperTransitionEnd = function transitionEnd(e) {
+          if (!swiper || swiper.destroyed) return;
+          if (e.target !== this) return;
+          swiper.$wrapperEl[0].removeEventListener('transitionend', swiper.onTranslateToWrapperTransitionEnd);
+          swiper.$wrapperEl[0].removeEventListener('webkitTransitionEnd', swiper.onTranslateToWrapperTransitionEnd);
+          swiper.onTranslateToWrapperTransitionEnd = null;
+          delete swiper.onTranslateToWrapperTransitionEnd;
+
+          if (runCallbacks) {
+            swiper.emit('transitionEnd');
+          }
+        };
+      }
+
+      swiper.$wrapperEl[0].addEventListener('transitionend', swiper.onTranslateToWrapperTransitionEnd);
+      swiper.$wrapperEl[0].addEventListener('webkitTransitionEnd', swiper.onTranslateToWrapperTransitionEnd);
+    }
+  }
+
+  return true;
+}
+
+var translate = {
+  getTranslate: getSwiperTranslate,
+  setTranslate,
+  minTranslate,
+  maxTranslate,
+  translateTo
+};
+
+function setTransition(duration, byController) {
+  const swiper = this;
+
+  if (!swiper.params.cssMode) {
+    swiper.$wrapperEl.transition(duration);
+  }
+
+  swiper.emit('setTransition', duration, byController);
+}
+
+function transitionEmit(_ref) {
+  let {
+    swiper,
+    runCallbacks,
+    direction,
+    step
+  } = _ref;
+  const {
+    activeIndex,
+    previousIndex
+  } = swiper;
+  let dir = direction;
+
+  if (!dir) {
+    if (activeIndex > previousIndex) dir = 'next';else if (activeIndex < previousIndex) dir = 'prev';else dir = 'reset';
+  }
+
+  swiper.emit(`transition${step}`);
+
+  if (runCallbacks && activeIndex !== previousIndex) {
+    if (dir === 'reset') {
+      swiper.emit(`slideResetTransition${step}`);
+      return;
+    }
+
+    swiper.emit(`slideChangeTransition${step}`);
+
+    if (dir === 'next') {
+      swiper.emit(`slideNextTransition${step}`);
+    } else {
+      swiper.emit(`slidePrevTransition${step}`);
+    }
+  }
+}
+
+function transitionStart(runCallbacks, direction) {
+  if (runCallbacks === void 0) {
+    runCallbacks = true;
+  }
+
+  const swiper = this;
+  const {
+    params
+  } = swiper;
+  if (params.cssMode) return;
+
+  if (params.autoHeight) {
+    swiper.updateAutoHeight();
+  }
+
+  transitionEmit({
+    swiper,
+    runCallbacks,
+    direction,
+    step: 'Start'
+  });
+}
+
+function transitionEnd(runCallbacks, direction) {
+  if (runCallbacks === void 0) {
+    runCallbacks = true;
+  }
+
+  const swiper = this;
+  const {
+    params
+  } = swiper;
+  swiper.animating = false;
+  if (params.cssMode) return;
+  swiper.setTransition(0);
+  transitionEmit({
+    swiper,
+    runCallbacks,
+    direction,
+    step: 'End'
+  });
+}
+
+var transition = {
+  setTransition,
+  transitionStart,
+  transitionEnd
+};
+
+function slideTo(index, speed, runCallbacks, internal, initial) {
+  if (index === void 0) {
+    index = 0;
+  }
+
+  if (speed === void 0) {
+    speed = this.params.speed;
+  }
+
+  if (runCallbacks === void 0) {
+    runCallbacks = true;
+  }
+
+  if (typeof index !== 'number' && typeof index !== 'string') {
+    throw new Error(`The 'index' argument cannot have type other than 'number' or 'string'. [${typeof index}] given.`);
+  }
+
+  if (typeof index === 'string') {
+    /**
+     * The `index` argument converted from `string` to `number`.
+     * @type {number}
+     */
+    const indexAsNumber = parseInt(index, 10);
+    /**
+     * Determines whether the `index` argument is a valid `number`
+     * after being converted from the `string` type.
+     * @type {boolean}
+     */
+
+    const isValidNumber = isFinite(indexAsNumber);
+
+    if (!isValidNumber) {
+      throw new Error(`The passed-in 'index' (string) couldn't be converted to 'number'. [${index}] given.`);
+    } // Knowing that the converted `index` is a valid number,
+    // we can update the original argument's value.
+
+
+    index = indexAsNumber;
+  }
+
+  const swiper = this;
+  let slideIndex = index;
+  if (slideIndex < 0) slideIndex = 0;
+  const {
+    params,
+    snapGrid,
+    slidesGrid,
+    previousIndex,
+    activeIndex,
+    rtlTranslate: rtl,
+    wrapperEl,
+    enabled
+  } = swiper;
+
+  if (swiper.animating && params.preventInteractionOnTransition || !enabled && !internal && !initial) {
+    return false;
+  }
+
+  const skip = Math.min(swiper.params.slidesPerGroupSkip, slideIndex);
+  let snapIndex = skip + Math.floor((slideIndex - skip) / swiper.params.slidesPerGroup);
+  if (snapIndex >= snapGrid.length) snapIndex = snapGrid.length - 1;
+
+  if ((activeIndex || params.initialSlide || 0) === (previousIndex || 0) && runCallbacks) {
+    swiper.emit('beforeSlideChangeStart');
+  }
+
+  const translate = -snapGrid[snapIndex]; // Update progress
+
+  swiper.updateProgress(translate); // Normalize slideIndex
+
+  if (params.normalizeSlideIndex) {
+    for (let i = 0; i < slidesGrid.length; i += 1) {
+      const normalizedTranslate = -Math.floor(translate * 100);
+      const normalizedGrid = Math.floor(slidesGrid[i] * 100);
+      const normalizedGridNext = Math.floor(slidesGrid[i + 1] * 100);
+
+      if (typeof slidesGrid[i + 1] !== 'undefined') {
+        if (normalizedTranslate >= normalizedGrid && normalizedTranslate < normalizedGridNext - (normalizedGridNext - normalizedGrid) / 2) {
+          slideIndex = i;
+        } else if (normalizedTranslate >= normalizedGrid && normalizedTranslate < normalizedGridNext) {
+          slideIndex = i + 1;
+        }
+      } else if (normalizedTranslate >= normalizedGrid) {
+        slideIndex = i;
+      }
+    }
+  } // Directions locks
+
+
+  if (swiper.initialized && slideIndex !== activeIndex) {
+    if (!swiper.allowSlideNext && translate < swiper.translate && translate < swiper.minTranslate()) {
+      return false;
+    }
+
+    if (!swiper.allowSlidePrev && translate > swiper.translate && translate > swiper.maxTranslate()) {
+      if ((activeIndex || 0) !== slideIndex) return false;
+    }
+  }
+
+  let direction;
+  if (slideIndex > activeIndex) direction = 'next';else if (slideIndex < activeIndex) direction = 'prev';else direction = 'reset'; // Update Index
+
+  if (rtl && -translate === swiper.translate || !rtl && translate === swiper.translate) {
+    swiper.updateActiveIndex(slideIndex); // Update Height
+
+    if (params.autoHeight) {
+      swiper.updateAutoHeight();
+    }
+
+    swiper.updateSlidesClasses();
+
+    if (params.effect !== 'slide') {
+      swiper.setTranslate(translate);
+    }
+
+    if (direction !== 'reset') {
+      swiper.transitionStart(runCallbacks, direction);
+      swiper.transitionEnd(runCallbacks, direction);
+    }
+
+    return false;
+  }
+
+  if (params.cssMode) {
+    const isH = swiper.isHorizontal();
+    const t = rtl ? translate : -translate;
+
+    if (speed === 0) {
+      const isVirtual = swiper.virtual && swiper.params.virtual.enabled;
+
+      if (isVirtual) {
+        swiper.wrapperEl.style.scrollSnapType = 'none';
+        swiper._immediateVirtual = true;
+      }
+
+      wrapperEl[isH ? 'scrollLeft' : 'scrollTop'] = t;
+
+      if (isVirtual) {
+        requestAnimationFrame(() => {
+          swiper.wrapperEl.style.scrollSnapType = '';
+          swiper._swiperImmediateVirtual = false;
+        });
+      }
+    } else {
+      if (!swiper.support.smoothScroll) {
+        animateCSSModeScroll({
+          swiper,
+          targetPosition: t,
+          side: isH ? 'left' : 'top'
+        });
+        return true;
+      }
+
+      wrapperEl.scrollTo({
+        [isH ? 'left' : 'top']: t,
+        behavior: 'smooth'
+      });
+    }
+
+    return true;
+  }
+
+  swiper.setTransition(speed);
+  swiper.setTranslate(translate);
+  swiper.updateActiveIndex(slideIndex);
+  swiper.updateSlidesClasses();
+  swiper.emit('beforeTransitionStart', speed, internal);
+  swiper.transitionStart(runCallbacks, direction);
+
+  if (speed === 0) {
+    swiper.transitionEnd(runCallbacks, direction);
+  } else if (!swiper.animating) {
+    swiper.animating = true;
+
+    if (!swiper.onSlideToWrapperTransitionEnd) {
+      swiper.onSlideToWrapperTransitionEnd = function transitionEnd(e) {
+        if (!swiper || swiper.destroyed) return;
+        if (e.target !== this) return;
+        swiper.$wrapperEl[0].removeEventListener('transitionend', swiper.onSlideToWrapperTransitionEnd);
+        swiper.$wrapperEl[0].removeEventListener('webkitTransitionEnd', swiper.onSlideToWrapperTransitionEnd);
+        swiper.onSlideToWrapperTransitionEnd = null;
+        delete swiper.onSlideToWrapperTransitionEnd;
+        swiper.transitionEnd(runCallbacks, direction);
+      };
+    }
+
+    swiper.$wrapperEl[0].addEventListener('transitionend', swiper.onSlideToWrapperTransitionEnd);
+    swiper.$wrapperEl[0].addEventListener('webkitTransitionEnd', swiper.onSlideToWrapperTransitionEnd);
+  }
+
+  return true;
+}
+
+function slideToLoop(index, speed, runCallbacks, internal) {
+  if (index === void 0) {
+    index = 0;
+  }
+
+  if (speed === void 0) {
+    speed = this.params.speed;
+  }
+
+  if (runCallbacks === void 0) {
+    runCallbacks = true;
+  }
+
+  if (typeof index === 'string') {
+    /**
+     * The `index` argument converted from `string` to `number`.
+     * @type {number}
+     */
+    const indexAsNumber = parseInt(index, 10);
+    /**
+     * Determines whether the `index` argument is a valid `number`
+     * after being converted from the `string` type.
+     * @type {boolean}
+     */
+
+    const isValidNumber = isFinite(indexAsNumber);
+
+    if (!isValidNumber) {
+      throw new Error(`The passed-in 'index' (string) couldn't be converted to 'number'. [${index}] given.`);
+    } // Knowing that the converted `index` is a valid number,
+    // we can update the original argument's value.
+
+
+    index = indexAsNumber;
+  }
+
+  const swiper = this;
+  let newIndex = index;
+
+  if (swiper.params.loop) {
+    newIndex += swiper.loopedSlides;
+  }
+
+  return swiper.slideTo(newIndex, speed, runCallbacks, internal);
+}
+
+/* eslint no-unused-vars: "off" */
+function slideNext(speed, runCallbacks, internal) {
+  if (speed === void 0) {
+    speed = this.params.speed;
+  }
+
+  if (runCallbacks === void 0) {
+    runCallbacks = true;
+  }
+
+  const swiper = this;
+  const {
+    animating,
+    enabled,
+    params
+  } = swiper;
+  if (!enabled) return swiper;
+  let perGroup = params.slidesPerGroup;
+
+  if (params.slidesPerView === 'auto' && params.slidesPerGroup === 1 && params.slidesPerGroupAuto) {
+    perGroup = Math.max(swiper.slidesPerViewDynamic('current', true), 1);
+  }
+
+  const increment = swiper.activeIndex < params.slidesPerGroupSkip ? 1 : perGroup;
+
+  if (params.loop) {
+    if (animating && params.loopPreventsSlide) return false;
+    swiper.loopFix(); // eslint-disable-next-line
+
+    swiper._clientLeft = swiper.$wrapperEl[0].clientLeft;
+  }
+
+  if (params.rewind && swiper.isEnd) {
+    return swiper.slideTo(0, speed, runCallbacks, internal);
+  }
+
+  return swiper.slideTo(swiper.activeIndex + increment, speed, runCallbacks, internal);
+}
+
+/* eslint no-unused-vars: "off" */
+function slidePrev(speed, runCallbacks, internal) {
+  if (speed === void 0) {
+    speed = this.params.speed;
+  }
+
+  if (runCallbacks === void 0) {
+    runCallbacks = true;
+  }
+
+  const swiper = this;
+  const {
+    params,
+    animating,
+    snapGrid,
+    slidesGrid,
+    rtlTranslate,
+    enabled
+  } = swiper;
+  if (!enabled) return swiper;
+
+  if (params.loop) {
+    if (animating && params.loopPreventsSlide) return false;
+    swiper.loopFix(); // eslint-disable-next-line
+
+    swiper._clientLeft = swiper.$wrapperEl[0].clientLeft;
+  }
+
+  const translate = rtlTranslate ? swiper.translate : -swiper.translate;
+
+  function normalize(val) {
+    if (val < 0) return -Math.floor(Math.abs(val));
+    return Math.floor(val);
+  }
+
+  const normalizedTranslate = normalize(translate);
+  const normalizedSnapGrid = snapGrid.map(val => normalize(val));
+  let prevSnap = snapGrid[normalizedSnapGrid.indexOf(normalizedTranslate) - 1];
+
+  if (typeof prevSnap === 'undefined' && params.cssMode) {
+    let prevSnapIndex;
+    snapGrid.forEach((snap, snapIndex) => {
+      if (normalizedTranslate >= snap) {
+        // prevSnap = snap;
+        prevSnapIndex = snapIndex;
+      }
+    });
+
+    if (typeof prevSnapIndex !== 'undefined') {
+      prevSnap = snapGrid[prevSnapIndex > 0 ? prevSnapIndex - 1 : prevSnapIndex];
+    }
+  }
+
+  let prevIndex = 0;
+
+  if (typeof prevSnap !== 'undefined') {
+    prevIndex = slidesGrid.indexOf(prevSnap);
+    if (prevIndex < 0) prevIndex = swiper.activeIndex - 1;
+
+    if (params.slidesPerView === 'auto' && params.slidesPerGroup === 1 && params.slidesPerGroupAuto) {
+      prevIndex = prevIndex - swiper.slidesPerViewDynamic('previous', true) + 1;
+      prevIndex = Math.max(prevIndex, 0);
+    }
+  }
+
+  if (params.rewind && swiper.isBeginning) {
+    const lastIndex = swiper.params.virtual && swiper.params.virtual.enabled && swiper.virtual ? swiper.virtual.slides.length - 1 : swiper.slides.length - 1;
+    return swiper.slideTo(lastIndex, speed, runCallbacks, internal);
+  }
+
+  return swiper.slideTo(prevIndex, speed, runCallbacks, internal);
+}
+
+/* eslint no-unused-vars: "off" */
+function slideReset(speed, runCallbacks, internal) {
+  if (speed === void 0) {
+    speed = this.params.speed;
+  }
+
+  if (runCallbacks === void 0) {
+    runCallbacks = true;
+  }
+
+  const swiper = this;
+  return swiper.slideTo(swiper.activeIndex, speed, runCallbacks, internal);
+}
+
+/* eslint no-unused-vars: "off" */
+function slideToClosest(speed, runCallbacks, internal, threshold) {
+  if (speed === void 0) {
+    speed = this.params.speed;
+  }
+
+  if (runCallbacks === void 0) {
+    runCallbacks = true;
+  }
+
+  if (threshold === void 0) {
+    threshold = 0.5;
+  }
+
+  const swiper = this;
+  let index = swiper.activeIndex;
+  const skip = Math.min(swiper.params.slidesPerGroupSkip, index);
+  const snapIndex = skip + Math.floor((index - skip) / swiper.params.slidesPerGroup);
+  const translate = swiper.rtlTranslate ? swiper.translate : -swiper.translate;
+
+  if (translate >= swiper.snapGrid[snapIndex]) {
+    // The current translate is on or after the current snap index, so the choice
+    // is between the current index and the one after it.
+    const currentSnap = swiper.snapGrid[snapIndex];
+    const nextSnap = swiper.snapGrid[snapIndex + 1];
+
+    if (translate - currentSnap > (nextSnap - currentSnap) * threshold) {
+      index += swiper.params.slidesPerGroup;
+    }
+  } else {
+    // The current translate is before the current snap index, so the choice
+    // is between the current index and the one before it.
+    const prevSnap = swiper.snapGrid[snapIndex - 1];
+    const currentSnap = swiper.snapGrid[snapIndex];
+
+    if (translate - prevSnap <= (currentSnap - prevSnap) * threshold) {
+      index -= swiper.params.slidesPerGroup;
+    }
+  }
+
+  index = Math.max(index, 0);
+  index = Math.min(index, swiper.slidesGrid.length - 1);
+  return swiper.slideTo(index, speed, runCallbacks, internal);
+}
+
+function slideToClickedSlide() {
+  const swiper = this;
+  const {
+    params,
+    $wrapperEl
+  } = swiper;
+  const slidesPerView = params.slidesPerView === 'auto' ? swiper.slidesPerViewDynamic() : params.slidesPerView;
+  let slideToIndex = swiper.clickedIndex;
+  let realIndex;
+
+  if (params.loop) {
+    if (swiper.animating) return;
+    realIndex = parseInt($(swiper.clickedSlide).attr('data-swiper-slide-index'), 10);
+
+    if (params.centeredSlides) {
+      if (slideToIndex < swiper.loopedSlides - slidesPerView / 2 || slideToIndex > swiper.slides.length - swiper.loopedSlides + slidesPerView / 2) {
+        swiper.loopFix();
+        slideToIndex = $wrapperEl.children(`.${params.slideClass}[data-swiper-slide-index="${realIndex}"]:not(.${params.slideDuplicateClass})`).eq(0).index();
+        nextTick(() => {
+          swiper.slideTo(slideToIndex);
+        });
+      } else {
+        swiper.slideTo(slideToIndex);
+      }
+    } else if (slideToIndex > swiper.slides.length - slidesPerView) {
+      swiper.loopFix();
+      slideToIndex = $wrapperEl.children(`.${params.slideClass}[data-swiper-slide-index="${realIndex}"]:not(.${params.slideDuplicateClass})`).eq(0).index();
+      nextTick(() => {
+        swiper.slideTo(slideToIndex);
+      });
+    } else {
+      swiper.slideTo(slideToIndex);
+    }
+  } else {
+    swiper.slideTo(slideToIndex);
+  }
+}
+
+var slide = {
+  slideTo,
+  slideToLoop,
+  slideNext,
+  slidePrev,
+  slideReset,
+  slideToClosest,
+  slideToClickedSlide
+};
+
+function loopCreate() {
+  const swiper = this;
+  const document = getDocument();
+  const {
+    params,
+    $wrapperEl
+  } = swiper; // Remove duplicated slides
+
+  const $selector = $wrapperEl.children().length > 0 ? $($wrapperEl.children()[0].parentNode) : $wrapperEl;
+  $selector.children(`.${params.slideClass}.${params.slideDuplicateClass}`).remove();
+  let slides = $selector.children(`.${params.slideClass}`);
+
+  if (params.loopFillGroupWithBlank) {
+    const blankSlidesNum = params.slidesPerGroup - slides.length % params.slidesPerGroup;
+
+    if (blankSlidesNum !== params.slidesPerGroup) {
+      for (let i = 0; i < blankSlidesNum; i += 1) {
+        const blankNode = $(document.createElement('div')).addClass(`${params.slideClass} ${params.slideBlankClass}`);
+        $selector.append(blankNode);
+      }
+
+      slides = $selector.children(`.${params.slideClass}`);
+    }
+  }
+
+  if (params.slidesPerView === 'auto' && !params.loopedSlides) params.loopedSlides = slides.length;
+  swiper.loopedSlides = Math.ceil(parseFloat(params.loopedSlides || params.slidesPerView, 10));
+  swiper.loopedSlides += params.loopAdditionalSlides;
+
+  if (swiper.loopedSlides > slides.length) {
+    swiper.loopedSlides = slides.length;
+  }
+
+  const prependSlides = [];
+  const appendSlides = [];
+  slides.each((el, index) => {
+    const slide = $(el);
+
+    if (index < swiper.loopedSlides) {
+      appendSlides.push(el);
+    }
+
+    if (index < slides.length && index >= slides.length - swiper.loopedSlides) {
+      prependSlides.push(el);
+    }
+
+    slide.attr('data-swiper-slide-index', index);
+  });
+
+  for (let i = 0; i < appendSlides.length; i += 1) {
+    $selector.append($(appendSlides[i].cloneNode(true)).addClass(params.slideDuplicateClass));
+  }
+
+  for (let i = prependSlides.length - 1; i >= 0; i -= 1) {
+    $selector.prepend($(prependSlides[i].cloneNode(true)).addClass(params.slideDuplicateClass));
+  }
+}
+
+function loopFix() {
+  const swiper = this;
+  swiper.emit('beforeLoopFix');
+  const {
+    activeIndex,
+    slides,
+    loopedSlides,
+    allowSlidePrev,
+    allowSlideNext,
+    snapGrid,
+    rtlTranslate: rtl
+  } = swiper;
+  let newIndex;
+  swiper.allowSlidePrev = true;
+  swiper.allowSlideNext = true;
+  const snapTranslate = -snapGrid[activeIndex];
+  const diff = snapTranslate - swiper.getTranslate(); // Fix For Negative Oversliding
+
+  if (activeIndex < loopedSlides) {
+    newIndex = slides.length - loopedSlides * 3 + activeIndex;
+    newIndex += loopedSlides;
+    const slideChanged = swiper.slideTo(newIndex, 0, false, true);
+
+    if (slideChanged && diff !== 0) {
+      swiper.setTranslate((rtl ? -swiper.translate : swiper.translate) - diff);
+    }
+  } else if (activeIndex >= slides.length - loopedSlides) {
+    // Fix For Positive Oversliding
+    newIndex = -slides.length + activeIndex + loopedSlides;
+    newIndex += loopedSlides;
+    const slideChanged = swiper.slideTo(newIndex, 0, false, true);
+
+    if (slideChanged && diff !== 0) {
+      swiper.setTranslate((rtl ? -swiper.translate : swiper.translate) - diff);
+    }
+  }
+
+  swiper.allowSlidePrev = allowSlidePrev;
+  swiper.allowSlideNext = allowSlideNext;
+  swiper.emit('loopFix');
+}
+
+function loopDestroy() {
+  const swiper = this;
+  const {
+    $wrapperEl,
+    params,
+    slides
+  } = swiper;
+  $wrapperEl.children(`.${params.slideClass}.${params.slideDuplicateClass},.${params.slideClass}.${params.slideBlankClass}`).remove();
+  slides.removeAttr('data-swiper-slide-index');
+}
+
+var loop = {
+  loopCreate,
+  loopFix,
+  loopDestroy
+};
+
+function setGrabCursor(moving) {
+  const swiper = this;
+  if (swiper.support.touch || !swiper.params.simulateTouch || swiper.params.watchOverflow && swiper.isLocked || swiper.params.cssMode) return;
+  const el = swiper.params.touchEventsTarget === 'container' ? swiper.el : swiper.wrapperEl;
+  el.style.cursor = 'move';
+  el.style.cursor = moving ? 'grabbing' : 'grab';
+}
+
+function unsetGrabCursor() {
+  const swiper = this;
+
+  if (swiper.support.touch || swiper.params.watchOverflow && swiper.isLocked || swiper.params.cssMode) {
+    return;
+  }
+
+  swiper[swiper.params.touchEventsTarget === 'container' ? 'el' : 'wrapperEl'].style.cursor = '';
+}
+
+var grabCursor = {
+  setGrabCursor,
+  unsetGrabCursor
+};
+
+function closestElement(selector, base) {
+  if (base === void 0) {
+    base = this;
+  }
+
+  function __closestFrom(el) {
+    if (!el || el === getDocument() || el === getWindow()) return null;
+    if (el.assignedSlot) el = el.assignedSlot;
+    const found = el.closest(selector);
+
+    if (!found && !el.getRootNode) {
+      return null;
+    }
+
+    return found || __closestFrom(el.getRootNode().host);
+  }
+
+  return __closestFrom(base);
+}
+
+function onTouchStart(event) {
+  const swiper = this;
+  const document = getDocument();
+  const window = getWindow();
+  const data = swiper.touchEventsData;
+  const {
+    params,
+    touches,
+    enabled
+  } = swiper;
+  if (!enabled) return;
+
+  if (swiper.animating && params.preventInteractionOnTransition) {
+    return;
+  }
+
+  if (!swiper.animating && params.cssMode && params.loop) {
+    swiper.loopFix();
+  }
+
+  let e = event;
+  if (e.originalEvent) e = e.originalEvent;
+  let $targetEl = $(e.target);
+
+  if (params.touchEventsTarget === 'wrapper') {
+    if (!$targetEl.closest(swiper.wrapperEl).length) return;
+  }
+
+  data.isTouchEvent = e.type === 'touchstart';
+  if (!data.isTouchEvent && 'which' in e && e.which === 3) return;
+  if (!data.isTouchEvent && 'button' in e && e.button > 0) return;
+  if (data.isTouched && data.isMoved) return; // change target el for shadow root component
+
+  const swipingClassHasValue = !!params.noSwipingClass && params.noSwipingClass !== '';
+
+  if (swipingClassHasValue && e.target && e.target.shadowRoot && event.path && event.path[0]) {
+    $targetEl = $(event.path[0]);
+  }
+
+  const noSwipingSelector = params.noSwipingSelector ? params.noSwipingSelector : `.${params.noSwipingClass}`;
+  const isTargetShadow = !!(e.target && e.target.shadowRoot); // use closestElement for shadow root element to get the actual closest for nested shadow root element
+
+  if (params.noSwiping && (isTargetShadow ? closestElement(noSwipingSelector, $targetEl[0]) : $targetEl.closest(noSwipingSelector)[0])) {
+    swiper.allowClick = true;
+    return;
+  }
+
+  if (params.swipeHandler) {
+    if (!$targetEl.closest(params.swipeHandler)[0]) return;
+  }
+
+  touches.currentX = e.type === 'touchstart' ? e.targetTouches[0].pageX : e.pageX;
+  touches.currentY = e.type === 'touchstart' ? e.targetTouches[0].pageY : e.pageY;
+  const startX = touches.currentX;
+  const startY = touches.currentY; // Do NOT start if iOS edge swipe is detected. Otherwise iOS app cannot swipe-to-go-back anymore
+
+  const edgeSwipeDetection = params.edgeSwipeDetection || params.iOSEdgeSwipeDetection;
+  const edgeSwipeThreshold = params.edgeSwipeThreshold || params.iOSEdgeSwipeThreshold;
+
+  if (edgeSwipeDetection && (startX <= edgeSwipeThreshold || startX >= window.innerWidth - edgeSwipeThreshold)) {
+    if (edgeSwipeDetection === 'prevent') {
+      event.preventDefault();
+    } else {
+      return;
+    }
+  }
+
+  Object.assign(data, {
+    isTouched: true,
+    isMoved: false,
+    allowTouchCallbacks: true,
+    isScrolling: undefined,
+    startMoving: undefined
+  });
+  touches.startX = startX;
+  touches.startY = startY;
+  data.touchStartTime = now$1();
+  swiper.allowClick = true;
+  swiper.updateSize();
+  swiper.swipeDirection = undefined;
+  if (params.threshold > 0) data.allowThresholdMove = false;
+
+  if (e.type !== 'touchstart') {
+    let preventDefault = true;
+
+    if ($targetEl.is(data.focusableElements)) {
+      preventDefault = false;
+
+      if ($targetEl[0].nodeName === 'SELECT') {
+        data.isTouched = false;
+      }
+    }
+
+    if (document.activeElement && $(document.activeElement).is(data.focusableElements) && document.activeElement !== $targetEl[0]) {
+      document.activeElement.blur();
+    }
+
+    const shouldPreventDefault = preventDefault && swiper.allowTouchMove && params.touchStartPreventDefault;
+
+    if ((params.touchStartForcePreventDefault || shouldPreventDefault) && !$targetEl[0].isContentEditable) {
+      e.preventDefault();
+    }
+  }
+
+  if (swiper.params.freeMode && swiper.params.freeMode.enabled && swiper.freeMode && swiper.animating && !params.cssMode) {
+    swiper.freeMode.onTouchStart();
+  }
+
+  swiper.emit('touchStart', e);
+}
+
+function onTouchMove(event) {
+  const document = getDocument();
+  const swiper = this;
+  const data = swiper.touchEventsData;
+  const {
+    params,
+    touches,
+    rtlTranslate: rtl,
+    enabled
+  } = swiper;
+  if (!enabled) return;
+  let e = event;
+  if (e.originalEvent) e = e.originalEvent;
+
+  if (!data.isTouched) {
+    if (data.startMoving && data.isScrolling) {
+      swiper.emit('touchMoveOpposite', e);
+    }
+
+    return;
+  }
+
+  if (data.isTouchEvent && e.type !== 'touchmove') return;
+  const targetTouch = e.type === 'touchmove' && e.targetTouches && (e.targetTouches[0] || e.changedTouches[0]);
+  const pageX = e.type === 'touchmove' ? targetTouch.pageX : e.pageX;
+  const pageY = e.type === 'touchmove' ? targetTouch.pageY : e.pageY;
+
+  if (e.preventedByNestedSwiper) {
+    touches.startX = pageX;
+    touches.startY = pageY;
+    return;
+  }
+
+  if (!swiper.allowTouchMove) {
+    if (!$(e.target).is(data.focusableElements)) {
+      swiper.allowClick = false;
+    }
+
+    if (data.isTouched) {
+      Object.assign(touches, {
+        startX: pageX,
+        startY: pageY,
+        currentX: pageX,
+        currentY: pageY
+      });
+      data.touchStartTime = now$1();
+    }
+
+    return;
+  }
+
+  if (data.isTouchEvent && params.touchReleaseOnEdges && !params.loop) {
+    if (swiper.isVertical()) {
+      // Vertical
+      if (pageY < touches.startY && swiper.translate <= swiper.maxTranslate() || pageY > touches.startY && swiper.translate >= swiper.minTranslate()) {
+        data.isTouched = false;
+        data.isMoved = false;
+        return;
+      }
+    } else if (pageX < touches.startX && swiper.translate <= swiper.maxTranslate() || pageX > touches.startX && swiper.translate >= swiper.minTranslate()) {
+      return;
+    }
+  }
+
+  if (data.isTouchEvent && document.activeElement) {
+    if (e.target === document.activeElement && $(e.target).is(data.focusableElements)) {
+      data.isMoved = true;
+      swiper.allowClick = false;
+      return;
+    }
+  }
+
+  if (data.allowTouchCallbacks) {
+    swiper.emit('touchMove', e);
+  }
+
+  if (e.targetTouches && e.targetTouches.length > 1) return;
+  touches.currentX = pageX;
+  touches.currentY = pageY;
+  const diffX = touches.currentX - touches.startX;
+  const diffY = touches.currentY - touches.startY;
+  if (swiper.params.threshold && Math.sqrt(diffX ** 2 + diffY ** 2) < swiper.params.threshold) return;
+
+  if (typeof data.isScrolling === 'undefined') {
+    let touchAngle;
+
+    if (swiper.isHorizontal() && touches.currentY === touches.startY || swiper.isVertical() && touches.currentX === touches.startX) {
+      data.isScrolling = false;
+    } else {
+      // eslint-disable-next-line
+      if (diffX * diffX + diffY * diffY >= 25) {
+        touchAngle = Math.atan2(Math.abs(diffY), Math.abs(diffX)) * 180 / Math.PI;
+        data.isScrolling = swiper.isHorizontal() ? touchAngle > params.touchAngle : 90 - touchAngle > params.touchAngle;
+      }
+    }
+  }
+
+  if (data.isScrolling) {
+    swiper.emit('touchMoveOpposite', e);
+  }
+
+  if (typeof data.startMoving === 'undefined') {
+    if (touches.currentX !== touches.startX || touches.currentY !== touches.startY) {
+      data.startMoving = true;
+    }
+  }
+
+  if (data.isScrolling) {
+    data.isTouched = false;
+    return;
+  }
+
+  if (!data.startMoving) {
+    return;
+  }
+
+  swiper.allowClick = false;
+
+  if (!params.cssMode && e.cancelable) {
+    e.preventDefault();
+  }
+
+  if (params.touchMoveStopPropagation && !params.nested) {
+    e.stopPropagation();
+  }
+
+  if (!data.isMoved) {
+    if (params.loop && !params.cssMode) {
+      swiper.loopFix();
+    }
+
+    data.startTranslate = swiper.getTranslate();
+    swiper.setTransition(0);
+
+    if (swiper.animating) {
+      swiper.$wrapperEl.trigger('webkitTransitionEnd transitionend');
+    }
+
+    data.allowMomentumBounce = false; // Grab Cursor
+
+    if (params.grabCursor && (swiper.allowSlideNext === true || swiper.allowSlidePrev === true)) {
+      swiper.setGrabCursor(true);
+    }
+
+    swiper.emit('sliderFirstMove', e);
+  }
+
+  swiper.emit('sliderMove', e);
+  data.isMoved = true;
+  let diff = swiper.isHorizontal() ? diffX : diffY;
+  touches.diff = diff;
+  diff *= params.touchRatio;
+  if (rtl) diff = -diff;
+  swiper.swipeDirection = diff > 0 ? 'prev' : 'next';
+  data.currentTranslate = diff + data.startTranslate;
+  let disableParentSwiper = true;
+  let resistanceRatio = params.resistanceRatio;
+
+  if (params.touchReleaseOnEdges) {
+    resistanceRatio = 0;
+  }
+
+  if (diff > 0 && data.currentTranslate > swiper.minTranslate()) {
+    disableParentSwiper = false;
+    if (params.resistance) data.currentTranslate = swiper.minTranslate() - 1 + (-swiper.minTranslate() + data.startTranslate + diff) ** resistanceRatio;
+  } else if (diff < 0 && data.currentTranslate < swiper.maxTranslate()) {
+    disableParentSwiper = false;
+    if (params.resistance) data.currentTranslate = swiper.maxTranslate() + 1 - (swiper.maxTranslate() - data.startTranslate - diff) ** resistanceRatio;
+  }
+
+  if (disableParentSwiper) {
+    e.preventedByNestedSwiper = true;
+  } // Directions locks
+
+
+  if (!swiper.allowSlideNext && swiper.swipeDirection === 'next' && data.currentTranslate < data.startTranslate) {
+    data.currentTranslate = data.startTranslate;
+  }
+
+  if (!swiper.allowSlidePrev && swiper.swipeDirection === 'prev' && data.currentTranslate > data.startTranslate) {
+    data.currentTranslate = data.startTranslate;
+  }
+
+  if (!swiper.allowSlidePrev && !swiper.allowSlideNext) {
+    data.currentTranslate = data.startTranslate;
+  } // Threshold
+
+
+  if (params.threshold > 0) {
+    if (Math.abs(diff) > params.threshold || data.allowThresholdMove) {
+      if (!data.allowThresholdMove) {
+        data.allowThresholdMove = true;
+        touches.startX = touches.currentX;
+        touches.startY = touches.currentY;
+        data.currentTranslate = data.startTranslate;
+        touches.diff = swiper.isHorizontal() ? touches.currentX - touches.startX : touches.currentY - touches.startY;
+        return;
+      }
+    } else {
+      data.currentTranslate = data.startTranslate;
+      return;
+    }
+  }
+
+  if (!params.followFinger || params.cssMode) return; // Update active index in free mode
+
+  if (params.freeMode && params.freeMode.enabled && swiper.freeMode || params.watchSlidesProgress) {
+    swiper.updateActiveIndex();
+    swiper.updateSlidesClasses();
+  }
+
+  if (swiper.params.freeMode && params.freeMode.enabled && swiper.freeMode) {
+    swiper.freeMode.onTouchMove();
+  } // Update progress
+
+
+  swiper.updateProgress(data.currentTranslate); // Update translate
+
+  swiper.setTranslate(data.currentTranslate);
+}
+
+function onTouchEnd(event) {
+  const swiper = this;
+  const data = swiper.touchEventsData;
+  const {
+    params,
+    touches,
+    rtlTranslate: rtl,
+    slidesGrid,
+    enabled
+  } = swiper;
+  if (!enabled) return;
+  let e = event;
+  if (e.originalEvent) e = e.originalEvent;
+
+  if (data.allowTouchCallbacks) {
+    swiper.emit('touchEnd', e);
+  }
+
+  data.allowTouchCallbacks = false;
+
+  if (!data.isTouched) {
+    if (data.isMoved && params.grabCursor) {
+      swiper.setGrabCursor(false);
+    }
+
+    data.isMoved = false;
+    data.startMoving = false;
+    return;
+  } // Return Grab Cursor
+
+
+  if (params.grabCursor && data.isMoved && data.isTouched && (swiper.allowSlideNext === true || swiper.allowSlidePrev === true)) {
+    swiper.setGrabCursor(false);
+  } // Time diff
+
+
+  const touchEndTime = now$1();
+  const timeDiff = touchEndTime - data.touchStartTime; // Tap, doubleTap, Click
+
+  if (swiper.allowClick) {
+    const pathTree = e.path || e.composedPath && e.composedPath();
+    swiper.updateClickedSlide(pathTree && pathTree[0] || e.target);
+    swiper.emit('tap click', e);
+
+    if (timeDiff < 300 && touchEndTime - data.lastClickTime < 300) {
+      swiper.emit('doubleTap doubleClick', e);
+    }
+  }
+
+  data.lastClickTime = now$1();
+  nextTick(() => {
+    if (!swiper.destroyed) swiper.allowClick = true;
+  });
+
+  if (!data.isTouched || !data.isMoved || !swiper.swipeDirection || touches.diff === 0 || data.currentTranslate === data.startTranslate) {
+    data.isTouched = false;
+    data.isMoved = false;
+    data.startMoving = false;
+    return;
+  }
+
+  data.isTouched = false;
+  data.isMoved = false;
+  data.startMoving = false;
+  let currentPos;
+
+  if (params.followFinger) {
+    currentPos = rtl ? swiper.translate : -swiper.translate;
+  } else {
+    currentPos = -data.currentTranslate;
+  }
+
+  if (params.cssMode) {
+    return;
+  }
+
+  if (swiper.params.freeMode && params.freeMode.enabled) {
+    swiper.freeMode.onTouchEnd({
+      currentPos
+    });
+    return;
+  } // Find current slide
+
+
+  let stopIndex = 0;
+  let groupSize = swiper.slidesSizesGrid[0];
+
+  for (let i = 0; i < slidesGrid.length; i += i < params.slidesPerGroupSkip ? 1 : params.slidesPerGroup) {
+    const increment = i < params.slidesPerGroupSkip - 1 ? 1 : params.slidesPerGroup;
+
+    if (typeof slidesGrid[i + increment] !== 'undefined') {
+      if (currentPos >= slidesGrid[i] && currentPos < slidesGrid[i + increment]) {
+        stopIndex = i;
+        groupSize = slidesGrid[i + increment] - slidesGrid[i];
+      }
+    } else if (currentPos >= slidesGrid[i]) {
+      stopIndex = i;
+      groupSize = slidesGrid[slidesGrid.length - 1] - slidesGrid[slidesGrid.length - 2];
+    }
+  }
+
+  let rewindFirstIndex = null;
+  let rewindLastIndex = null;
+
+  if (params.rewind) {
+    if (swiper.isBeginning) {
+      rewindLastIndex = swiper.params.virtual && swiper.params.virtual.enabled && swiper.virtual ? swiper.virtual.slides.length - 1 : swiper.slides.length - 1;
+    } else if (swiper.isEnd) {
+      rewindFirstIndex = 0;
+    }
+  } // Find current slide size
+
+
+  const ratio = (currentPos - slidesGrid[stopIndex]) / groupSize;
+  const increment = stopIndex < params.slidesPerGroupSkip - 1 ? 1 : params.slidesPerGroup;
+
+  if (timeDiff > params.longSwipesMs) {
+    // Long touches
+    if (!params.longSwipes) {
+      swiper.slideTo(swiper.activeIndex);
+      return;
+    }
+
+    if (swiper.swipeDirection === 'next') {
+      if (ratio >= params.longSwipesRatio) swiper.slideTo(params.rewind && swiper.isEnd ? rewindFirstIndex : stopIndex + increment);else swiper.slideTo(stopIndex);
+    }
+
+    if (swiper.swipeDirection === 'prev') {
+      if (ratio > 1 - params.longSwipesRatio) {
+        swiper.slideTo(stopIndex + increment);
+      } else if (rewindLastIndex !== null && ratio < 0 && Math.abs(ratio) > params.longSwipesRatio) {
+        swiper.slideTo(rewindLastIndex);
+      } else {
+        swiper.slideTo(stopIndex);
+      }
+    }
+  } else {
+    // Short swipes
+    if (!params.shortSwipes) {
+      swiper.slideTo(swiper.activeIndex);
+      return;
+    }
+
+    const isNavButtonTarget = swiper.navigation && (e.target === swiper.navigation.nextEl || e.target === swiper.navigation.prevEl);
+
+    if (!isNavButtonTarget) {
+      if (swiper.swipeDirection === 'next') {
+        swiper.slideTo(rewindFirstIndex !== null ? rewindFirstIndex : stopIndex + increment);
+      }
+
+      if (swiper.swipeDirection === 'prev') {
+        swiper.slideTo(rewindLastIndex !== null ? rewindLastIndex : stopIndex);
+      }
+    } else if (e.target === swiper.navigation.nextEl) {
+      swiper.slideTo(stopIndex + increment);
+    } else {
+      swiper.slideTo(stopIndex);
+    }
+  }
+}
+
+function onResize() {
+  const swiper = this;
+  const {
+    params,
+    el
+  } = swiper;
+  if (el && el.offsetWidth === 0) return; // Breakpoints
+
+  if (params.breakpoints) {
+    swiper.setBreakpoint();
+  } // Save locks
+
+
+  const {
+    allowSlideNext,
+    allowSlidePrev,
+    snapGrid
+  } = swiper; // Disable locks on resize
+
+  swiper.allowSlideNext = true;
+  swiper.allowSlidePrev = true;
+  swiper.updateSize();
+  swiper.updateSlides();
+  swiper.updateSlidesClasses();
+
+  if ((params.slidesPerView === 'auto' || params.slidesPerView > 1) && swiper.isEnd && !swiper.isBeginning && !swiper.params.centeredSlides) {
+    swiper.slideTo(swiper.slides.length - 1, 0, false, true);
+  } else {
+    swiper.slideTo(swiper.activeIndex, 0, false, true);
+  }
+
+  if (swiper.autoplay && swiper.autoplay.running && swiper.autoplay.paused) {
+    swiper.autoplay.run();
+  } // Return locks after resize
+
+
+  swiper.allowSlidePrev = allowSlidePrev;
+  swiper.allowSlideNext = allowSlideNext;
+
+  if (swiper.params.watchOverflow && snapGrid !== swiper.snapGrid) {
+    swiper.checkOverflow();
+  }
+}
+
+function onClick(e) {
+  const swiper = this;
+  if (!swiper.enabled) return;
+
+  if (!swiper.allowClick) {
+    if (swiper.params.preventClicks) e.preventDefault();
+
+    if (swiper.params.preventClicksPropagation && swiper.animating) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    }
+  }
+}
+
+function onScroll() {
+  const swiper = this;
+  const {
+    wrapperEl,
+    rtlTranslate,
+    enabled
+  } = swiper;
+  if (!enabled) return;
+  swiper.previousTranslate = swiper.translate;
+
+  if (swiper.isHorizontal()) {
+    swiper.translate = -wrapperEl.scrollLeft;
+  } else {
+    swiper.translate = -wrapperEl.scrollTop;
+  } // eslint-disable-next-line
+
+
+  if (swiper.translate === 0) swiper.translate = 0;
+  swiper.updateActiveIndex();
+  swiper.updateSlidesClasses();
+  let newProgress;
+  const translatesDiff = swiper.maxTranslate() - swiper.minTranslate();
+
+  if (translatesDiff === 0) {
+    newProgress = 0;
+  } else {
+    newProgress = (swiper.translate - swiper.minTranslate()) / translatesDiff;
+  }
+
+  if (newProgress !== swiper.progress) {
+    swiper.updateProgress(rtlTranslate ? -swiper.translate : swiper.translate);
+  }
+
+  swiper.emit('setTranslate', swiper.translate, false);
+}
+
+let dummyEventAttached = false;
+
+function dummyEventListener() {}
+
+const events = (swiper, method) => {
+  const document = getDocument();
+  const {
+    params,
+    touchEvents,
+    el,
+    wrapperEl,
+    device,
+    support
+  } = swiper;
+  const capture = !!params.nested;
+  const domMethod = method === 'on' ? 'addEventListener' : 'removeEventListener';
+  const swiperMethod = method; // Touch Events
+
+  if (!support.touch) {
+    el[domMethod](touchEvents.start, swiper.onTouchStart, false);
+    document[domMethod](touchEvents.move, swiper.onTouchMove, capture);
+    document[domMethod](touchEvents.end, swiper.onTouchEnd, false);
+  } else {
+    const passiveListener = touchEvents.start === 'touchstart' && support.passiveListener && params.passiveListeners ? {
+      passive: true,
+      capture: false
+    } : false;
+    el[domMethod](touchEvents.start, swiper.onTouchStart, passiveListener);
+    el[domMethod](touchEvents.move, swiper.onTouchMove, support.passiveListener ? {
+      passive: false,
+      capture
+    } : capture);
+    el[domMethod](touchEvents.end, swiper.onTouchEnd, passiveListener);
+
+    if (touchEvents.cancel) {
+      el[domMethod](touchEvents.cancel, swiper.onTouchEnd, passiveListener);
+    }
+  } // Prevent Links Clicks
+
+
+  if (params.preventClicks || params.preventClicksPropagation) {
+    el[domMethod]('click', swiper.onClick, true);
+  }
+
+  if (params.cssMode) {
+    wrapperEl[domMethod]('scroll', swiper.onScroll);
+  } // Resize handler
+
+
+  if (params.updateOnWindowResize) {
+    swiper[swiperMethod](device.ios || device.android ? 'resize orientationchange observerUpdate' : 'resize observerUpdate', onResize, true);
+  } else {
+    swiper[swiperMethod]('observerUpdate', onResize, true);
+  }
+};
+
+function attachEvents() {
+  const swiper = this;
+  const document = getDocument();
+  const {
+    params,
+    support
+  } = swiper;
+  swiper.onTouchStart = onTouchStart.bind(swiper);
+  swiper.onTouchMove = onTouchMove.bind(swiper);
+  swiper.onTouchEnd = onTouchEnd.bind(swiper);
+
+  if (params.cssMode) {
+    swiper.onScroll = onScroll.bind(swiper);
+  }
+
+  swiper.onClick = onClick.bind(swiper);
+
+  if (support.touch && !dummyEventAttached) {
+    document.addEventListener('touchstart', dummyEventListener);
+    dummyEventAttached = true;
+  }
+
+  events(swiper, 'on');
+}
+
+function detachEvents() {
+  const swiper = this;
+  events(swiper, 'off');
+}
+
+var events$1 = {
+  attachEvents,
+  detachEvents
+};
+
+const isGridEnabled = (swiper, params) => {
+  return swiper.grid && params.grid && params.grid.rows > 1;
+};
+
+function setBreakpoint() {
+  const swiper = this;
+  const {
+    activeIndex,
+    initialized,
+    loopedSlides = 0,
+    params,
+    $el
+  } = swiper;
+  const breakpoints = params.breakpoints;
+  if (!breakpoints || breakpoints && Object.keys(breakpoints).length === 0) return; // Get breakpoint for window width and update parameters
+
+  const breakpoint = swiper.getBreakpoint(breakpoints, swiper.params.breakpointsBase, swiper.el);
+  if (!breakpoint || swiper.currentBreakpoint === breakpoint) return;
+  const breakpointOnlyParams = breakpoint in breakpoints ? breakpoints[breakpoint] : undefined;
+  const breakpointParams = breakpointOnlyParams || swiper.originalParams;
+  const wasMultiRow = isGridEnabled(swiper, params);
+  const isMultiRow = isGridEnabled(swiper, breakpointParams);
+  const wasEnabled = params.enabled;
+
+  if (wasMultiRow && !isMultiRow) {
+    $el.removeClass(`${params.containerModifierClass}grid ${params.containerModifierClass}grid-column`);
+    swiper.emitContainerClasses();
+  } else if (!wasMultiRow && isMultiRow) {
+    $el.addClass(`${params.containerModifierClass}grid`);
+
+    if (breakpointParams.grid.fill && breakpointParams.grid.fill === 'column' || !breakpointParams.grid.fill && params.grid.fill === 'column') {
+      $el.addClass(`${params.containerModifierClass}grid-column`);
+    }
+
+    swiper.emitContainerClasses();
+  } // Toggle navigation, pagination, scrollbar
+
+
+  ['navigation', 'pagination', 'scrollbar'].forEach(prop => {
+    const wasModuleEnabled = params[prop] && params[prop].enabled;
+    const isModuleEnabled = breakpointParams[prop] && breakpointParams[prop].enabled;
+
+    if (wasModuleEnabled && !isModuleEnabled) {
+      swiper[prop].disable();
+    }
+
+    if (!wasModuleEnabled && isModuleEnabled) {
+      swiper[prop].enable();
+    }
+  });
+  const directionChanged = breakpointParams.direction && breakpointParams.direction !== params.direction;
+  const needsReLoop = params.loop && (breakpointParams.slidesPerView !== params.slidesPerView || directionChanged);
+
+  if (directionChanged && initialized) {
+    swiper.changeDirection();
+  }
+
+  extend$1(swiper.params, breakpointParams);
+  const isEnabled = swiper.params.enabled;
+  Object.assign(swiper, {
+    allowTouchMove: swiper.params.allowTouchMove,
+    allowSlideNext: swiper.params.allowSlideNext,
+    allowSlidePrev: swiper.params.allowSlidePrev
+  });
+
+  if (wasEnabled && !isEnabled) {
+    swiper.disable();
+  } else if (!wasEnabled && isEnabled) {
+    swiper.enable();
+  }
+
+  swiper.currentBreakpoint = breakpoint;
+  swiper.emit('_beforeBreakpoint', breakpointParams);
+
+  if (needsReLoop && initialized) {
+    swiper.loopDestroy();
+    swiper.loopCreate();
+    swiper.updateSlides();
+    swiper.slideTo(activeIndex - loopedSlides + swiper.loopedSlides, 0, false);
+  }
+
+  swiper.emit('breakpoint', breakpointParams);
+}
+
+function getBreakpoint(breakpoints, base, containerEl) {
+  if (base === void 0) {
+    base = 'window';
+  }
+
+  if (!breakpoints || base === 'container' && !containerEl) return undefined;
+  let breakpoint = false;
+  const window = getWindow();
+  const currentHeight = base === 'window' ? window.innerHeight : containerEl.clientHeight;
+  const points = Object.keys(breakpoints).map(point => {
+    if (typeof point === 'string' && point.indexOf('@') === 0) {
+      const minRatio = parseFloat(point.substr(1));
+      const value = currentHeight * minRatio;
+      return {
+        value,
+        point
+      };
+    }
+
+    return {
+      value: point,
+      point
+    };
+  });
+  points.sort((a, b) => parseInt(a.value, 10) - parseInt(b.value, 10));
+
+  for (let i = 0; i < points.length; i += 1) {
+    const {
+      point,
+      value
+    } = points[i];
+
+    if (base === 'window') {
+      if (window.matchMedia(`(min-width: ${value}px)`).matches) {
+        breakpoint = point;
+      }
+    } else if (value <= containerEl.clientWidth) {
+      breakpoint = point;
+    }
+  }
+
+  return breakpoint || 'max';
+}
+
+var breakpoints = {
+  setBreakpoint,
+  getBreakpoint
+};
+
+function prepareClasses(entries, prefix) {
+  const resultClasses = [];
+  entries.forEach(item => {
+    if (typeof item === 'object') {
+      Object.keys(item).forEach(classNames => {
+        if (item[classNames]) {
+          resultClasses.push(prefix + classNames);
+        }
+      });
+    } else if (typeof item === 'string') {
+      resultClasses.push(prefix + item);
+    }
+  });
+  return resultClasses;
+}
+
+function addClasses() {
+  const swiper = this;
+  const {
+    classNames,
+    params,
+    rtl,
+    $el,
+    device,
+    support
+  } = swiper; // prettier-ignore
+
+  const suffixes = prepareClasses(['initialized', params.direction, {
+    'pointer-events': !support.touch
+  }, {
+    'free-mode': swiper.params.freeMode && params.freeMode.enabled
+  }, {
+    'autoheight': params.autoHeight
+  }, {
+    'rtl': rtl
+  }, {
+    'grid': params.grid && params.grid.rows > 1
+  }, {
+    'grid-column': params.grid && params.grid.rows > 1 && params.grid.fill === 'column'
+  }, {
+    'android': device.android
+  }, {
+    'ios': device.ios
+  }, {
+    'css-mode': params.cssMode
+  }, {
+    'centered': params.cssMode && params.centeredSlides
+  }, {
+    'watch-progress': params.watchSlidesProgress
+  }], params.containerModifierClass);
+  classNames.push(...suffixes);
+  $el.addClass([...classNames].join(' '));
+  swiper.emitContainerClasses();
+}
+
+function removeClasses() {
+  const swiper = this;
+  const {
+    $el,
+    classNames
+  } = swiper;
+  $el.removeClass(classNames.join(' '));
+  swiper.emitContainerClasses();
+}
+
+var classes = {
+  addClasses,
+  removeClasses
+};
+
+function loadImage(imageEl, src, srcset, sizes, checkForComplete, callback) {
+  const window = getWindow();
+  let image;
+
+  function onReady() {
+    if (callback) callback();
+  }
+
+  const isPicture = $(imageEl).parent('picture')[0];
+
+  if (!isPicture && (!imageEl.complete || !checkForComplete)) {
+    if (src) {
+      image = new window.Image();
+      image.onload = onReady;
+      image.onerror = onReady;
+
+      if (sizes) {
+        image.sizes = sizes;
+      }
+
+      if (srcset) {
+        image.srcset = srcset;
+      }
+
+      if (src) {
+        image.src = src;
+      }
+    } else {
+      onReady();
+    }
+  } else {
+    // image already loaded...
+    onReady();
+  }
+}
+
+function preloadImages() {
+  const swiper = this;
+  swiper.imagesToLoad = swiper.$el.find('img');
+
+  function onReady() {
+    if (typeof swiper === 'undefined' || swiper === null || !swiper || swiper.destroyed) return;
+    if (swiper.imagesLoaded !== undefined) swiper.imagesLoaded += 1;
+
+    if (swiper.imagesLoaded === swiper.imagesToLoad.length) {
+      if (swiper.params.updateOnImagesReady) swiper.update();
+      swiper.emit('imagesReady');
+    }
+  }
+
+  for (let i = 0; i < swiper.imagesToLoad.length; i += 1) {
+    const imageEl = swiper.imagesToLoad[i];
+    swiper.loadImage(imageEl, imageEl.currentSrc || imageEl.getAttribute('src'), imageEl.srcset || imageEl.getAttribute('srcset'), imageEl.sizes || imageEl.getAttribute('sizes'), true, onReady);
+  }
+}
+
+var images = {
+  loadImage,
+  preloadImages
+};
+
+function checkOverflow() {
+  const swiper = this;
+  const {
+    isLocked: wasLocked,
+    params
+  } = swiper;
+  const {
+    slidesOffsetBefore
+  } = params;
+
+  if (slidesOffsetBefore) {
+    const lastSlideIndex = swiper.slides.length - 1;
+    const lastSlideRightEdge = swiper.slidesGrid[lastSlideIndex] + swiper.slidesSizesGrid[lastSlideIndex] + slidesOffsetBefore * 2;
+    swiper.isLocked = swiper.size > lastSlideRightEdge;
+  } else {
+    swiper.isLocked = swiper.snapGrid.length === 1;
+  }
+
+  if (params.allowSlideNext === true) {
+    swiper.allowSlideNext = !swiper.isLocked;
+  }
+
+  if (params.allowSlidePrev === true) {
+    swiper.allowSlidePrev = !swiper.isLocked;
+  }
+
+  if (wasLocked && wasLocked !== swiper.isLocked) {
+    swiper.isEnd = false;
+  }
+
+  if (wasLocked !== swiper.isLocked) {
+    swiper.emit(swiper.isLocked ? 'lock' : 'unlock');
+  }
+}
+
+var checkOverflow$1 = {
+  checkOverflow
+};
+
+var defaults = {
+  init: true,
+  direction: 'horizontal',
+  touchEventsTarget: 'wrapper',
+  initialSlide: 0,
+  speed: 300,
+  cssMode: false,
+  updateOnWindowResize: true,
+  resizeObserver: true,
+  nested: false,
+  createElements: false,
+  enabled: true,
+  focusableElements: 'input, select, option, textarea, button, video, label',
+  // Overrides
+  width: null,
+  height: null,
+  //
+  preventInteractionOnTransition: false,
+  // ssr
+  userAgent: null,
+  url: null,
+  // To support iOS's swipe-to-go-back gesture (when being used in-app).
+  edgeSwipeDetection: false,
+  edgeSwipeThreshold: 20,
+  // Autoheight
+  autoHeight: false,
+  // Set wrapper width
+  setWrapperSize: false,
+  // Virtual Translate
+  virtualTranslate: false,
+  // Effects
+  effect: 'slide',
+  // 'slide' or 'fade' or 'cube' or 'coverflow' or 'flip'
+  // Breakpoints
+  breakpoints: undefined,
+  breakpointsBase: 'window',
+  // Slides grid
+  spaceBetween: 0,
+  slidesPerView: 1,
+  slidesPerGroup: 1,
+  slidesPerGroupSkip: 0,
+  slidesPerGroupAuto: false,
+  centeredSlides: false,
+  centeredSlidesBounds: false,
+  slidesOffsetBefore: 0,
+  // in px
+  slidesOffsetAfter: 0,
+  // in px
+  normalizeSlideIndex: true,
+  centerInsufficientSlides: false,
+  // Disable swiper and hide navigation when container not overflow
+  watchOverflow: true,
+  // Round length
+  roundLengths: false,
+  // Touches
+  touchRatio: 1,
+  touchAngle: 45,
+  simulateTouch: true,
+  shortSwipes: true,
+  longSwipes: true,
+  longSwipesRatio: 0.5,
+  longSwipesMs: 300,
+  followFinger: true,
+  allowTouchMove: true,
+  threshold: 0,
+  touchMoveStopPropagation: false,
+  touchStartPreventDefault: true,
+  touchStartForcePreventDefault: false,
+  touchReleaseOnEdges: false,
+  // Unique Navigation Elements
+  uniqueNavElements: true,
+  // Resistance
+  resistance: true,
+  resistanceRatio: 0.85,
+  // Progress
+  watchSlidesProgress: false,
+  // Cursor
+  grabCursor: false,
+  // Clicks
+  preventClicks: true,
+  preventClicksPropagation: true,
+  slideToClickedSlide: false,
+  // Images
+  preloadImages: true,
+  updateOnImagesReady: true,
+  // loop
+  loop: false,
+  loopAdditionalSlides: 0,
+  loopedSlides: null,
+  loopFillGroupWithBlank: false,
+  loopPreventsSlide: true,
+  // rewind
+  rewind: false,
+  // Swiping/no swiping
+  allowSlidePrev: true,
+  allowSlideNext: true,
+  swipeHandler: null,
+  // '.swipe-handler',
+  noSwiping: true,
+  noSwipingClass: 'swiper-no-swiping',
+  noSwipingSelector: null,
+  // Passive Listeners
+  passiveListeners: true,
+  maxBackfaceHiddenSlides: 10,
+  // NS
+  containerModifierClass: 'swiper-',
+  // NEW
+  slideClass: 'swiper-slide',
+  slideBlankClass: 'swiper-slide-invisible-blank',
+  slideActiveClass: 'swiper-slide-active',
+  slideDuplicateActiveClass: 'swiper-slide-duplicate-active',
+  slideVisibleClass: 'swiper-slide-visible',
+  slideDuplicateClass: 'swiper-slide-duplicate',
+  slideNextClass: 'swiper-slide-next',
+  slideDuplicateNextClass: 'swiper-slide-duplicate-next',
+  slidePrevClass: 'swiper-slide-prev',
+  slideDuplicatePrevClass: 'swiper-slide-duplicate-prev',
+  wrapperClass: 'swiper-wrapper',
+  // Callbacks
+  runCallbacksOnInit: true,
+  // Internals
+  _emitClasses: false
+};
+
+function moduleExtendParams(params, allModulesParams) {
+  return function extendParams(obj) {
+    if (obj === void 0) {
+      obj = {};
+    }
+
+    const moduleParamName = Object.keys(obj)[0];
+    const moduleParams = obj[moduleParamName];
+
+    if (typeof moduleParams !== 'object' || moduleParams === null) {
+      extend$1(allModulesParams, obj);
+      return;
+    }
+
+    if (['navigation', 'pagination', 'scrollbar'].indexOf(moduleParamName) >= 0 && params[moduleParamName] === true) {
+      params[moduleParamName] = {
+        auto: true
+      };
+    }
+
+    if (!(moduleParamName in params && 'enabled' in moduleParams)) {
+      extend$1(allModulesParams, obj);
+      return;
+    }
+
+    if (params[moduleParamName] === true) {
+      params[moduleParamName] = {
+        enabled: true
+      };
+    }
+
+    if (typeof params[moduleParamName] === 'object' && !('enabled' in params[moduleParamName])) {
+      params[moduleParamName].enabled = true;
+    }
+
+    if (!params[moduleParamName]) params[moduleParamName] = {
+      enabled: false
+    };
+    extend$1(allModulesParams, obj);
+  };
+}
+
+/* eslint no-param-reassign: "off" */
+const prototypes = {
+  eventsEmitter,
+  update,
+  translate,
+  transition,
+  slide,
+  loop,
+  grabCursor,
+  events: events$1,
+  breakpoints,
+  checkOverflow: checkOverflow$1,
+  classes,
+  images
+};
+const extendedDefaults = {};
+
+class Swiper$1 {
+  constructor() {
+    let el;
+    let params;
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    if (args.length === 1 && args[0].constructor && Object.prototype.toString.call(args[0]).slice(8, -1) === 'Object') {
+      params = args[0];
+    } else {
+      [el, params] = args;
+    }
+
+    if (!params) params = {};
+    params = extend$1({}, params);
+    if (el && !params.el) params.el = el;
+
+    if (params.el && $(params.el).length > 1) {
+      const swipers = [];
+      $(params.el).each(containerEl => {
+        const newParams = extend$1({}, params, {
+          el: containerEl
+        });
+        swipers.push(new Swiper$1(newParams));
+      });
+      return swipers;
+    } // Swiper Instance
+
+
+    const swiper = this;
+    swiper.__swiper__ = true;
+    swiper.support = getSupport();
+    swiper.device = getDevice({
+      userAgent: params.userAgent
+    });
+    swiper.browser = getBrowser();
+    swiper.eventsListeners = {};
+    swiper.eventsAnyListeners = [];
+    swiper.modules = [...swiper.__modules__];
+
+    if (params.modules && Array.isArray(params.modules)) {
+      swiper.modules.push(...params.modules);
+    }
+
+    const allModulesParams = {};
+    swiper.modules.forEach(mod => {
+      mod({
+        swiper,
+        extendParams: moduleExtendParams(params, allModulesParams),
+        on: swiper.on.bind(swiper),
+        once: swiper.once.bind(swiper),
+        off: swiper.off.bind(swiper),
+        emit: swiper.emit.bind(swiper)
+      });
+    }); // Extend defaults with modules params
+
+    const swiperParams = extend$1({}, defaults, allModulesParams); // Extend defaults with passed params
+
+    swiper.params = extend$1({}, swiperParams, extendedDefaults, params);
+    swiper.originalParams = extend$1({}, swiper.params);
+    swiper.passedParams = extend$1({}, params); // add event listeners
+
+    if (swiper.params && swiper.params.on) {
+      Object.keys(swiper.params.on).forEach(eventName => {
+        swiper.on(eventName, swiper.params.on[eventName]);
+      });
+    }
+
+    if (swiper.params && swiper.params.onAny) {
+      swiper.onAny(swiper.params.onAny);
+    } // Save Dom lib
+
+
+    swiper.$ = $; // Extend Swiper
+
+    Object.assign(swiper, {
+      enabled: swiper.params.enabled,
+      el,
+      // Classes
+      classNames: [],
+      // Slides
+      slides: $(),
+      slidesGrid: [],
+      snapGrid: [],
+      slidesSizesGrid: [],
+
+      // isDirection
+      isHorizontal() {
+        return swiper.params.direction === 'horizontal';
+      },
+
+      isVertical() {
+        return swiper.params.direction === 'vertical';
+      },
+
+      // Indexes
+      activeIndex: 0,
+      realIndex: 0,
+      //
+      isBeginning: true,
+      isEnd: false,
+      // Props
+      translate: 0,
+      previousTranslate: 0,
+      progress: 0,
+      velocity: 0,
+      animating: false,
+      // Locks
+      allowSlideNext: swiper.params.allowSlideNext,
+      allowSlidePrev: swiper.params.allowSlidePrev,
+      // Touch Events
+      touchEvents: function touchEvents() {
+        const touch = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
+        const desktop = ['pointerdown', 'pointermove', 'pointerup'];
+        swiper.touchEventsTouch = {
+          start: touch[0],
+          move: touch[1],
+          end: touch[2],
+          cancel: touch[3]
+        };
+        swiper.touchEventsDesktop = {
+          start: desktop[0],
+          move: desktop[1],
+          end: desktop[2]
+        };
+        return swiper.support.touch || !swiper.params.simulateTouch ? swiper.touchEventsTouch : swiper.touchEventsDesktop;
+      }(),
+      touchEventsData: {
+        isTouched: undefined,
+        isMoved: undefined,
+        allowTouchCallbacks: undefined,
+        touchStartTime: undefined,
+        isScrolling: undefined,
+        currentTranslate: undefined,
+        startTranslate: undefined,
+        allowThresholdMove: undefined,
+        // Form elements to match
+        focusableElements: swiper.params.focusableElements,
+        // Last click time
+        lastClickTime: now$1(),
+        clickTimeout: undefined,
+        // Velocities
+        velocities: [],
+        allowMomentumBounce: undefined,
+        isTouchEvent: undefined,
+        startMoving: undefined
+      },
+      // Clicks
+      allowClick: true,
+      // Touches
+      allowTouchMove: swiper.params.allowTouchMove,
+      touches: {
+        startX: 0,
+        startY: 0,
+        currentX: 0,
+        currentY: 0,
+        diff: 0
+      },
+      // Images
+      imagesToLoad: [],
+      imagesLoaded: 0
+    });
+    swiper.emit('_swiper'); // Init
+
+    if (swiper.params.init) {
+      swiper.init();
+    } // Return app instance
+
+
+    return swiper;
+  }
+
+  enable() {
+    const swiper = this;
+    if (swiper.enabled) return;
+    swiper.enabled = true;
+
+    if (swiper.params.grabCursor) {
+      swiper.setGrabCursor();
+    }
+
+    swiper.emit('enable');
+  }
+
+  disable() {
+    const swiper = this;
+    if (!swiper.enabled) return;
+    swiper.enabled = false;
+
+    if (swiper.params.grabCursor) {
+      swiper.unsetGrabCursor();
+    }
+
+    swiper.emit('disable');
+  }
+
+  setProgress(progress, speed) {
+    const swiper = this;
+    progress = Math.min(Math.max(progress, 0), 1);
+    const min = swiper.minTranslate();
+    const max = swiper.maxTranslate();
+    const current = (max - min) * progress + min;
+    swiper.translateTo(current, typeof speed === 'undefined' ? 0 : speed);
+    swiper.updateActiveIndex();
+    swiper.updateSlidesClasses();
+  }
+
+  emitContainerClasses() {
+    const swiper = this;
+    if (!swiper.params._emitClasses || !swiper.el) return;
+    const cls = swiper.el.className.split(' ').filter(className => {
+      return className.indexOf('swiper') === 0 || className.indexOf(swiper.params.containerModifierClass) === 0;
+    });
+    swiper.emit('_containerClasses', cls.join(' '));
+  }
+
+  getSlideClasses(slideEl) {
+    const swiper = this;
+    if (swiper.destroyed) return '';
+    return slideEl.className.split(' ').filter(className => {
+      return className.indexOf('swiper-slide') === 0 || className.indexOf(swiper.params.slideClass) === 0;
+    }).join(' ');
+  }
+
+  emitSlidesClasses() {
+    const swiper = this;
+    if (!swiper.params._emitClasses || !swiper.el) return;
+    const updates = [];
+    swiper.slides.each(slideEl => {
+      const classNames = swiper.getSlideClasses(slideEl);
+      updates.push({
+        slideEl,
+        classNames
+      });
+      swiper.emit('_slideClass', slideEl, classNames);
+    });
+    swiper.emit('_slideClasses', updates);
+  }
+
+  slidesPerViewDynamic(view, exact) {
+    if (view === void 0) {
+      view = 'current';
+    }
+
+    if (exact === void 0) {
+      exact = false;
+    }
+
+    const swiper = this;
+    const {
+      params,
+      slides,
+      slidesGrid,
+      slidesSizesGrid,
+      size: swiperSize,
+      activeIndex
+    } = swiper;
+    let spv = 1;
+
+    if (params.centeredSlides) {
+      let slideSize = slides[activeIndex].swiperSlideSize;
+      let breakLoop;
+
+      for (let i = activeIndex + 1; i < slides.length; i += 1) {
+        if (slides[i] && !breakLoop) {
+          slideSize += slides[i].swiperSlideSize;
+          spv += 1;
+          if (slideSize > swiperSize) breakLoop = true;
+        }
+      }
+
+      for (let i = activeIndex - 1; i >= 0; i -= 1) {
+        if (slides[i] && !breakLoop) {
+          slideSize += slides[i].swiperSlideSize;
+          spv += 1;
+          if (slideSize > swiperSize) breakLoop = true;
+        }
+      }
+    } else {
+      // eslint-disable-next-line
+      if (view === 'current') {
+        for (let i = activeIndex + 1; i < slides.length; i += 1) {
+          const slideInView = exact ? slidesGrid[i] + slidesSizesGrid[i] - slidesGrid[activeIndex] < swiperSize : slidesGrid[i] - slidesGrid[activeIndex] < swiperSize;
+
+          if (slideInView) {
+            spv += 1;
+          }
+        }
+      } else {
+        // previous
+        for (let i = activeIndex - 1; i >= 0; i -= 1) {
+          const slideInView = slidesGrid[activeIndex] - slidesGrid[i] < swiperSize;
+
+          if (slideInView) {
+            spv += 1;
+          }
+        }
+      }
+    }
+
+    return spv;
+  }
+
+  update() {
+    const swiper = this;
+    if (!swiper || swiper.destroyed) return;
+    const {
+      snapGrid,
+      params
+    } = swiper; // Breakpoints
+
+    if (params.breakpoints) {
+      swiper.setBreakpoint();
+    }
+
+    swiper.updateSize();
+    swiper.updateSlides();
+    swiper.updateProgress();
+    swiper.updateSlidesClasses();
+
+    function setTranslate() {
+      const translateValue = swiper.rtlTranslate ? swiper.translate * -1 : swiper.translate;
+      const newTranslate = Math.min(Math.max(translateValue, swiper.maxTranslate()), swiper.minTranslate());
+      swiper.setTranslate(newTranslate);
+      swiper.updateActiveIndex();
+      swiper.updateSlidesClasses();
+    }
+
+    let translated;
+
+    if (swiper.params.freeMode && swiper.params.freeMode.enabled) {
+      setTranslate();
+
+      if (swiper.params.autoHeight) {
+        swiper.updateAutoHeight();
+      }
+    } else {
+      if ((swiper.params.slidesPerView === 'auto' || swiper.params.slidesPerView > 1) && swiper.isEnd && !swiper.params.centeredSlides) {
+        translated = swiper.slideTo(swiper.slides.length - 1, 0, false, true);
+      } else {
+        translated = swiper.slideTo(swiper.activeIndex, 0, false, true);
+      }
+
+      if (!translated) {
+        setTranslate();
+      }
+    }
+
+    if (params.watchOverflow && snapGrid !== swiper.snapGrid) {
+      swiper.checkOverflow();
+    }
+
+    swiper.emit('update');
+  }
+
+  changeDirection(newDirection, needUpdate) {
+    if (needUpdate === void 0) {
+      needUpdate = true;
+    }
+
+    const swiper = this;
+    const currentDirection = swiper.params.direction;
+
+    if (!newDirection) {
+      // eslint-disable-next-line
+      newDirection = currentDirection === 'horizontal' ? 'vertical' : 'horizontal';
+    }
+
+    if (newDirection === currentDirection || newDirection !== 'horizontal' && newDirection !== 'vertical') {
+      return swiper;
+    }
+
+    swiper.$el.removeClass(`${swiper.params.containerModifierClass}${currentDirection}`).addClass(`${swiper.params.containerModifierClass}${newDirection}`);
+    swiper.emitContainerClasses();
+    swiper.params.direction = newDirection;
+    swiper.slides.each(slideEl => {
+      if (newDirection === 'vertical') {
+        slideEl.style.width = '';
+      } else {
+        slideEl.style.height = '';
+      }
+    });
+    swiper.emit('changeDirection');
+    if (needUpdate) swiper.update();
+    return swiper;
+  }
+
+  mount(el) {
+    const swiper = this;
+    if (swiper.mounted) return true; // Find el
+
+    const $el = $(el || swiper.params.el);
+    el = $el[0];
+
+    if (!el) {
+      return false;
+    }
+
+    el.swiper = swiper;
+
+    const getWrapperSelector = () => {
+      return `.${(swiper.params.wrapperClass || '').trim().split(' ').join('.')}`;
+    };
+
+    const getWrapper = () => {
+      if (el && el.shadowRoot && el.shadowRoot.querySelector) {
+        const res = $(el.shadowRoot.querySelector(getWrapperSelector())); // Children needs to return slot items
+
+        res.children = options => $el.children(options);
+
+        return res;
+      }
+
+      if (!$el.children) {
+        return $($el).children(getWrapperSelector());
+      }
+
+      return $el.children(getWrapperSelector());
+    }; // Find Wrapper
+
+
+    let $wrapperEl = getWrapper();
+
+    if ($wrapperEl.length === 0 && swiper.params.createElements) {
+      const document = getDocument();
+      const wrapper = document.createElement('div');
+      $wrapperEl = $(wrapper);
+      wrapper.className = swiper.params.wrapperClass;
+      $el.append(wrapper);
+      $el.children(`.${swiper.params.slideClass}`).each(slideEl => {
+        $wrapperEl.append(slideEl);
+      });
+    }
+
+    Object.assign(swiper, {
+      $el,
+      el,
+      $wrapperEl,
+      wrapperEl: $wrapperEl[0],
+      mounted: true,
+      // RTL
+      rtl: el.dir.toLowerCase() === 'rtl' || $el.css('direction') === 'rtl',
+      rtlTranslate: swiper.params.direction === 'horizontal' && (el.dir.toLowerCase() === 'rtl' || $el.css('direction') === 'rtl'),
+      wrongRTL: $wrapperEl.css('display') === '-webkit-box'
+    });
+    return true;
+  }
+
+  init(el) {
+    const swiper = this;
+    if (swiper.initialized) return swiper;
+    const mounted = swiper.mount(el);
+    if (mounted === false) return swiper;
+    swiper.emit('beforeInit'); // Set breakpoint
+
+    if (swiper.params.breakpoints) {
+      swiper.setBreakpoint();
+    } // Add Classes
+
+
+    swiper.addClasses(); // Create loop
+
+    if (swiper.params.loop) {
+      swiper.loopCreate();
+    } // Update size
+
+
+    swiper.updateSize(); // Update slides
+
+    swiper.updateSlides();
+
+    if (swiper.params.watchOverflow) {
+      swiper.checkOverflow();
+    } // Set Grab Cursor
+
+
+    if (swiper.params.grabCursor && swiper.enabled) {
+      swiper.setGrabCursor();
+    }
+
+    if (swiper.params.preloadImages) {
+      swiper.preloadImages();
+    } // Slide To Initial Slide
+
+
+    if (swiper.params.loop) {
+      swiper.slideTo(swiper.params.initialSlide + swiper.loopedSlides, 0, swiper.params.runCallbacksOnInit, false, true);
+    } else {
+      swiper.slideTo(swiper.params.initialSlide, 0, swiper.params.runCallbacksOnInit, false, true);
+    } // Attach events
+
+
+    swiper.attachEvents(); // Init Flag
+
+    swiper.initialized = true; // Emit
+
+    swiper.emit('init');
+    swiper.emit('afterInit');
+    return swiper;
+  }
+
+  destroy(deleteInstance, cleanStyles) {
+    if (deleteInstance === void 0) {
+      deleteInstance = true;
+    }
+
+    if (cleanStyles === void 0) {
+      cleanStyles = true;
+    }
+
+    const swiper = this;
+    const {
+      params,
+      $el,
+      $wrapperEl,
+      slides
+    } = swiper;
+
+    if (typeof swiper.params === 'undefined' || swiper.destroyed) {
+      return null;
+    }
+
+    swiper.emit('beforeDestroy'); // Init Flag
+
+    swiper.initialized = false; // Detach events
+
+    swiper.detachEvents(); // Destroy loop
+
+    if (params.loop) {
+      swiper.loopDestroy();
+    } // Cleanup styles
+
+
+    if (cleanStyles) {
+      swiper.removeClasses();
+      $el.removeAttr('style');
+      $wrapperEl.removeAttr('style');
+
+      if (slides && slides.length) {
+        slides.removeClass([params.slideVisibleClass, params.slideActiveClass, params.slideNextClass, params.slidePrevClass].join(' ')).removeAttr('style').removeAttr('data-swiper-slide-index');
+      }
+    }
+
+    swiper.emit('destroy'); // Detach emitter events
+
+    Object.keys(swiper.eventsListeners).forEach(eventName => {
+      swiper.off(eventName);
+    });
+
+    if (deleteInstance !== false) {
+      swiper.$el[0].swiper = null;
+      deleteProps(swiper);
+    }
+
+    swiper.destroyed = true;
+    return null;
+  }
+
+  static extendDefaults(newDefaults) {
+    extend$1(extendedDefaults, newDefaults);
+  }
+
+  static get extendedDefaults() {
+    return extendedDefaults;
+  }
+
+  static get defaults() {
+    return defaults;
+  }
+
+  static installModule(mod) {
+    if (!Swiper$1.prototype.__modules__) Swiper$1.prototype.__modules__ = [];
+    const modules = Swiper$1.prototype.__modules__;
+
+    if (typeof mod === 'function' && modules.indexOf(mod) < 0) {
+      modules.push(mod);
+    }
+  }
+
+  static use(module) {
+    if (Array.isArray(module)) {
+      module.forEach(m => Swiper$1.installModule(m));
+      return Swiper$1;
+    }
+
+    Swiper$1.installModule(module);
+    return Swiper$1;
+  }
+
+}
+
+Object.keys(prototypes).forEach(prototypeGroup => {
+  Object.keys(prototypes[prototypeGroup]).forEach(protoMethod => {
+    Swiper$1.prototype[protoMethod] = prototypes[prototypeGroup][protoMethod];
+  });
+});
+Swiper$1.use([Resize, Observer]);
+
+/* eslint-disable consistent-return */
+function Mousewheel(_ref) {
+  let {
+    swiper,
+    extendParams,
+    on,
+    emit
+  } = _ref;
+  const window = getWindow();
+  extendParams({
+    mousewheel: {
+      enabled: false,
+      releaseOnEdges: false,
+      invert: false,
+      forceToAxis: false,
+      sensitivity: 1,
+      eventsTarget: 'container',
+      thresholdDelta: null,
+      thresholdTime: null
+    }
+  });
+  swiper.mousewheel = {
+    enabled: false
+  };
+  let timeout;
+  let lastScrollTime = now$1();
+  let lastEventBeforeSnap;
+  const recentWheelEvents = [];
+
+  function normalize(e) {
+    // Reasonable defaults
+    const PIXEL_STEP = 10;
+    const LINE_HEIGHT = 40;
+    const PAGE_HEIGHT = 800;
+    let sX = 0;
+    let sY = 0; // spinX, spinY
+
+    let pX = 0;
+    let pY = 0; // pixelX, pixelY
+    // Legacy
+
+    if ('detail' in e) {
+      sY = e.detail;
+    }
+
+    if ('wheelDelta' in e) {
+      sY = -e.wheelDelta / 120;
+    }
+
+    if ('wheelDeltaY' in e) {
+      sY = -e.wheelDeltaY / 120;
+    }
+
+    if ('wheelDeltaX' in e) {
+      sX = -e.wheelDeltaX / 120;
+    } // side scrolling on FF with DOMMouseScroll
+
+
+    if ('axis' in e && e.axis === e.HORIZONTAL_AXIS) {
+      sX = sY;
+      sY = 0;
+    }
+
+    pX = sX * PIXEL_STEP;
+    pY = sY * PIXEL_STEP;
+
+    if ('deltaY' in e) {
+      pY = e.deltaY;
+    }
+
+    if ('deltaX' in e) {
+      pX = e.deltaX;
+    }
+
+    if (e.shiftKey && !pX) {
+      // if user scrolls with shift he wants horizontal scroll
+      pX = pY;
+      pY = 0;
+    }
+
+    if ((pX || pY) && e.deltaMode) {
+      if (e.deltaMode === 1) {
+        // delta in LINE units
+        pX *= LINE_HEIGHT;
+        pY *= LINE_HEIGHT;
+      } else {
+        // delta in PAGE units
+        pX *= PAGE_HEIGHT;
+        pY *= PAGE_HEIGHT;
+      }
+    } // Fall-back if spin cannot be determined
+
+
+    if (pX && !sX) {
+      sX = pX < 1 ? -1 : 1;
+    }
+
+    if (pY && !sY) {
+      sY = pY < 1 ? -1 : 1;
+    }
+
+    return {
+      spinX: sX,
+      spinY: sY,
+      pixelX: pX,
+      pixelY: pY
+    };
+  }
+
+  function handleMouseEnter() {
+    if (!swiper.enabled) return;
+    swiper.mouseEntered = true;
+  }
+
+  function handleMouseLeave() {
+    if (!swiper.enabled) return;
+    swiper.mouseEntered = false;
+  }
+
+  function animateSlider(newEvent) {
+    if (swiper.params.mousewheel.thresholdDelta && newEvent.delta < swiper.params.mousewheel.thresholdDelta) {
+      // Prevent if delta of wheel scroll delta is below configured threshold
+      return false;
+    }
+
+    if (swiper.params.mousewheel.thresholdTime && now$1() - lastScrollTime < swiper.params.mousewheel.thresholdTime) {
+      // Prevent if time between scrolls is below configured threshold
+      return false;
+    } // If the movement is NOT big enough and
+    // if the last time the user scrolled was too close to the current one (avoid continuously triggering the slider):
+    //   Don't go any further (avoid insignificant scroll movement).
+
+
+    if (newEvent.delta >= 6 && now$1() - lastScrollTime < 60) {
+      // Return false as a default
+      return true;
+    } // If user is scrolling towards the end:
+    //   If the slider hasn't hit the latest slide or
+    //   if the slider is a loop and
+    //   if the slider isn't moving right now:
+    //     Go to next slide and
+    //     emit a scroll event.
+    // Else (the user is scrolling towards the beginning) and
+    // if the slider hasn't hit the first slide or
+    // if the slider is a loop and
+    // if the slider isn't moving right now:
+    //   Go to prev slide and
+    //   emit a scroll event.
+
+
+    if (newEvent.direction < 0) {
+      if ((!swiper.isEnd || swiper.params.loop) && !swiper.animating) {
+        swiper.slideNext();
+        emit('scroll', newEvent.raw);
+      }
+    } else if ((!swiper.isBeginning || swiper.params.loop) && !swiper.animating) {
+      swiper.slidePrev();
+      emit('scroll', newEvent.raw);
+    } // If you got here is because an animation has been triggered so store the current time
+
+
+    lastScrollTime = new window.Date().getTime(); // Return false as a default
+
+    return false;
+  }
+
+  function releaseScroll(newEvent) {
+    const params = swiper.params.mousewheel;
+
+    if (newEvent.direction < 0) {
+      if (swiper.isEnd && !swiper.params.loop && params.releaseOnEdges) {
+        // Return true to animate scroll on edges
+        return true;
+      }
+    } else if (swiper.isBeginning && !swiper.params.loop && params.releaseOnEdges) {
+      // Return true to animate scroll on edges
+      return true;
+    }
+
+    return false;
+  }
+
+  function handle(event) {
+    let e = event;
+    let disableParentSwiper = true;
+    if (!swiper.enabled) return;
+    const params = swiper.params.mousewheel;
+
+    if (swiper.params.cssMode) {
+      e.preventDefault();
+    }
+
+    let target = swiper.$el;
+
+    if (swiper.params.mousewheel.eventsTarget !== 'container') {
+      target = $(swiper.params.mousewheel.eventsTarget);
+    }
+
+    if (!swiper.mouseEntered && !target[0].contains(e.target) && !params.releaseOnEdges) return true;
+    if (e.originalEvent) e = e.originalEvent; // jquery fix
+
+    let delta = 0;
+    const rtlFactor = swiper.rtlTranslate ? -1 : 1;
+    const data = normalize(e);
+
+    if (params.forceToAxis) {
+      if (swiper.isHorizontal()) {
+        if (Math.abs(data.pixelX) > Math.abs(data.pixelY)) delta = -data.pixelX * rtlFactor;else return true;
+      } else if (Math.abs(data.pixelY) > Math.abs(data.pixelX)) delta = -data.pixelY;else return true;
+    } else {
+      delta = Math.abs(data.pixelX) > Math.abs(data.pixelY) ? -data.pixelX * rtlFactor : -data.pixelY;
+    }
+
+    if (delta === 0) return true;
+    if (params.invert) delta = -delta; // Get the scroll positions
+
+    let positions = swiper.getTranslate() + delta * params.sensitivity;
+    if (positions >= swiper.minTranslate()) positions = swiper.minTranslate();
+    if (positions <= swiper.maxTranslate()) positions = swiper.maxTranslate(); // When loop is true:
+    //     the disableParentSwiper will be true.
+    // When loop is false:
+    //     if the scroll positions is not on edge,
+    //     then the disableParentSwiper will be true.
+    //     if the scroll on edge positions,
+    //     then the disableParentSwiper will be false.
+
+    disableParentSwiper = swiper.params.loop ? true : !(positions === swiper.minTranslate() || positions === swiper.maxTranslate());
+    if (disableParentSwiper && swiper.params.nested) e.stopPropagation();
+
+    if (!swiper.params.freeMode || !swiper.params.freeMode.enabled) {
+      // Register the new event in a variable which stores the relevant data
+      const newEvent = {
+        time: now$1(),
+        delta: Math.abs(delta),
+        direction: Math.sign(delta),
+        raw: event
+      }; // Keep the most recent events
+
+      if (recentWheelEvents.length >= 2) {
+        recentWheelEvents.shift(); // only store the last N events
+      }
+
+      const prevEvent = recentWheelEvents.length ? recentWheelEvents[recentWheelEvents.length - 1] : undefined;
+      recentWheelEvents.push(newEvent); // If there is at least one previous recorded event:
+      //   If direction has changed or
+      //   if the scroll is quicker than the previous one:
+      //     Animate the slider.
+      // Else (this is the first time the wheel is moved):
+      //     Animate the slider.
+
+      if (prevEvent) {
+        if (newEvent.direction !== prevEvent.direction || newEvent.delta > prevEvent.delta || newEvent.time > prevEvent.time + 150) {
+          animateSlider(newEvent);
+        }
+      } else {
+        animateSlider(newEvent);
+      } // If it's time to release the scroll:
+      //   Return now so you don't hit the preventDefault.
+
+
+      if (releaseScroll(newEvent)) {
+        return true;
+      }
+    } else {
+      // Freemode or scrollContainer:
+      // If we recently snapped after a momentum scroll, then ignore wheel events
+      // to give time for the deceleration to finish. Stop ignoring after 500 msecs
+      // or if it's a new scroll (larger delta or inverse sign as last event before
+      // an end-of-momentum snap).
+      const newEvent = {
+        time: now$1(),
+        delta: Math.abs(delta),
+        direction: Math.sign(delta)
+      };
+      const ignoreWheelEvents = lastEventBeforeSnap && newEvent.time < lastEventBeforeSnap.time + 500 && newEvent.delta <= lastEventBeforeSnap.delta && newEvent.direction === lastEventBeforeSnap.direction;
+
+      if (!ignoreWheelEvents) {
+        lastEventBeforeSnap = undefined;
+
+        if (swiper.params.loop) {
+          swiper.loopFix();
+        }
+
+        let position = swiper.getTranslate() + delta * params.sensitivity;
+        const wasBeginning = swiper.isBeginning;
+        const wasEnd = swiper.isEnd;
+        if (position >= swiper.minTranslate()) position = swiper.minTranslate();
+        if (position <= swiper.maxTranslate()) position = swiper.maxTranslate();
+        swiper.setTransition(0);
+        swiper.setTranslate(position);
+        swiper.updateProgress();
+        swiper.updateActiveIndex();
+        swiper.updateSlidesClasses();
+
+        if (!wasBeginning && swiper.isBeginning || !wasEnd && swiper.isEnd) {
+          swiper.updateSlidesClasses();
+        }
+
+        if (swiper.params.freeMode.sticky) {
+          // When wheel scrolling starts with sticky (aka snap) enabled, then detect
+          // the end of a momentum scroll by storing recent (N=15?) wheel events.
+          // 1. do all N events have decreasing or same (absolute value) delta?
+          // 2. did all N events arrive in the last M (M=500?) msecs?
+          // 3. does the earliest event have an (absolute value) delta that's
+          //    at least P (P=1?) larger than the most recent event's delta?
+          // 4. does the latest event have a delta that's smaller than Q (Q=6?) pixels?
+          // If 1-4 are "yes" then we're near the end of a momentum scroll deceleration.
+          // Snap immediately and ignore remaining wheel events in this scroll.
+          // See comment above for "remaining wheel events in this scroll" determination.
+          // If 1-4 aren't satisfied, then wait to snap until 500ms after the last event.
+          clearTimeout(timeout);
+          timeout = undefined;
+
+          if (recentWheelEvents.length >= 15) {
+            recentWheelEvents.shift(); // only store the last N events
+          }
+
+          const prevEvent = recentWheelEvents.length ? recentWheelEvents[recentWheelEvents.length - 1] : undefined;
+          const firstEvent = recentWheelEvents[0];
+          recentWheelEvents.push(newEvent);
+
+          if (prevEvent && (newEvent.delta > prevEvent.delta || newEvent.direction !== prevEvent.direction)) {
+            // Increasing or reverse-sign delta means the user started scrolling again. Clear the wheel event log.
+            recentWheelEvents.splice(0);
+          } else if (recentWheelEvents.length >= 15 && newEvent.time - firstEvent.time < 500 && firstEvent.delta - newEvent.delta >= 1 && newEvent.delta <= 6) {
+            // We're at the end of the deceleration of a momentum scroll, so there's no need
+            // to wait for more events. Snap ASAP on the next tick.
+            // Also, because there's some remaining momentum we'll bias the snap in the
+            // direction of the ongoing scroll because it's better UX for the scroll to snap
+            // in the same direction as the scroll instead of reversing to snap.  Therefore,
+            // if it's already scrolled more than 20% in the current direction, keep going.
+            const snapToThreshold = delta > 0 ? 0.8 : 0.2;
+            lastEventBeforeSnap = newEvent;
+            recentWheelEvents.splice(0);
+            timeout = nextTick(() => {
+              swiper.slideToClosest(swiper.params.speed, true, undefined, snapToThreshold);
+            }, 0); // no delay; move on next tick
+          }
+
+          if (!timeout) {
+            // if we get here, then we haven't detected the end of a momentum scroll, so
+            // we'll consider a scroll "complete" when there haven't been any wheel events
+            // for 500ms.
+            timeout = nextTick(() => {
+              const snapToThreshold = 0.5;
+              lastEventBeforeSnap = newEvent;
+              recentWheelEvents.splice(0);
+              swiper.slideToClosest(swiper.params.speed, true, undefined, snapToThreshold);
+            }, 500);
+          }
+        } // Emit event
+
+
+        if (!ignoreWheelEvents) emit('scroll', e); // Stop autoplay
+
+        if (swiper.params.autoplay && swiper.params.autoplayDisableOnInteraction) swiper.autoplay.stop(); // Return page scroll on edge positions
+
+        if (position === swiper.minTranslate() || position === swiper.maxTranslate()) return true;
+      }
+    }
+
+    if (e.preventDefault) e.preventDefault();else e.returnValue = false;
+    return false;
+  }
+
+  function events(method) {
+    let target = swiper.$el;
+
+    if (swiper.params.mousewheel.eventsTarget !== 'container') {
+      target = $(swiper.params.mousewheel.eventsTarget);
+    }
+
+    target[method]('mouseenter', handleMouseEnter);
+    target[method]('mouseleave', handleMouseLeave);
+    target[method]('wheel', handle);
+  }
+
+  function enable() {
+    if (swiper.params.cssMode) {
+      swiper.wrapperEl.removeEventListener('wheel', handle);
+      return true;
+    }
+
+    if (swiper.mousewheel.enabled) return false;
+    events('on');
+    swiper.mousewheel.enabled = true;
+    return true;
+  }
+
+  function disable() {
+    if (swiper.params.cssMode) {
+      swiper.wrapperEl.addEventListener(event, handle);
+      return true;
+    }
+
+    if (!swiper.mousewheel.enabled) return false;
+    events('off');
+    swiper.mousewheel.enabled = false;
+    return true;
+  }
+
+  on('init', () => {
+    if (!swiper.params.mousewheel.enabled && swiper.params.cssMode) {
+      disable();
+    }
+
+    if (swiper.params.mousewheel.enabled) enable();
+  });
+  on('destroy', () => {
+    if (swiper.params.cssMode) {
+      enable();
+    }
+
+    if (swiper.mousewheel.enabled) disable();
+  });
+  Object.assign(swiper.mousewheel, {
+    enable,
+    disable
+  });
+}
+
+function createElementIfNotDefined(swiper, originalParams, params, checkProps) {
+  const document = getDocument();
+
+  if (swiper.params.createElements) {
+    Object.keys(checkProps).forEach(key => {
+      if (!params[key] && params.auto === true) {
+        let element = swiper.$el.children(`.${checkProps[key]}`)[0];
+
+        if (!element) {
+          element = document.createElement('div');
+          element.className = checkProps[key];
+          swiper.$el.append(element);
+        }
+
+        params[key] = element;
+        originalParams[key] = element;
+      }
+    });
+  }
+
+  return params;
+}
+
+function classesToSelector(classes) {
+  if (classes === void 0) {
+    classes = '';
+  }
+
+  return `.${classes.trim().replace(/([\.:!\/])/g, '\\$1') // eslint-disable-line
+  .replace(/ /g, '.')}`;
+}
+
+function Pagination(_ref) {
+  let {
+    swiper,
+    extendParams,
+    on,
+    emit
+  } = _ref;
+  const pfx = 'swiper-pagination';
+  extendParams({
+    pagination: {
+      el: null,
+      bulletElement: 'span',
+      clickable: false,
+      hideOnClick: false,
+      renderBullet: null,
+      renderProgressbar: null,
+      renderFraction: null,
+      renderCustom: null,
+      progressbarOpposite: false,
+      type: 'bullets',
+      // 'bullets' or 'progressbar' or 'fraction' or 'custom'
+      dynamicBullets: false,
+      dynamicMainBullets: 1,
+      formatFractionCurrent: number => number,
+      formatFractionTotal: number => number,
+      bulletClass: `${pfx}-bullet`,
+      bulletActiveClass: `${pfx}-bullet-active`,
+      modifierClass: `${pfx}-`,
+      currentClass: `${pfx}-current`,
+      totalClass: `${pfx}-total`,
+      hiddenClass: `${pfx}-hidden`,
+      progressbarFillClass: `${pfx}-progressbar-fill`,
+      progressbarOppositeClass: `${pfx}-progressbar-opposite`,
+      clickableClass: `${pfx}-clickable`,
+      lockClass: `${pfx}-lock`,
+      horizontalClass: `${pfx}-horizontal`,
+      verticalClass: `${pfx}-vertical`,
+      paginationDisabledClass: `${pfx}-disabled`
+    }
+  });
+  swiper.pagination = {
+    el: null,
+    $el: null,
+    bullets: []
+  };
+  let bulletSize;
+  let dynamicBulletIndex = 0;
+
+  function isPaginationDisabled() {
+    return !swiper.params.pagination.el || !swiper.pagination.el || !swiper.pagination.$el || swiper.pagination.$el.length === 0;
+  }
+
+  function setSideBullets($bulletEl, position) {
+    const {
+      bulletActiveClass
+    } = swiper.params.pagination;
+    $bulletEl[position]().addClass(`${bulletActiveClass}-${position}`)[position]().addClass(`${bulletActiveClass}-${position}-${position}`);
+  }
+
+  function update() {
+    // Render || Update Pagination bullets/items
+    const rtl = swiper.rtl;
+    const params = swiper.params.pagination;
+    if (isPaginationDisabled()) return;
+    const slidesLength = swiper.virtual && swiper.params.virtual.enabled ? swiper.virtual.slides.length : swiper.slides.length;
+    const $el = swiper.pagination.$el; // Current/Total
+
+    let current;
+    const total = swiper.params.loop ? Math.ceil((slidesLength - swiper.loopedSlides * 2) / swiper.params.slidesPerGroup) : swiper.snapGrid.length;
+
+    if (swiper.params.loop) {
+      current = Math.ceil((swiper.activeIndex - swiper.loopedSlides) / swiper.params.slidesPerGroup);
+
+      if (current > slidesLength - 1 - swiper.loopedSlides * 2) {
+        current -= slidesLength - swiper.loopedSlides * 2;
+      }
+
+      if (current > total - 1) current -= total;
+      if (current < 0 && swiper.params.paginationType !== 'bullets') current = total + current;
+    } else if (typeof swiper.snapIndex !== 'undefined') {
+      current = swiper.snapIndex;
+    } else {
+      current = swiper.activeIndex || 0;
+    } // Types
+
+
+    if (params.type === 'bullets' && swiper.pagination.bullets && swiper.pagination.bullets.length > 0) {
+      const bullets = swiper.pagination.bullets;
+      let firstIndex;
+      let lastIndex;
+      let midIndex;
+
+      if (params.dynamicBullets) {
+        bulletSize = bullets.eq(0)[swiper.isHorizontal() ? 'outerWidth' : 'outerHeight'](true);
+        $el.css(swiper.isHorizontal() ? 'width' : 'height', `${bulletSize * (params.dynamicMainBullets + 4)}px`);
+
+        if (params.dynamicMainBullets > 1 && swiper.previousIndex !== undefined) {
+          dynamicBulletIndex += current - (swiper.previousIndex - swiper.loopedSlides || 0);
+
+          if (dynamicBulletIndex > params.dynamicMainBullets - 1) {
+            dynamicBulletIndex = params.dynamicMainBullets - 1;
+          } else if (dynamicBulletIndex < 0) {
+            dynamicBulletIndex = 0;
+          }
+        }
+
+        firstIndex = Math.max(current - dynamicBulletIndex, 0);
+        lastIndex = firstIndex + (Math.min(bullets.length, params.dynamicMainBullets) - 1);
+        midIndex = (lastIndex + firstIndex) / 2;
+      }
+
+      bullets.removeClass(['', '-next', '-next-next', '-prev', '-prev-prev', '-main'].map(suffix => `${params.bulletActiveClass}${suffix}`).join(' '));
+
+      if ($el.length > 1) {
+        bullets.each(bullet => {
+          const $bullet = $(bullet);
+          const bulletIndex = $bullet.index();
+
+          if (bulletIndex === current) {
+            $bullet.addClass(params.bulletActiveClass);
+          }
+
+          if (params.dynamicBullets) {
+            if (bulletIndex >= firstIndex && bulletIndex <= lastIndex) {
+              $bullet.addClass(`${params.bulletActiveClass}-main`);
+            }
+
+            if (bulletIndex === firstIndex) {
+              setSideBullets($bullet, 'prev');
+            }
+
+            if (bulletIndex === lastIndex) {
+              setSideBullets($bullet, 'next');
+            }
+          }
+        });
+      } else {
+        const $bullet = bullets.eq(current);
+        const bulletIndex = $bullet.index();
+        $bullet.addClass(params.bulletActiveClass);
+
+        if (params.dynamicBullets) {
+          const $firstDisplayedBullet = bullets.eq(firstIndex);
+          const $lastDisplayedBullet = bullets.eq(lastIndex);
+
+          for (let i = firstIndex; i <= lastIndex; i += 1) {
+            bullets.eq(i).addClass(`${params.bulletActiveClass}-main`);
+          }
+
+          if (swiper.params.loop) {
+            if (bulletIndex >= bullets.length) {
+              for (let i = params.dynamicMainBullets; i >= 0; i -= 1) {
+                bullets.eq(bullets.length - i).addClass(`${params.bulletActiveClass}-main`);
+              }
+
+              bullets.eq(bullets.length - params.dynamicMainBullets - 1).addClass(`${params.bulletActiveClass}-prev`);
+            } else {
+              setSideBullets($firstDisplayedBullet, 'prev');
+              setSideBullets($lastDisplayedBullet, 'next');
+            }
+          } else {
+            setSideBullets($firstDisplayedBullet, 'prev');
+            setSideBullets($lastDisplayedBullet, 'next');
+          }
+        }
+      }
+
+      if (params.dynamicBullets) {
+        const dynamicBulletsLength = Math.min(bullets.length, params.dynamicMainBullets + 4);
+        const bulletsOffset = (bulletSize * dynamicBulletsLength - bulletSize) / 2 - midIndex * bulletSize;
+        const offsetProp = rtl ? 'right' : 'left';
+        bullets.css(swiper.isHorizontal() ? offsetProp : 'top', `${bulletsOffset}px`);
+      }
+    }
+
+    if (params.type === 'fraction') {
+      $el.find(classesToSelector(params.currentClass)).text(params.formatFractionCurrent(current + 1));
+      $el.find(classesToSelector(params.totalClass)).text(params.formatFractionTotal(total));
+    }
+
+    if (params.type === 'progressbar') {
+      let progressbarDirection;
+
+      if (params.progressbarOpposite) {
+        progressbarDirection = swiper.isHorizontal() ? 'vertical' : 'horizontal';
+      } else {
+        progressbarDirection = swiper.isHorizontal() ? 'horizontal' : 'vertical';
+      }
+
+      const scale = (current + 1) / total;
+      let scaleX = 1;
+      let scaleY = 1;
+
+      if (progressbarDirection === 'horizontal') {
+        scaleX = scale;
+      } else {
+        scaleY = scale;
+      }
+
+      $el.find(classesToSelector(params.progressbarFillClass)).transform(`translate3d(0,0,0) scaleX(${scaleX}) scaleY(${scaleY})`).transition(swiper.params.speed);
+    }
+
+    if (params.type === 'custom' && params.renderCustom) {
+      $el.html(params.renderCustom(swiper, current + 1, total));
+      emit('paginationRender', $el[0]);
+    } else {
+      emit('paginationUpdate', $el[0]);
+    }
+
+    if (swiper.params.watchOverflow && swiper.enabled) {
+      $el[swiper.isLocked ? 'addClass' : 'removeClass'](params.lockClass);
+    }
+  }
+
+  function render() {
+    // Render Container
+    const params = swiper.params.pagination;
+    if (isPaginationDisabled()) return;
+    const slidesLength = swiper.virtual && swiper.params.virtual.enabled ? swiper.virtual.slides.length : swiper.slides.length;
+    const $el = swiper.pagination.$el;
+    let paginationHTML = '';
+
+    if (params.type === 'bullets') {
+      let numberOfBullets = swiper.params.loop ? Math.ceil((slidesLength - swiper.loopedSlides * 2) / swiper.params.slidesPerGroup) : swiper.snapGrid.length;
+
+      if (swiper.params.freeMode && swiper.params.freeMode.enabled && !swiper.params.loop && numberOfBullets > slidesLength) {
+        numberOfBullets = slidesLength;
+      }
+
+      for (let i = 0; i < numberOfBullets; i += 1) {
+        if (params.renderBullet) {
+          paginationHTML += params.renderBullet.call(swiper, i, params.bulletClass);
+        } else {
+          paginationHTML += `<${params.bulletElement} class="${params.bulletClass}"></${params.bulletElement}>`;
+        }
+      }
+
+      $el.html(paginationHTML);
+      swiper.pagination.bullets = $el.find(classesToSelector(params.bulletClass));
+    }
+
+    if (params.type === 'fraction') {
+      if (params.renderFraction) {
+        paginationHTML = params.renderFraction.call(swiper, params.currentClass, params.totalClass);
+      } else {
+        paginationHTML = `<span class="${params.currentClass}"></span>` + ' / ' + `<span class="${params.totalClass}"></span>`;
+      }
+
+      $el.html(paginationHTML);
+    }
+
+    if (params.type === 'progressbar') {
+      if (params.renderProgressbar) {
+        paginationHTML = params.renderProgressbar.call(swiper, params.progressbarFillClass);
+      } else {
+        paginationHTML = `<span class="${params.progressbarFillClass}"></span>`;
+      }
+
+      $el.html(paginationHTML);
+    }
+
+    if (params.type !== 'custom') {
+      emit('paginationRender', swiper.pagination.$el[0]);
+    }
+  }
+
+  function init() {
+    swiper.params.pagination = createElementIfNotDefined(swiper, swiper.originalParams.pagination, swiper.params.pagination, {
+      el: 'swiper-pagination'
+    });
+    const params = swiper.params.pagination;
+    if (!params.el) return;
+    let $el = $(params.el);
+    if ($el.length === 0) return;
+
+    if (swiper.params.uniqueNavElements && typeof params.el === 'string' && $el.length > 1) {
+      $el = swiper.$el.find(params.el); // check if it belongs to another nested Swiper
+
+      if ($el.length > 1) {
+        $el = $el.filter(el => {
+          if ($(el).parents('.swiper')[0] !== swiper.el) return false;
+          return true;
+        });
+      }
+    }
+
+    if (params.type === 'bullets' && params.clickable) {
+      $el.addClass(params.clickableClass);
+    }
+
+    $el.addClass(params.modifierClass + params.type);
+    $el.addClass(swiper.isHorizontal() ? params.horizontalClass : params.verticalClass);
+
+    if (params.type === 'bullets' && params.dynamicBullets) {
+      $el.addClass(`${params.modifierClass}${params.type}-dynamic`);
+      dynamicBulletIndex = 0;
+
+      if (params.dynamicMainBullets < 1) {
+        params.dynamicMainBullets = 1;
+      }
+    }
+
+    if (params.type === 'progressbar' && params.progressbarOpposite) {
+      $el.addClass(params.progressbarOppositeClass);
+    }
+
+    if (params.clickable) {
+      $el.on('click', classesToSelector(params.bulletClass), function onClick(e) {
+        e.preventDefault();
+        let index = $(this).index() * swiper.params.slidesPerGroup;
+        if (swiper.params.loop) index += swiper.loopedSlides;
+        swiper.slideTo(index);
+      });
+    }
+
+    Object.assign(swiper.pagination, {
+      $el,
+      el: $el[0]
+    });
+
+    if (!swiper.enabled) {
+      $el.addClass(params.lockClass);
+    }
+  }
+
+  function destroy() {
+    const params = swiper.params.pagination;
+    if (isPaginationDisabled()) return;
+    const $el = swiper.pagination.$el;
+    $el.removeClass(params.hiddenClass);
+    $el.removeClass(params.modifierClass + params.type);
+    $el.removeClass(swiper.isHorizontal() ? params.horizontalClass : params.verticalClass);
+    if (swiper.pagination.bullets && swiper.pagination.bullets.removeClass) swiper.pagination.bullets.removeClass(params.bulletActiveClass);
+
+    if (params.clickable) {
+      $el.off('click', classesToSelector(params.bulletClass));
+    }
+  }
+
+  on('init', () => {
+    if (swiper.params.pagination.enabled === false) {
+      // eslint-disable-next-line
+      disable();
+    } else {
+      init();
+      render();
+      update();
+    }
+  });
+  on('activeIndexChange', () => {
+    if (swiper.params.loop) {
+      update();
+    } else if (typeof swiper.snapIndex === 'undefined') {
+      update();
+    }
+  });
+  on('snapIndexChange', () => {
+    if (!swiper.params.loop) {
+      update();
+    }
+  });
+  on('slidesLengthChange', () => {
+    if (swiper.params.loop) {
+      render();
+      update();
+    }
+  });
+  on('snapGridLengthChange', () => {
+    if (!swiper.params.loop) {
+      render();
+      update();
+    }
+  });
+  on('destroy', () => {
+    destroy();
+  });
+  on('enable disable', () => {
+    const {
+      $el
+    } = swiper.pagination;
+
+    if ($el) {
+      $el[swiper.enabled ? 'removeClass' : 'addClass'](swiper.params.pagination.lockClass);
+    }
+  });
+  on('lock unlock', () => {
+    update();
+  });
+  on('click', (_s, e) => {
+    const targetEl = e.target;
+    const {
+      $el
+    } = swiper.pagination;
+
+    if (swiper.params.pagination.el && swiper.params.pagination.hideOnClick && $el.length > 0 && !$(targetEl).hasClass(swiper.params.pagination.bulletClass)) {
+      if (swiper.navigation && (swiper.navigation.nextEl && targetEl === swiper.navigation.nextEl || swiper.navigation.prevEl && targetEl === swiper.navigation.prevEl)) return;
+      const isHidden = $el.hasClass(swiper.params.pagination.hiddenClass);
+
+      if (isHidden === true) {
+        emit('paginationShow');
+      } else {
+        emit('paginationHide');
+      }
+
+      $el.toggleClass(swiper.params.pagination.hiddenClass);
+    }
+  });
+
+  const enable = () => {
+    swiper.$el.removeClass(swiper.params.pagination.paginationDisabledClass);
+
+    if (swiper.pagination.$el) {
+      swiper.pagination.$el.removeClass(swiper.params.pagination.paginationDisabledClass);
+    }
+
+    init();
+    render();
+    update();
+  };
+
+  const disable = () => {
+    swiper.$el.addClass(swiper.params.pagination.paginationDisabledClass);
+
+    if (swiper.pagination.$el) {
+      swiper.pagination.$el.addClass(swiper.params.pagination.paginationDisabledClass);
+    }
+
+    destroy();
+  };
+
+  Object.assign(swiper.pagination, {
+    enable,
+    disable,
+    render,
+    update,
+    init,
+    destroy
+  });
+}
+
+function isObject$1(o) {
+  return typeof o === 'object' && o !== null && o.constructor && Object.prototype.toString.call(o).slice(8, -1) === 'Object';
+}
+
+function extend(target, src) {
+  const noExtend = ['__proto__', 'constructor', 'prototype'];
+  Object.keys(src).filter(key => noExtend.indexOf(key) < 0).forEach(key => {
+    if (typeof target[key] === 'undefined') target[key] = src[key];else if (isObject$1(src[key]) && isObject$1(target[key]) && Object.keys(src[key]).length > 0) {
+      if (src[key].__swiper__) target[key] = src[key];else extend(target[key], src[key]);
+    } else {
+      target[key] = src[key];
+    }
+  });
+}
+
+function needsNavigation(params) {
+  if (params === void 0) {
+    params = {};
+  }
+
+  return params.navigation && typeof params.navigation.nextEl === 'undefined' && typeof params.navigation.prevEl === 'undefined';
+}
+
+function needsPagination(params) {
+  if (params === void 0) {
+    params = {};
+  }
+
+  return params.pagination && typeof params.pagination.el === 'undefined';
+}
+
+function needsScrollbar(params) {
+  if (params === void 0) {
+    params = {};
+  }
+
+  return params.scrollbar && typeof params.scrollbar.el === 'undefined';
+}
+
+function uniqueClasses(classNames) {
+  if (classNames === void 0) {
+    classNames = '';
+  }
+
+  const classes = classNames.split(' ').map(c => c.trim()).filter(c => !!c);
+  const unique = [];
+  classes.forEach(c => {
+    if (unique.indexOf(c) < 0) unique.push(c);
+  });
+  return unique.join(' ');
+}
+
+/* underscore in name -> watch for changes */
+const paramsList = ['modules', 'init', '_direction', 'touchEventsTarget', 'initialSlide', '_speed', 'cssMode', 'updateOnWindowResize', 'resizeObserver', 'nested', 'focusableElements', '_enabled', '_width', '_height', 'preventInteractionOnTransition', 'userAgent', 'url', '_edgeSwipeDetection', '_edgeSwipeThreshold', '_freeMode', '_autoHeight', 'setWrapperSize', 'virtualTranslate', '_effect', 'breakpoints', '_spaceBetween', '_slidesPerView', 'maxBackfaceHiddenSlides', '_grid', '_slidesPerGroup', '_slidesPerGroupSkip', '_slidesPerGroupAuto', '_centeredSlides', '_centeredSlidesBounds', '_slidesOffsetBefore', '_slidesOffsetAfter', 'normalizeSlideIndex', '_centerInsufficientSlides', '_watchOverflow', 'roundLengths', 'touchRatio', 'touchAngle', 'simulateTouch', '_shortSwipes', '_longSwipes', 'longSwipesRatio', 'longSwipesMs', '_followFinger', 'allowTouchMove', '_threshold', 'touchMoveStopPropagation', 'touchStartPreventDefault', 'touchStartForcePreventDefault', 'touchReleaseOnEdges', 'uniqueNavElements', '_resistance', '_resistanceRatio', '_watchSlidesProgress', '_grabCursor', 'preventClicks', 'preventClicksPropagation', '_slideToClickedSlide', '_preloadImages', 'updateOnImagesReady', '_loop', '_loopAdditionalSlides', '_loopedSlides', '_loopFillGroupWithBlank', 'loopPreventsSlide', '_rewind', '_allowSlidePrev', '_allowSlideNext', '_swipeHandler', '_noSwiping', 'noSwipingClass', 'noSwipingSelector', 'passiveListeners', 'containerModifierClass', 'slideClass', 'slideBlankClass', 'slideActiveClass', 'slideDuplicateActiveClass', 'slideVisibleClass', 'slideDuplicateClass', 'slideNextClass', 'slideDuplicateNextClass', 'slidePrevClass', 'slideDuplicatePrevClass', 'wrapperClass', 'runCallbacksOnInit', 'observer', 'observeParents', 'observeSlideChildren', // modules
+'a11y', '_autoplay', '_controller', 'coverflowEffect', 'cubeEffect', 'fadeEffect', 'flipEffect', 'creativeEffect', 'cardsEffect', 'hashNavigation', 'history', 'keyboard', 'lazy', 'mousewheel', '_navigation', '_pagination', 'parallax', '_scrollbar', '_thumbs', 'virtual', 'zoom'];
+
+function getParams(obj) {
+  if (obj === void 0) {
+    obj = {};
+  }
+
+  const params = {
+    on: {}
+  };
+  const events = {};
+  const passedParams = {};
+  extend(params, Swiper$1.defaults);
+  extend(params, Swiper$1.extendedDefaults);
+  params._emitClasses = true;
+  params.init = false;
+  const rest = {};
+  const allowedParams = paramsList.map(key => key.replace(/_/, ''));
+  Object.keys(obj).forEach(key => {
+    if (allowedParams.indexOf(key) >= 0) {
+      if (isObject$1(obj[key])) {
+        params[key] = {};
+        passedParams[key] = {};
+        extend(params[key], obj[key]);
+        extend(passedParams[key], obj[key]);
+      } else {
+        params[key] = obj[key];
+        passedParams[key] = obj[key];
+      }
+    } else if (key.search(/on[A-Z]/) === 0 && typeof obj[key] === 'function') {
+      events[`${key[2].toLowerCase()}${key.substr(3)}`] = obj[key];
+    } else {
+      rest[key] = obj[key];
+    }
+  });
+  ['navigation', 'pagination', 'scrollbar'].forEach(key => {
+    if (params[key] === true) params[key] = {};
+    if (params[key] === false) delete params[key];
+  });
+  return {
+    params,
+    passedParams,
+    rest,
+    events
+  };
+}
+
+function mountSwiper(_ref, swiperParams) {
+  let {
+    el,
+    nextEl,
+    prevEl,
+    paginationEl,
+    scrollbarEl,
+    swiper
+  } = _ref;
+
+  if (needsNavigation(swiperParams) && nextEl && prevEl) {
+    swiper.params.navigation.nextEl = nextEl;
+    swiper.originalParams.navigation.nextEl = nextEl;
+    swiper.params.navigation.prevEl = prevEl;
+    swiper.originalParams.navigation.prevEl = prevEl;
+  }
+
+  if (needsPagination(swiperParams) && paginationEl) {
+    swiper.params.pagination.el = paginationEl;
+    swiper.originalParams.pagination.el = paginationEl;
+  }
+
+  if (needsScrollbar(swiperParams) && scrollbarEl) {
+    swiper.params.scrollbar.el = scrollbarEl;
+    swiper.originalParams.scrollbar.el = scrollbarEl;
+  }
+
+  swiper.init(el);
+}
+
+function calcLoopedSlides(slides, swiperParams) {
+  let slidesPerViewParams = swiperParams.slidesPerView;
+
+  if (swiperParams.breakpoints) {
+    const breakpoint = Swiper$1.prototype.getBreakpoint(swiperParams.breakpoints);
+    const breakpointOnlyParams = breakpoint in swiperParams.breakpoints ? swiperParams.breakpoints[breakpoint] : undefined;
+
+    if (breakpointOnlyParams && breakpointOnlyParams.slidesPerView) {
+      slidesPerViewParams = breakpointOnlyParams.slidesPerView;
+    }
+  }
+
+  let loopedSlides = Math.ceil(parseFloat(swiperParams.loopedSlides || slidesPerViewParams, 10));
+  loopedSlides += swiperParams.loopAdditionalSlides;
+
+  if (loopedSlides > slides.length) {
+    loopedSlides = slides.length;
+  }
+
+  return loopedSlides;
+}
+
+function renderLoop(swiper, slides, swiperParams) {
+  const modifiedSlides = slides.map((child, index) => {
+    return /*#__PURE__*/React.cloneElement(child, {
+      swiper,
+      'data-swiper-slide-index': index
+    });
+  });
+
+  function duplicateSlide(child, index, position) {
+    return /*#__PURE__*/React.cloneElement(child, {
+      key: `${child.key}-duplicate-${index}-${position}`,
+      className: `${child.props.className || ''} ${swiperParams.slideDuplicateClass}`
+    });
+  }
+
+  if (swiperParams.loopFillGroupWithBlank) {
+    const blankSlidesNum = swiperParams.slidesPerGroup - modifiedSlides.length % swiperParams.slidesPerGroup;
+
+    if (blankSlidesNum !== swiperParams.slidesPerGroup) {
+      for (let i = 0; i < blankSlidesNum; i += 1) {
+        const blankSlide = /*#__PURE__*/React.createElement("div", {
+          className: `${swiperParams.slideClass} ${swiperParams.slideBlankClass}`
+        });
+        modifiedSlides.push(blankSlide);
+      }
+    }
+  }
+
+  if (swiperParams.slidesPerView === 'auto' && !swiperParams.loopedSlides) {
+    swiperParams.loopedSlides = modifiedSlides.length;
+  }
+
+  const loopedSlides = calcLoopedSlides(modifiedSlides, swiperParams);
+  const prependSlides = [];
+  const appendSlides = [];
+  modifiedSlides.forEach((child, index) => {
+    if (index < loopedSlides) {
+      appendSlides.push(duplicateSlide(child, index, 'prepend'));
+    }
+
+    if (index < modifiedSlides.length && index >= modifiedSlides.length - loopedSlides) {
+      prependSlides.push(duplicateSlide(child, index, 'append'));
+    }
+  });
+
+  if (swiper) {
+    swiper.loopedSlides = loopedSlides;
+  }
+
+  return [...prependSlides, ...modifiedSlides, ...appendSlides];
+}
+
+function getChangedParams(swiperParams, oldParams, children, oldChildren) {
+  const keys = [];
+  if (!oldParams) return keys;
+
+  const addKey = key => {
+    if (keys.indexOf(key) < 0) keys.push(key);
+  };
+
+  const oldChildrenKeys = oldChildren.map(child => child.key);
+  const childrenKeys = children.map(child => child.key);
+  if (oldChildrenKeys.join('') !== childrenKeys.join('')) addKey('children');
+  if (oldChildren.length !== children.length) addKey('children');
+  const watchParams = paramsList.filter(key => key[0] === '_').map(key => key.replace(/_/, ''));
+  watchParams.forEach(key => {
+    if (key in swiperParams && key in oldParams) {
+      if (isObject$1(swiperParams[key]) && isObject$1(oldParams[key])) {
+        const newKeys = Object.keys(swiperParams[key]);
+        const oldKeys = Object.keys(oldParams[key]);
+
+        if (newKeys.length !== oldKeys.length) {
+          addKey(key);
+        } else {
+          newKeys.forEach(newKey => {
+            if (swiperParams[key][newKey] !== oldParams[key][newKey]) {
+              addKey(key);
+            }
+          });
+          oldKeys.forEach(oldKey => {
+            if (swiperParams[key][oldKey] !== oldParams[key][oldKey]) addKey(key);
+          });
+        }
+      } else if (swiperParams[key] !== oldParams[key]) {
+        addKey(key);
+      }
+    }
+  });
+  return keys;
+}
+
+function processChildren(c) {
+  const slides = [];
+  React.Children.toArray(c).forEach(child => {
+    if (child.type && child.type.displayName === 'SwiperSlide') {
+      slides.push(child);
+    } else if (child.props && child.props.children) {
+      processChildren(child.props.children).forEach(slide => slides.push(slide));
+    }
+  });
+  return slides;
+}
+
+function getChildren(c) {
+  const slides = [];
+  const slots = {
+    'container-start': [],
+    'container-end': [],
+    'wrapper-start': [],
+    'wrapper-end': []
+  };
+  React.Children.toArray(c).forEach(child => {
+    if (child.type && child.type.displayName === 'SwiperSlide') {
+      slides.push(child);
+    } else if (child.props && child.props.slot && slots[child.props.slot]) {
+      slots[child.props.slot].push(child);
+    } else if (child.props && child.props.children) {
+      const foundSlides = processChildren(child.props.children);
+
+      if (foundSlides.length > 0) {
+        foundSlides.forEach(slide => slides.push(slide));
+      } else {
+        slots['container-end'].push(child);
+      }
+    } else {
+      slots['container-end'].push(child);
+    }
+  });
+  return {
+    slides,
+    slots
+  };
+}
+
+function updateSwiper(_ref) {
+  let {
+    swiper,
+    slides,
+    passedParams,
+    changedParams,
+    nextEl,
+    prevEl,
+    scrollbarEl,
+    paginationEl
+  } = _ref;
+  const updateParams = changedParams.filter(key => key !== 'children' && key !== 'direction');
+  const {
+    params: currentParams,
+    pagination,
+    navigation,
+    scrollbar,
+    virtual,
+    thumbs
+  } = swiper;
+  let needThumbsInit;
+  let needControllerInit;
+  let needPaginationInit;
+  let needScrollbarInit;
+  let needNavigationInit;
+
+  if (changedParams.includes('thumbs') && passedParams.thumbs && passedParams.thumbs.swiper && currentParams.thumbs && !currentParams.thumbs.swiper) {
+    needThumbsInit = true;
+  }
+
+  if (changedParams.includes('controller') && passedParams.controller && passedParams.controller.control && currentParams.controller && !currentParams.controller.control) {
+    needControllerInit = true;
+  }
+
+  if (changedParams.includes('pagination') && passedParams.pagination && (passedParams.pagination.el || paginationEl) && (currentParams.pagination || currentParams.pagination === false) && pagination && !pagination.el) {
+    needPaginationInit = true;
+  }
+
+  if (changedParams.includes('scrollbar') && passedParams.scrollbar && (passedParams.scrollbar.el || scrollbarEl) && (currentParams.scrollbar || currentParams.scrollbar === false) && scrollbar && !scrollbar.el) {
+    needScrollbarInit = true;
+  }
+
+  if (changedParams.includes('navigation') && passedParams.navigation && (passedParams.navigation.prevEl || prevEl) && (passedParams.navigation.nextEl || nextEl) && (currentParams.navigation || currentParams.navigation === false) && navigation && !navigation.prevEl && !navigation.nextEl) {
+    needNavigationInit = true;
+  }
+
+  const destroyModule = mod => {
+    if (!swiper[mod]) return;
+    swiper[mod].destroy();
+
+    if (mod === 'navigation') {
+      currentParams[mod].prevEl = undefined;
+      currentParams[mod].nextEl = undefined;
+      swiper[mod].prevEl = undefined;
+      swiper[mod].nextEl = undefined;
+    } else {
+      currentParams[mod].el = undefined;
+      swiper[mod].el = undefined;
+    }
+  };
+
+  updateParams.forEach(key => {
+    if (isObject$1(currentParams[key]) && isObject$1(passedParams[key])) {
+      extend(currentParams[key], passedParams[key]);
+    } else {
+      const newValue = passedParams[key];
+
+      if ((newValue === true || newValue === false) && (key === 'navigation' || key === 'pagination' || key === 'scrollbar')) {
+        if (newValue === false) {
+          destroyModule(key);
+        }
+      } else {
+        currentParams[key] = passedParams[key];
+      }
+    }
+  });
+
+  if (updateParams.includes('controller') && !needControllerInit && swiper.controller && swiper.controller.control && currentParams.controller && currentParams.controller.control) {
+    swiper.controller.control = currentParams.controller.control;
+  }
+
+  if (changedParams.includes('children') && virtual && currentParams.virtual.enabled) {
+    virtual.slides = slides;
+    virtual.update(true);
+  } else if (changedParams.includes('children') && swiper.lazy && swiper.params.lazy.enabled) {
+    swiper.lazy.load();
+  }
+
+  if (needThumbsInit) {
+    const initialized = thumbs.init();
+    if (initialized) thumbs.update(true);
+  }
+
+  if (needControllerInit) {
+    swiper.controller.control = currentParams.controller.control;
+  }
+
+  if (needPaginationInit) {
+    if (paginationEl) currentParams.pagination.el = paginationEl;
+    pagination.init();
+    pagination.render();
+    pagination.update();
+  }
+
+  if (needScrollbarInit) {
+    if (scrollbarEl) currentParams.scrollbar.el = scrollbarEl;
+    scrollbar.init();
+    scrollbar.updateSize();
+    scrollbar.setTranslate();
+  }
+
+  if (needNavigationInit) {
+    if (nextEl) currentParams.navigation.nextEl = nextEl;
+    if (prevEl) currentParams.navigation.prevEl = prevEl;
+    navigation.init();
+    navigation.update();
+  }
+
+  if (changedParams.includes('allowSlideNext')) {
+    swiper.allowSlideNext = passedParams.allowSlideNext;
+  }
+
+  if (changedParams.includes('allowSlidePrev')) {
+    swiper.allowSlidePrev = passedParams.allowSlidePrev;
+  }
+
+  if (changedParams.includes('direction')) {
+    swiper.changeDirection(passedParams.direction, false);
+  }
+
+  swiper.update();
+}
+
+function updateOnVirtualData(swiper) {
+  if (!swiper || swiper.destroyed || !swiper.params.virtual || swiper.params.virtual && !swiper.params.virtual.enabled) return;
+  swiper.updateSlides();
+  swiper.updateProgress();
+  swiper.updateSlidesClasses();
+
+  if (swiper.lazy && swiper.params.lazy.enabled) {
+    swiper.lazy.load();
+  }
+
+  if (swiper.parallax && swiper.params.parallax && swiper.params.parallax.enabled) {
+    swiper.parallax.setTranslate();
+  }
+}
+
+function renderVirtual(swiper, slides, virtualData) {
+  if (!virtualData) return null;
+  const style = swiper.isHorizontal() ? {
+    [swiper.rtlTranslate ? 'right' : 'left']: `${virtualData.offset}px`
+  } : {
+    top: `${virtualData.offset}px`
+  };
+  return slides.filter((child, index) => index >= virtualData.from && index <= virtualData.to).map(child => {
+    return /*#__PURE__*/React.cloneElement(child, {
+      swiper,
+      style
+    });
+  });
+}
+
+function useIsomorphicLayoutEffect(callback, deps) {
+  // eslint-disable-next-line
+  if (typeof window === 'undefined') return react.exports.useEffect(callback, deps);
+  return react.exports.useLayoutEffect(callback, deps);
+}
+
+const SwiperSlideContext = /*#__PURE__*/react.exports.createContext(null);
+const SwiperContext = /*#__PURE__*/react.exports.createContext(null);
+const useSwiper = () => {
+  return react.exports.useContext(SwiperContext);
+};
+
+function _extends$1() { _extends$1 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$1.apply(this, arguments); }
+const Swiper = /*#__PURE__*/react.exports.forwardRef(function (_temp, externalElRef) {
+  let {
+    className,
+    tag: Tag = 'div',
+    wrapperTag: WrapperTag = 'div',
+    children,
+    onSwiper,
+    ...rest
+  } = _temp === void 0 ? {} : _temp;
+  let eventsAssigned = false;
+  const [containerClasses, setContainerClasses] = react.exports.useState('swiper');
+  const [virtualData, setVirtualData] = react.exports.useState(null);
+  const [breakpointChanged, setBreakpointChanged] = react.exports.useState(false);
+  const initializedRef = react.exports.useRef(false);
+  const swiperElRef = react.exports.useRef(null);
+  const swiperRef = react.exports.useRef(null);
+  const oldPassedParamsRef = react.exports.useRef(null);
+  const oldSlides = react.exports.useRef(null);
+  const nextElRef = react.exports.useRef(null);
+  const prevElRef = react.exports.useRef(null);
+  const paginationElRef = react.exports.useRef(null);
+  const scrollbarElRef = react.exports.useRef(null);
+  const {
+    params: swiperParams,
+    passedParams,
+    rest: restProps,
+    events
+  } = getParams(rest);
+  const {
+    slides,
+    slots
+  } = getChildren(children);
+
+  const onBeforeBreakpoint = () => {
+    setBreakpointChanged(!breakpointChanged);
+  };
+
+  Object.assign(swiperParams.on, {
+    _containerClasses(swiper, classes) {
+      setContainerClasses(classes);
+    }
+
+  });
+
+  const initSwiper = () => {
+    // init swiper
+    Object.assign(swiperParams.on, events);
+    eventsAssigned = true;
+    swiperRef.current = new Swiper$1(swiperParams);
+
+    swiperRef.current.loopCreate = () => {};
+
+    swiperRef.current.loopDestroy = () => {};
+
+    if (swiperParams.loop) {
+      swiperRef.current.loopedSlides = calcLoopedSlides(slides, swiperParams);
+    }
+
+    if (swiperRef.current.virtual && swiperRef.current.params.virtual.enabled) {
+      swiperRef.current.virtual.slides = slides;
+      const extendWith = {
+        cache: false,
+        slides,
+        renderExternal: setVirtualData,
+        renderExternalUpdate: false
+      };
+      extend(swiperRef.current.params.virtual, extendWith);
+      extend(swiperRef.current.originalParams.virtual, extendWith);
+    }
+  };
+
+  if (!swiperElRef.current) {
+    initSwiper();
+  } // Listen for breakpoints change
+
+
+  if (swiperRef.current) {
+    swiperRef.current.on('_beforeBreakpoint', onBeforeBreakpoint);
+  }
+
+  const attachEvents = () => {
+    if (eventsAssigned || !events || !swiperRef.current) return;
+    Object.keys(events).forEach(eventName => {
+      swiperRef.current.on(eventName, events[eventName]);
+    });
+  };
+
+  const detachEvents = () => {
+    if (!events || !swiperRef.current) return;
+    Object.keys(events).forEach(eventName => {
+      swiperRef.current.off(eventName, events[eventName]);
+    });
+  };
+
+  react.exports.useEffect(() => {
+    return () => {
+      if (swiperRef.current) swiperRef.current.off('_beforeBreakpoint', onBeforeBreakpoint);
+    };
+  }); // set initialized flag
+
+  react.exports.useEffect(() => {
+    if (!initializedRef.current && swiperRef.current) {
+      swiperRef.current.emitSlidesClasses();
+      initializedRef.current = true;
+    }
+  }); // mount swiper
+
+  useIsomorphicLayoutEffect(() => {
+    if (externalElRef) {
+      externalElRef.current = swiperElRef.current;
+    }
+
+    if (!swiperElRef.current) return;
+
+    if (swiperRef.current.destroyed) {
+      initSwiper();
+    }
+
+    mountSwiper({
+      el: swiperElRef.current,
+      nextEl: nextElRef.current,
+      prevEl: prevElRef.current,
+      paginationEl: paginationElRef.current,
+      scrollbarEl: scrollbarElRef.current,
+      swiper: swiperRef.current
+    }, swiperParams);
+    if (onSwiper) onSwiper(swiperRef.current); // eslint-disable-next-line
+
+    return () => {
+      if (swiperRef.current && !swiperRef.current.destroyed) {
+        swiperRef.current.destroy(true, false);
+      }
+    };
+  }, []); // watch for params change
+
+  useIsomorphicLayoutEffect(() => {
+    attachEvents();
+    const changedParams = getChangedParams(passedParams, oldPassedParamsRef.current, slides, oldSlides.current);
+    oldPassedParamsRef.current = passedParams;
+    oldSlides.current = slides;
+
+    if (changedParams.length && swiperRef.current && !swiperRef.current.destroyed) {
+      updateSwiper({
+        swiper: swiperRef.current,
+        slides,
+        passedParams,
+        changedParams,
+        nextEl: nextElRef.current,
+        prevEl: prevElRef.current,
+        scrollbarEl: scrollbarElRef.current,
+        paginationEl: paginationElRef.current
+      });
+    }
+
+    return () => {
+      detachEvents();
+    };
+  }); // update on virtual update
+
+  useIsomorphicLayoutEffect(() => {
+    updateOnVirtualData(swiperRef.current);
+  }, [virtualData]); // bypass swiper instance to slides
+
+  function renderSlides() {
+    if (swiperParams.virtual) {
+      return renderVirtual(swiperRef.current, slides, virtualData);
+    }
+
+    if (!swiperParams.loop || swiperRef.current && swiperRef.current.destroyed) {
+      return slides.map(child => {
+        return /*#__PURE__*/React.cloneElement(child, {
+          swiper: swiperRef.current
+        });
+      });
+    }
+
+    return renderLoop(swiperRef.current, slides, swiperParams);
+  }
+
+  return /*#__PURE__*/React.createElement(Tag, _extends$1({
+    ref: swiperElRef,
+    className: uniqueClasses(`${containerClasses}${className ? ` ${className}` : ''}`)
+  }, restProps), /*#__PURE__*/React.createElement(SwiperContext.Provider, {
+    value: swiperRef.current
+  }, slots['container-start'], /*#__PURE__*/React.createElement(WrapperTag, {
+    className: "swiper-wrapper"
+  }, slots['wrapper-start'], renderSlides(), slots['wrapper-end']), needsNavigation(swiperParams) && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    ref: prevElRef,
+    className: "swiper-button-prev"
+  }), /*#__PURE__*/React.createElement("div", {
+    ref: nextElRef,
+    className: "swiper-button-next"
+  })), needsScrollbar(swiperParams) && /*#__PURE__*/React.createElement("div", {
+    ref: scrollbarElRef,
+    className: "swiper-scrollbar"
+  }), needsPagination(swiperParams) && /*#__PURE__*/React.createElement("div", {
+    ref: paginationElRef,
+    className: "swiper-pagination"
+  }), slots['container-end']));
+});
+Swiper.displayName = 'Swiper';
+
+function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+const SwiperSlide = /*#__PURE__*/react.exports.forwardRef(function (_temp, externalRef) {
+  let {
+    tag: Tag = 'div',
+    children,
+    className = '',
+    swiper,
+    zoom,
+    virtualIndex,
+    ...rest
+  } = _temp === void 0 ? {} : _temp;
+  const slideElRef = react.exports.useRef(null);
+  const [slideClasses, setSlideClasses] = react.exports.useState('swiper-slide');
+
+  function updateClasses(_s, el, classNames) {
+    if (el === slideElRef.current) {
+      setSlideClasses(classNames);
+    }
+  }
+
+  useIsomorphicLayoutEffect(() => {
+    if (externalRef) {
+      externalRef.current = slideElRef.current;
+    }
+
+    if (!slideElRef.current || !swiper) {
+      return;
+    }
+
+    if (swiper.destroyed) {
+      if (slideClasses !== 'swiper-slide') {
+        setSlideClasses('swiper-slide');
+      }
+
+      return;
+    }
+
+    swiper.on('_slideClass', updateClasses); // eslint-disable-next-line
+
+    return () => {
+      if (!swiper) return;
+      swiper.off('_slideClass', updateClasses);
+    };
+  });
+  useIsomorphicLayoutEffect(() => {
+    if (swiper && slideElRef.current && !swiper.destroyed) {
+      setSlideClasses(swiper.getSlideClasses(slideElRef.current));
+    }
+  }, [swiper]);
+  const slideData = {
+    isActive: slideClasses.indexOf('swiper-slide-active') >= 0 || slideClasses.indexOf('swiper-slide-duplicate-active') >= 0,
+    isVisible: slideClasses.indexOf('swiper-slide-visible') >= 0,
+    isDuplicate: slideClasses.indexOf('swiper-slide-duplicate') >= 0,
+    isPrev: slideClasses.indexOf('swiper-slide-prev') >= 0 || slideClasses.indexOf('swiper-slide-duplicate-prev') >= 0,
+    isNext: slideClasses.indexOf('swiper-slide-next') >= 0 || slideClasses.indexOf('swiper-slide-duplicate-next') >= 0
+  };
+
+  const renderChildren = () => {
+    return typeof children === 'function' ? children(slideData) : children;
+  };
+
+  return /*#__PURE__*/React.createElement(Tag, _extends({
+    ref: slideElRef,
+    className: uniqueClasses(`${slideClasses}${className ? ` ${className}` : ''}`),
+    "data-swiper-slide-index": virtualIndex
+  }, rest), /*#__PURE__*/React.createElement(SwiperSlideContext.Provider, {
+    value: slideData
+  }, zoom ? /*#__PURE__*/React.createElement("div", {
+    className: "swiper-zoom-container",
+    "data-swiper-zoom": typeof zoom === 'number' ? zoom : undefined
+  }, renderChildren()) : renderChildren()));
+});
+SwiperSlide.displayName = 'SwiperSlide';
+
+function renderCustomMaker(names) {
+  function renderBullet(name, active) {
+    return `<div class="nav-icon ${active ? "swiper-pagination-bullet-active" : ""}">
+	<div class="ui-icon ${name}-icon"></div>
+	<p class="bullet-caption">${name}</p>
+</div>`;
+  }
+
+  return function renderCustom(swiper, index, total) {
+    return names.map((name, i) => renderBullet(name, i === index - 1)).join("\n");
+  };
+}
+
+function Controller({
+  ids,
+  children
+}) {
+  return /*#__PURE__*/jsxRuntime.exports.jsx(Swiper, {
+    slidesPerView: 1,
+    spaceBetween: 10,
+    pagination: {
+      clickable: true,
+      horizontalClass: "nav-bar",
+      verticalClass: "nav-bar",
+      bulletClass: "nav-icon",
+      type: "custom",
+      renderCustom: renderCustomMaker(ids)
+    },
+    mousewheel: true,
+    breakpoints: {
+      1366: {
+        slidesPerView: "auto",
+        spaceBetween: 20,
+        direction: "vertical"
+      }
+    },
+    noSwipingSelector: "input, canvas",
+    autoHeight: true,
+    className: "controller",
+    modules: [Pagination, Mousewheel],
+    children: children.map((child, idx) => /*#__PURE__*/jsxRuntime.exports.jsx(SwiperSlide, {
+      children: child
+    }, ids[idx]))
+  });
+}
+
+if (!react.exports.useState) {
+    throw new Error("mobx-react-lite requires React with Hooks support");
+}
+if (!makeObservable) {
+    throw new Error("mobx-react-lite@3 requires mobx at least version 6 to be available");
+}
+
+function defaultNoopBatch(callback) {
+    callback();
+}
+function observerBatching(reactionScheduler) {
+    if (!reactionScheduler) {
+        reactionScheduler = defaultNoopBatch;
+        {
+            console.warn("[MobX] Failed to get unstable_batched updates from react-dom / react-native");
+        }
+    }
+    configure({ reactionScheduler: reactionScheduler });
+}
+
+function printDebugValue(v) {
+    return getDependencyTree(v);
+}
+
+var FinalizationRegistryLocal = typeof FinalizationRegistry === "undefined" ? undefined : FinalizationRegistry;
+
+function createTrackingData(reaction) {
+    var trackingData = {
+        reaction: reaction,
+        mounted: false,
+        changedBeforeMount: false,
+        cleanAt: Date.now() + CLEANUP_LEAKED_REACTIONS_AFTER_MILLIS
+    };
+    return trackingData;
+}
+/**
+ * The minimum time before we'll clean up a Reaction created in a render
+ * for a component that hasn't managed to run its effects. This needs to
+ * be big enough to ensure that a component won't turn up and have its
+ * effects run without being re-rendered.
+ */
+var CLEANUP_LEAKED_REACTIONS_AFTER_MILLIS = 10000;
+/**
+ * The frequency with which we'll check for leaked reactions.
+ */
+var CLEANUP_TIMER_LOOP_MILLIS = 10000;
+
+/**
+ * FinalizationRegistry-based uncommitted reaction cleanup
+ */
+function createReactionCleanupTrackingUsingFinalizationRegister(FinalizationRegistry) {
+    var cleanupTokenToReactionTrackingMap = new Map();
+    var globalCleanupTokensCounter = 1;
+    var registry = new FinalizationRegistry(function cleanupFunction(token) {
+        var trackedReaction = cleanupTokenToReactionTrackingMap.get(token);
+        if (trackedReaction) {
+            trackedReaction.reaction.dispose();
+            cleanupTokenToReactionTrackingMap.delete(token);
+        }
+    });
+    return {
+        addReactionToTrack: function (reactionTrackingRef, reaction, objectRetainedByReact) {
+            var token = globalCleanupTokensCounter++;
+            registry.register(objectRetainedByReact, token, reactionTrackingRef);
+            reactionTrackingRef.current = createTrackingData(reaction);
+            reactionTrackingRef.current.finalizationRegistryCleanupToken = token;
+            cleanupTokenToReactionTrackingMap.set(token, reactionTrackingRef.current);
+            return reactionTrackingRef.current;
+        },
+        recordReactionAsCommitted: function (reactionRef) {
+            registry.unregister(reactionRef);
+            if (reactionRef.current && reactionRef.current.finalizationRegistryCleanupToken) {
+                cleanupTokenToReactionTrackingMap.delete(reactionRef.current.finalizationRegistryCleanupToken);
+            }
+        },
+        forceCleanupTimerToRunNowForTests: function () {
+            // When FinalizationRegistry in use, this this is no-op
+        },
+        resetCleanupScheduleForTests: function () {
+            // When FinalizationRegistry in use, this this is no-op
+        }
+    };
+}
+
+var __values = (undefined && undefined.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+/**
+ * timers, gc-style, uncommitted reaction cleanup
+ */
+function createTimerBasedReactionCleanupTracking() {
+    /**
+     * Reactions created by components that have yet to be fully mounted.
+     */
+    var uncommittedReactionRefs = new Set();
+    /**
+     * Latest 'uncommitted reactions' cleanup timer handle.
+     */
+    var reactionCleanupHandle;
+    /* istanbul ignore next */
+    /**
+     * Only to be used by test functions; do not export outside of mobx-react-lite
+     */
+    function forceCleanupTimerToRunNowForTests() {
+        // This allows us to control the execution of the cleanup timer
+        // to force it to run at awkward times in unit tests.
+        if (reactionCleanupHandle) {
+            clearTimeout(reactionCleanupHandle);
+            cleanUncommittedReactions();
+        }
+    }
+    /* istanbul ignore next */
+    function resetCleanupScheduleForTests() {
+        var e_1, _a;
+        if (uncommittedReactionRefs.size > 0) {
+            try {
+                for (var uncommittedReactionRefs_1 = __values(uncommittedReactionRefs), uncommittedReactionRefs_1_1 = uncommittedReactionRefs_1.next(); !uncommittedReactionRefs_1_1.done; uncommittedReactionRefs_1_1 = uncommittedReactionRefs_1.next()) {
+                    var ref = uncommittedReactionRefs_1_1.value;
+                    var tracking = ref.current;
+                    if (tracking) {
+                        tracking.reaction.dispose();
+                        ref.current = null;
+                    }
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (uncommittedReactionRefs_1_1 && !uncommittedReactionRefs_1_1.done && (_a = uncommittedReactionRefs_1.return)) _a.call(uncommittedReactionRefs_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            uncommittedReactionRefs.clear();
+        }
+        if (reactionCleanupHandle) {
+            clearTimeout(reactionCleanupHandle);
+            reactionCleanupHandle = undefined;
+        }
+    }
+    function ensureCleanupTimerRunning() {
+        if (reactionCleanupHandle === undefined) {
+            reactionCleanupHandle = setTimeout(cleanUncommittedReactions, CLEANUP_TIMER_LOOP_MILLIS);
+        }
+    }
+    function scheduleCleanupOfReactionIfLeaked(ref) {
+        uncommittedReactionRefs.add(ref);
+        ensureCleanupTimerRunning();
+    }
+    function recordReactionAsCommitted(reactionRef) {
+        uncommittedReactionRefs.delete(reactionRef);
+    }
+    /**
+     * Run by the cleanup timer to dispose any outstanding reactions
+     */
+    function cleanUncommittedReactions() {
+        reactionCleanupHandle = undefined;
+        // Loop through all the candidate leaked reactions; those older
+        // than CLEANUP_LEAKED_REACTIONS_AFTER_MILLIS get tidied.
+        var now = Date.now();
+        uncommittedReactionRefs.forEach(function (ref) {
+            var tracking = ref.current;
+            if (tracking) {
+                if (now >= tracking.cleanAt) {
+                    // It's time to tidy up this leaked reaction.
+                    tracking.reaction.dispose();
+                    ref.current = null;
+                    uncommittedReactionRefs.delete(ref);
+                }
+            }
+        });
+        if (uncommittedReactionRefs.size > 0) {
+            // We've just finished a round of cleanups but there are still
+            // some leak candidates outstanding.
+            ensureCleanupTimerRunning();
+        }
+    }
+    return {
+        addReactionToTrack: function (reactionTrackingRef, reaction, 
+        /**
+         * On timer based implementation we don't really need this object,
+         * but we keep the same api
+         */
+        objectRetainedByReact) {
+            reactionTrackingRef.current = createTrackingData(reaction);
+            scheduleCleanupOfReactionIfLeaked(reactionTrackingRef);
+            return reactionTrackingRef.current;
+        },
+        recordReactionAsCommitted: recordReactionAsCommitted,
+        forceCleanupTimerToRunNowForTests: forceCleanupTimerToRunNowForTests,
+        resetCleanupScheduleForTests: resetCleanupScheduleForTests
+    };
+}
+
+var _a = FinalizationRegistryLocal
+    ? createReactionCleanupTrackingUsingFinalizationRegister(FinalizationRegistryLocal)
+    : createTimerBasedReactionCleanupTracking(), addReactionToTrack = _a.addReactionToTrack, recordReactionAsCommitted = _a.recordReactionAsCommitted;
+
+var __read = (undefined && undefined.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+function observerComponentNameFor(baseComponentName) {
+    return "observer".concat(baseComponentName);
+}
+/**
+ * We use class to make it easier to detect in heap snapshots by name
+ */
+var ObjectToBeRetainedByReact = /** @class */ (function () {
+    function ObjectToBeRetainedByReact() {
+    }
+    return ObjectToBeRetainedByReact;
+}());
+function objectToBeRetainedByReactFactory() {
+    return new ObjectToBeRetainedByReact();
+}
+function useObserver(fn, baseComponentName) {
+    if (baseComponentName === void 0) { baseComponentName = "observed"; }
+    var _a = __read(React.useState(objectToBeRetainedByReactFactory), 1), objectRetainedByReact = _a[0];
+    // Force update, see #2982
+    var _b = __read(React.useState(), 2), setState = _b[1];
+    var forceUpdate = function () { return setState([]); };
+    // StrictMode/ConcurrentMode/Suspense may mean that our component is
+    // rendered and abandoned multiple times, so we need to track leaked
+    // Reactions.
+    var reactionTrackingRef = React.useRef(null);
+    if (!reactionTrackingRef.current) {
+        // First render for this component (or first time since a previous
+        // reaction from an abandoned render was disposed).
+        var newReaction = new Reaction(observerComponentNameFor(baseComponentName), function () {
+            // Observable has changed, meaning we want to re-render
+            // BUT if we're a component that hasn't yet got to the useEffect()
+            // stage, we might be a component that _started_ to render, but
+            // got dropped, and we don't want to make state changes then.
+            // (It triggers warnings in StrictMode, for a start.)
+            if (trackingData_1.mounted) {
+                // We have reached useEffect(), so we're mounted, and can trigger an update
+                forceUpdate();
+            }
+            else {
+                // We haven't yet reached useEffect(), so we'll need to trigger a re-render
+                // when (and if) useEffect() arrives.
+                trackingData_1.changedBeforeMount = true;
+            }
+        });
+        var trackingData_1 = addReactionToTrack(reactionTrackingRef, newReaction, objectRetainedByReact);
+    }
+    var reaction = reactionTrackingRef.current.reaction;
+    React.useDebugValue(reaction, printDebugValue);
+    React.useEffect(function () {
+        // Called on first mount only
+        recordReactionAsCommitted(reactionTrackingRef);
+        if (reactionTrackingRef.current) {
+            // Great. We've already got our reaction from our render;
+            // all we need to do is to record that it's now mounted,
+            // to allow future observable changes to trigger re-renders
+            reactionTrackingRef.current.mounted = true;
+            // Got a change before first mount, force an update
+            if (reactionTrackingRef.current.changedBeforeMount) {
+                reactionTrackingRef.current.changedBeforeMount = false;
+                forceUpdate();
+            }
+        }
+        else {
+            // The reaction we set up in our render has been disposed.
+            // This can be due to bad timings of renderings, e.g. our
+            // component was paused for a _very_ long time, and our
+            // reaction got cleaned up
+            // Re-create the reaction
+            reactionTrackingRef.current = {
+                reaction: new Reaction(observerComponentNameFor(baseComponentName), function () {
+                    // We've definitely already been mounted at this point
+                    forceUpdate();
+                }),
+                mounted: true,
+                changedBeforeMount: false,
+                cleanAt: Infinity
+            };
+            forceUpdate();
+        }
+        return function () {
+            reactionTrackingRef.current.reaction.dispose();
+            reactionTrackingRef.current = null;
+        };
+    }, []);
+    // render the original component, but have the
+    // reaction track the observables, so that rendering
+    // can be invalidated (see above) once a dependency changes
+    var rendering;
+    var exception;
+    reaction.track(function () {
+        try {
+            rendering = fn();
+        }
+        catch (e) {
+            exception = e;
+        }
+    });
+    if (exception) {
+        throw exception; // re-throw any exceptions caught during rendering
+    }
+    return rendering;
+}
+
+var warnObserverOptionsDeprecated = true;
+var hasSymbol = typeof Symbol === "function" && Symbol.for;
+// Using react-is had some issues (and operates on elements, not on types), see #608 / #609
+var ReactForwardRefSymbol = hasSymbol
+    ? Symbol.for("react.forward_ref")
+    : typeof react.exports.forwardRef === "function" && react.exports.forwardRef(function (props) { return null; })["$$typeof"];
+var ReactMemoSymbol = hasSymbol
+    ? Symbol.for("react.memo")
+    : typeof react.exports.memo === "function" && react.exports.memo(function (props) { return null; })["$$typeof"];
+// n.b. base case is not used for actual typings or exported in the typing files
+function observer(baseComponent, 
+// TODO remove in next major
+options) {
+    var _a;
+    if (warnObserverOptionsDeprecated && options) {
+        warnObserverOptionsDeprecated = false;
+        console.warn("[mobx-react-lite] `observer(fn, { forwardRef: true })` is deprecated, use `observer(React.forwardRef(fn))`");
+    }
+    if (ReactMemoSymbol && baseComponent["$$typeof"] === ReactMemoSymbol) {
+        throw new Error("[mobx-react-lite] You are trying to use `observer` on a function component wrapped in either another `observer` or `React.memo`. The observer already applies 'React.memo' for you.");
+    }
+    var useForwardRef = (_a = options === null || options === void 0 ? void 0 : options.forwardRef) !== null && _a !== void 0 ? _a : false;
+    var render = baseComponent;
+    var baseComponentName = baseComponent.displayName || baseComponent.name;
+    // If already wrapped with forwardRef, unwrap,
+    // so we can patch render and apply memo
+    if (ReactForwardRefSymbol && baseComponent["$$typeof"] === ReactForwardRefSymbol) {
+        useForwardRef = true;
+        render = baseComponent["render"];
+        if (typeof render !== "function") {
+            throw new Error("[mobx-react-lite] `render` property of ForwardRef was not a function");
+        }
+    }
+    var observerComponent = function (props, ref) {
+        return useObserver(function () { return render(props, ref); }, baseComponentName);
+    };
+    // Don't set `displayName` for anonymous components,
+    // so the `displayName` can be customized by user, see #3192.
+    if (baseComponentName !== "") {
+        observerComponent.displayName = baseComponentName;
+    }
+    // Support legacy context: `contextTypes` must be applied before `memo`
+    if (baseComponent.contextTypes) {
+        observerComponent.contextTypes = baseComponent.contextTypes;
+    }
+    if (useForwardRef) {
+        // `forwardRef` must be applied prior `memo`
+        // `forwardRef(observer(cmp))` throws:
+        // "forwardRef requires a render function but received a `memo` component. Instead of forwardRef(memo(...)), use memo(forwardRef(...))"
+        observerComponent = react.exports.forwardRef(observerComponent);
+    }
+    // memo; we are not interested in deep updates
+    // in props; we assume that if deep objects are changed,
+    // this is in observables, which would have been tracked anyway
+    observerComponent = react.exports.memo(observerComponent);
+    copyStaticProperties(baseComponent, observerComponent);
+    {
+        Object.defineProperty(observerComponent, "contextTypes", {
+            set: function () {
+                var _a;
+                throw new Error("[mobx-react-lite] `".concat(this.displayName || ((_a = this.type) === null || _a === void 0 ? void 0 : _a.displayName) || "Component", ".contextTypes` must be set before applying `observer`."));
+            }
+        });
+    }
+    return observerComponent;
+}
+// based on https://github.com/mridgway/hoist-non-react-statics/blob/master/src/index.js
+var hoistBlackList = {
+    $$typeof: true,
+    render: true,
+    compare: true,
+    type: true,
+    // Don't redefine `displayName`,
+    // it's defined as getter-setter pair on `memo` (see #3192).
+    displayName: true
+};
+function copyStaticProperties(base, target) {
+    Object.keys(base).forEach(function (key) {
+        if (!hoistBlackList[key]) {
+            Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(base, key));
+        }
+    });
+}
+
+(undefined && undefined.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+
+observerBatching(reactDom.exports.unstable_batchedUpdates);
 
 /**
  * lodash (Custom Build) <https://lodash.com/>
@@ -88076,6 +98516,580 @@ function toNumber(value) {
 
 var lodash_debounce = debounce;
 
+class ThresholdObserver {
+  constructor(threshold, _default = 0, offset = 0) {
+    this.prev = _default;
+    this.threshold = threshold;
+    this.offset = offset;
+  }
+
+  checkEach(current, threshold) {
+    if (this.prev >= threshold - this.offset && current < threshold + this.offset) return -1;
+    if (this.prev <= threshold - this.offset && current > threshold + this.offset) return 1;
+    return 0;
+  }
+
+  update(current, callback) {
+    const debouncedCallback = lodash_debounce(callback, 400);
+
+    if (typeof this.threshold === "number") {
+      const res = this.checkEach(current, this.threshold);
+      if (res === 1) debouncedCallback(1);else if (res === -1) debouncedCallback(0);
+    }
+
+    if (Array.isArray(this.threshold)) {
+      for (let i = 0; i < this.threshold.length; i++) {
+        const res = this.checkEach(current, this.threshold[i]);
+        if (res === 1) debouncedCallback((i << 1) + 1);else if (res === -1) debouncedCallback((i << 1) + 0);
+      }
+    }
+
+    this.prev = current;
+  }
+
+}
+
+class tintedContainer extends Container {
+  constructor(colorDataStore = null) {
+    super();
+    this.colorFilter = new filters.ColorMatrixFilter();
+    this.filters = [this.colorFilter];
+    this.reflectTarget = colorDataStore;
+  }
+
+  tint(rgb) {
+    this.colorFilter.tint(rgb);
+  }
+
+  reset() {
+    this.colorFilter.reset();
+  }
+
+  autoTint() {
+    if (this.reflectTarget === null) return;
+    this.tint(colorArrayToHex(this.reflectTarget.color));
+  }
+
+}
+
+class prismaticContainer extends tintedContainer {
+  constructor() {
+    super();
+    this.elapsedTime = 0;
+    this.tint(getPrismaticColor(0));
+  }
+
+  progress(deltaTime) {
+    const CYCLE = 3000;
+    this.elapsedTime = (this.elapsedTime + deltaTime) % CYCLE;
+    const lerpPercent = this.elapsedTime / CYCLE;
+    this.tint(getPrismaticColor(lerpPercent));
+  }
+
+}
+
+const ITEM_GAP = 80;
+const DRAG_THRESHOLD = 30;
+const SWIPE_THRESHOLD = 6;
+const EPSILON = 1.5;
+const AXIS_X = Symbol.for('x');
+const AXIS_Y = Symbol.for('y');
+const MOBILE_MAX_SCREEN_WIDTH = 768;
+
+function getScaleMultifier(screenWidth) {
+  return isMobileView(screenWidth) ? 4 / 5 : 1;
+}
+
+function grid(i, multiplier = 1) {
+  return (i + 0.5) * ITEM_GAP * multiplier;
+}
+
+class GridedSprite extends Sprite {
+  constructor(index, texture) {
+    super(texture);
+    this.innerIndex = index;
+  }
+
+  setPosition(multiplier = 1) {
+    this.x = grid(this.innerIndex, multiplier);
+    this.y = 0;
+  }
+
+}
+
+function makeSheetMap(sheet, additionalSheet = {}) {
+  const additionalTexture = {};
+
+  for (let [key, value] of Object.entries(additionalSheet)) {
+    additionalTexture[key] = new BaseTexture(value);
+  }
+
+  return {
+    default: new BaseTexture(sheet),
+    ...additionalTexture
+  };
+}
+
+function generateItem(i, sheets, sheetPos, size = {
+  width: 20,
+  height: 20
+}, multiplier = 1) {
+  if (sheetPos === null) return;
+  const {
+    x,
+    y,
+    sheet = "default"
+  } = sheetPos;
+  const {
+    width,
+    height
+  } = size;
+  if (sheets === undefined || sheets[sheet] === undefined) return;
+  const rect = new Rectangle(x, y, width, height);
+  const clothTexture = new Texture(sheets[sheet], rect);
+  const cloth = new GridedSprite(i, clothTexture);
+  cloth.setPosition(multiplier);
+  cloth.anchor.set(0.5);
+  cloth.scale.set(3 * multiplier);
+  return cloth;
+}
+
+function arrangeItems(container, columns, axis = AXIS_X, multiplier = 1) {
+  for (let child of container.children) {
+    const index = child.innerIndex;
+    const x = index % columns;
+    const y = Math.floor(index / columns);
+    child.x = grid(x, multiplier);
+    child.y = axis === AXIS_Y ? grid(y, multiplier) : 0;
+  }
+}
+
+function adjustScale(container, scale) {
+  for (let child of container.children) {
+    child.scale.set(scale);
+  }
+}
+
+class RadioButtons {
+  static deselectedTexture = new Texture(Texture.EMPTY, new Rectangle(0, 0, 72, 72));
+  static selectedTexture = Texture.from("assets/selectedBorder.png");
+
+  constructor(selectBox) {
+    this.initialValue = 0;
+    this.selectBox = selectBox;
+    this.previousCheck = 0;
+    this.container = new Container();
+    this.parent = null;
+    this.buttons = [];
+    this.check = this.check.bind(this);
+  }
+
+  get current() {
+    return this.selectBox.value;
+  }
+
+  attachToParent(parent) {
+    parent.addChild(this.container);
+    this.parent = parent;
+  }
+
+  generateButton(i, x, multiplier = 1) {
+    const button = new GridedSprite(x);
+    if (i === this.initialValue) button.texture = this.constructor.selectedTexture;else button.texture = this.constructor.deselectedTexture;
+    button.interactive = true;
+    button.buttonMode = true;
+    button.anchor.set(0.5);
+    button.setPosition(multiplier);
+    button.scale.set(multiplier);
+    button.on('pointertap', this.check(i));
+    this.buttons[i] = button;
+    this.container.addChild(button);
+  }
+
+  flush() {
+    this.container.removeChildren();
+    this.buttons = [];
+  }
+
+  check(i) {
+    return e => {
+      // prevent selection while dragging
+      if (this.parent?.isDragged) return;
+
+      if (this.buttons[this.previousCheck] || this.previousCheck !== i) {
+        this.buttons[this.previousCheck].texture = this.constructor.deselectedTexture;
+      }
+
+      this.selectBox.changeSelect(i);
+      this.buttons[i].texture = this.constructor.selectedTexture;
+      this.previousCheck = i;
+    };
+  }
+
+  setInitialValue(i) {
+    this.initialValue = i;
+    this.previousCheck = i;
+  }
+
+}
+
+class ScrollSnappedContainer extends Container {
+  static transitionTime = 800;
+
+  constructor(container) {
+    super(); // properties for calculate the border
+
+    this.itemAmount = 0;
+    this.lineCount = 0;
+    this.container = container; // properties for scroll
+
+    this.scroll_index = 0;
+    this.scroll_time = 0;
+    this.scroll_prevPos = 0;
+    this.scroll_nextPos = 0;
+    this.scroll_axis = AXIS_X; // properties for drag
+
+    this.holding = false;
+    this.dragThreshold = 0;
+    this.dragPrevPos = 0;
+    this.velocity = 0;
+    this.interactive = true; // add event listeners
+
+    this.on('pointerdown', e => this.onDragStart(this.mousePos(e))).on('pointermove', e => this.onDragMove(this.mousePos(e))).on('pointerup', () => this.onDragEnd()).on('pointerupoutside', () => this.onDragEnd());
+  }
+
+  get gap() {
+    return ITEM_GAP * getScaleMultifier(document.body.clientWidth);
+  }
+
+  get containerSize() {
+    let target = !this.container ? this : this.container;
+    return this.scroll_axis === AXIS_Y ? target.height : target.width;
+  } // number of items visible on the screen
+
+
+  get screenItemNumber() {
+    return clamp(Math.floor(this.containerSize / this.gap), 1, Infinity);
+  } // When the mouse is dragged over a certain distance, it is treated as a drag and prevents the item selection action.
+
+
+  get isDragged() {
+    return this.dragThreshold > DRAG_THRESHOLD;
+  }
+
+  get rightBoundary() {
+    return Math.max(this.lineCount - this.screenItemNumber, 0);
+  } // main scroll position
+
+
+  get scroll_pos() {
+    return this.scroll_axis === AXIS_Y ? this.y : this.x;
+  }
+
+  set scroll_pos(value) {
+    if (this.scroll_axis === AXIS_Y) this.y = value;else this.x = value;
+  } // Invoke sliding with the specified offset index
+
+
+  slide(to, transitionTime = ScrollSnappedContainer.transitionTime) {
+    this.scroll_index = clamp(this.scroll_index + to, 0, this.rightBoundary);
+    this.scroll_time = clamp(transitionTime, 1, Infinity);
+    this.scroll_prevPos = this.scroll_pos;
+    this.scroll_nextPos = -this.gap * this.scroll_index;
+  }
+
+  slideLeft() {
+    this.slide(-this.screenItemNumber);
+  }
+
+  slideRight() {
+    this.slide(this.screenItemNumber);
+  } // ticker function
+
+
+  progress(deltaMS) {
+    // if this container is sliding
+    if (this.scroll_time > 0) {
+      this.scroll_time = clamp(this.scroll_time - deltaMS, 0, Infinity);
+      const percent = 1 - this.scroll_time / this.constructor.transitionTime;
+      this.scroll_pos = lerp(this.scroll_prevPos, this.scroll_nextPos, easeOut(percent));
+    } // if this container is swiped
+
+
+    if (!this.holding && Math.abs(this.velocity) > EPSILON) {
+      this.scroll_pos += this.velocity;
+      this.scroll_index = this.getCurrentScrollIndex();
+      this.velocity *= 0.98;
+
+      if (Math.abs(this.velocity) <= EPSILON || this.scroll_pos > this.gap || this.scroll_pos < -(this.rightBoundary + 1) * this.gap) {
+        this.velocity = 0;
+        this.slide(0);
+      }
+    }
+  } // drag event handler function
+
+
+  onDragStart(mousePos) {
+    this.holding = true;
+    this.dragPrevPos = mousePos;
+    this.dragThreshold = 0;
+    this.velocity = 0;
+  }
+
+  onDragMove(mousePos) {
+    if (this.holding) {
+      const delta = mousePos - this.dragPrevPos;
+      this.scroll_pos += delta;
+      this.dragThreshold += Math.abs(delta);
+      this.velocity = delta;
+      this.scroll_index = this.getCurrentScrollIndex();
+      this.dragPrevPos = mousePos;
+    }
+  }
+
+  onDragEnd(e) {
+    this.dragThreshold > DRAG_THRESHOLD;
+    const isSwiped = Math.abs(this.velocity) > SWIPE_THRESHOLD;
+    this.holding = false;
+    this.dragPrevPos = 0;
+    this.dragThreshold = 0;
+
+    if (!isSwiped) {
+      this.velocity = 0;
+      this.slide(0);
+    }
+  }
+
+  getCurrentScrollIndex() {
+    return clamp(Math.round(-this.scroll_pos / this.gap), 0, this.rightBoundary);
+  }
+
+  mousePos(e) {
+    return this.scroll_axis === AXIS_Y ? e.data.global.y : e.data.global.x;
+  }
+
+  resetHitArea() {
+    this.hitArea = new Rectangle(0, this.scroll_axis === AXIS_Y ? 0 : -this.height / 2, this.width, this.height);
+  }
+
+}
+
+class ItemListController {
+  constructor({
+    selectBox,
+    defaultImage,
+    additionalDefaultImage = {}
+  }) {
+    // set application
+    this.app = new Application({
+      resolution: 1,
+      antialias: true,
+      backgroundColor: 0xffffff,
+      autoResize: true
+    }); // make controllers
+
+    this.setContainer(selectBox); // optimize pixi.js setting to pixel environment
+
+    settings.SCALE_MODE = SCALE_MODES$3.NEAREST;
+    settings.ROUND_PIXELS = true; // cache default image link
+
+    this.defaultImage = defaultImage;
+    this.additionalDefaultImage = additionalDefaultImage; // expanding toggler
+
+    this.expanded = false; // mobile adjustment
+
+    this.screenSizeObserver = new ThresholdObserver([336, 400, 464, 528, MOBILE_MAX_SCREEN_WIDTH], document.body.clientWidth, 20); // mobx reaction
+
+    this.disposer = () => {}; // event dispatcher
+
+
+    this.resize = this.resize.bind(this);
+    this.ticker = this.ticker.bind(this);
+    this.slideLeft = this.slideLeft.bind(this);
+    this.slideRight = this.slideRight.bind(this);
+    this.onWheel = this.onWheel.bind(this);
+    this.toggleExpantion = this.toggleExpantion.bind(this);
+  }
+
+  get multiplier() {
+    return getScaleMultifier(document.body.clientWidth);
+  }
+
+  setContainer(selectBox) {
+    // make main container
+    this.container = new ScrollSnappedContainer(this.app.screen);
+    this.app.stage.addChild(this.container); // make container for the icon
+
+    this.radioButton = new RadioButtons(selectBox);
+    this.uncolored = new Container();
+    this.colored = new tintedContainer(selectBox);
+    this.prismatic = new prismaticContainer(); // attach to container
+
+    this.radioButton.attachToParent(this.container);
+    this.container.addChild(this.uncolored, this.colored, this.prismatic);
+  } // attach to dom
+
+
+  appendParent(dom) {
+    dom.appendChild(this.app.view);
+    this.app.resizeTo = dom;
+    this.app.screen.height = dom.clientHeight;
+    this.app.view.height = dom.clientHeight;
+    this.container.y = this.app.screen.height / 2;
+  }
+
+  initializeRadio(i) {
+    this.radioButton.setInitialValue(i);
+  }
+
+  initialize(spritesheetData) {
+    this.app.start(); // add the mobx reaction for spritesheet data(image change or data change)
+
+    this.disposer = reaction(() => ({
+      sheet: spritesheetData._spritesheet?.blobURL ?? this.defaultImage,
+      clothesData: spritesheetData._clothesData,
+      additionalSheet: spritesheetData._additionalSheet ?? this.additionalDefaultImage
+    }), ({
+      sheet,
+      additionalSheet
+    }) => this.initializeSprites(spritesheetData, sheet, additionalSheet)); // add resize event listener
+
+    window.addEventListener("resize", this.resize); // add ticker
+
+    this.app.ticker.add(this.ticker);
+  }
+
+  initializeSprites(spritesheetData, sheet, additionalSheet) {
+    const size = spritesheetData.constructor.size;
+    const omittable = spritesheetData.constructor.omittable;
+    const shift = omittable ? 1 : 0; // remove all icons
+
+    this.flushChildren(); // make baseTexture map ( Dict<String, PIXI.BaseTexture> )
+
+    const sheets = makeSheetMap(sheet, additionalSheet); // make icon generator
+
+    const makeItemArray = [{
+      parent: this.uncolored,
+      positioner: spritesheetData.getUncoloredSpriteFromIndex
+    }, {
+      parent: this.colored,
+      positioner: spritesheetData.getColoredSpriteFromIndex
+    }, {
+      parent: this.prismatic,
+      positioner: spritesheetData.getPrismaticSpriteFromIndex
+    }].map(({
+      parent,
+      positioner
+    }) => i => {
+      const child = generateItem(i + shift, sheets, positioner(i), size, this.multiplier);
+      if (child) parent.addChild(child);
+    }); // make icons and attach to parent
+
+    for (let i = -shift; i < spritesheetData.count; i++) {
+      this.radioButton.generateButton(i, i + shift, this.multiplier);
+      makeItemArray.forEach(makeItem => makeItem(i));
+    } // reset container's item amount & hit area
+
+
+    this.container.itemAmount = spritesheetData.count + shift;
+    this.container.lineCount = this.container.itemAmount;
+    this.container.resetHitArea();
+  }
+
+  ticker(dt) {
+    const FPS = 60;
+    this.colored.autoTint();
+    this.prismatic.progress(dt * FPS);
+    this.container.progress(dt * FPS);
+  }
+
+  slideLeft() {
+    if (this.expanded) return;
+    this.container.slideLeft();
+  }
+
+  slideRight() {
+    if (this.expanded) return;
+    this.container.slideRight();
+  }
+
+  onWheel(delta) {
+    this.container.slide(delta);
+  }
+
+  arrangeContainerItems(multiplier) {
+    // calculate axis, itemAmout, lines
+    const axis = this.expanded ? AXIS_Y : AXIS_X;
+    const itemAmount = this.container.itemAmount;
+    const lines = this.expanded ? this.container.container.width / (ITEM_GAP * multiplier) : 1;
+    const columns = axis === AXIS_Y ? lines : Math.ceil(itemAmount / lines);
+
+    const arranger = container => arrangeItems(container, columns, axis, multiplier); // arrange items
+
+
+    arranger(this.radioButton.container);
+    arranger(this.uncolored);
+    arranger(this.colored);
+    arranger(this.prismatic);
+  }
+
+  toggleExpantion(state) {
+    this.app.resize(); // toggle expanded property
+
+    this.expanded = state ?? !this.expanded;
+    const lines = this.expanded ? this.container.container.width / (ITEM_GAP * this.multiplier) : 1; // arrange items
+
+    this.arrangeContainerItems(this.multiplier); // set container's scroll axis
+
+    this.container.scroll_axis = this.expanded ? AXIS_Y : AXIS_X; // fix container's position
+
+    if (this.expanded) {
+      this.container.x = 0;
+      this.container.y = 0;
+    } else this.container.y = this.app.screen.height / 2;
+
+    this.container.scroll_index = 0;
+    this.container.lineCount = Math.ceil(this.container.itemAmount / lines);
+    this.container.resetHitArea();
+    const currentLine = Math.floor(this.radioButton.current / lines) - 2;
+    this.container.slide(currentLine, 1);
+  }
+
+  adjustItemSize(multiplier) {
+    const radioButtonScale = 1 * multiplier;
+    const pixelIconScale = clamp(Math.floor(3 * multiplier), 1, Infinity); // adjust scale
+
+    adjustScale(this.radioButton.container, radioButtonScale);
+    adjustScale(this.uncolored, pixelIconScale);
+    adjustScale(this.colored, pixelIconScale);
+    adjustScale(this.prismatic, pixelIconScale);
+    this.arrangeContainerItems(multiplier);
+    this.container.resetHitArea();
+  }
+
+  flushChildren() {
+    this.radioButton.flush();
+    this.uncolored.removeChildren();
+    this.colored.removeChildren();
+    this.prismatic.removeChildren();
+  }
+
+  halt() {
+    this.app.stop();
+    this.disposer();
+    window.removeEventListener("resize", this.resize);
+    this.app.ticker.remove(this.ticker);
+  }
+
+  resize() {
+    this.screenSizeObserver.update(document.body.clientWidth, () => {
+      const multiplier = getScaleMultifier(document.body.clientWidth);
+      this.adjustItemSize(multiplier);
+    });
+  }
+
+}
+
 const APP_DOM = document.getElementById("app");
 const MOBILE_SCREEN = 768;
 const TABLET_SCREEN = 1366;
@@ -88086,25 +99100,32 @@ function getScrollDelta(e) {
 
 class ItemSelector extends react.exports.Component {
   constructor(props) {
-    super(props);
+    super(props); // props
+
     const {
       selection,
       dataSet,
       defaultImage,
       additionalDefaultImage = {}
     } = props;
+    this.swiper = props.swiper; // make item list controller pixi.js canvas
+
     this.hud = new ItemListController({
       selectBox: selection,
       defaultImage,
       additionalDefaultImage
     });
     this.hud.initializeRadio(dataSet.constructor.omittable ? -1 : 0);
-    this.hud.initializeSprites(dataSet, defaultImage, additionalDefaultImage);
-    this.canvasDom = /*#__PURE__*/react.exports.createRef();
+    this.hud.initializeSprites(dataSet, defaultImage, additionalDefaultImage); // for attach canvas
+
+    this.canvasDom = /*#__PURE__*/react.exports.createRef(); // for expanding 
+
     this.state = {
       expanded: false
-    };
-    this.resizeObserver = new ThresholdObserver([MOBILE_SCREEN, TABLET_SCREEN], document.body.clientWidth);
+    }; // for responsive app(reset expand state when viewport is changed)
+
+    this.resizeObserver = new ThresholdObserver([MOBILE_SCREEN, TABLET_SCREEN], document.body.clientWidth); // event listeners
+
     this.toggleExpansion = this.toggleExpansion.bind(this);
     this.screenResize = lodash_debounce(this.screenResize.bind(this), 100);
     this.mobileScrollToggle = lodash_debounce(this.mobileScrollToggle.bind(this), 100);
@@ -88113,6 +99134,7 @@ class ItemSelector extends react.exports.Component {
       e.preventDefault();
       let delta = Math.sign(getScrollDelta(e));
       this.hud.onWheel(delta);
+      e.stopPropagation();
     };
   }
 
@@ -88174,14 +99196,17 @@ class ItemSelector extends react.exports.Component {
   }
 
   componentDidUpdate() {
-    setTimeout(() => this.hud.toggleExpantion(this.state.expanded), 310);
+    setTimeout(() => {
+      this.hud.toggleExpantion(this.state.expanded);
+      this.swiper.update();
+    }, 350);
   }
 
   render() {
     return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
       className: "selector",
       children: [/*#__PURE__*/jsxRuntime.exports.jsx("div", {
-        className: `left-button ${this.state.expanded ? "inactive" : ""}`,
+        className: `ui-icon left-button ${this.state.expanded ? "inactive" : ""}`,
         onClick: () => this.hud.slideLeft()
       }), /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
         className: "selector-border",
@@ -88195,10 +99220,10 @@ class ItemSelector extends react.exports.Component {
           ref: this.canvasDom
         })]
       }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
-        className: `right-button ${this.state.expanded ? "inactive" : ""}`,
+        className: `ui-icon right-button ${this.state.expanded ? "inactive" : ""}`,
         onClick: () => this.hud.slideRight()
       }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
-        className: "expand-button",
+        className: "ui-icon expand-button",
         onClick: this.toggleExpansion
       })]
     });
@@ -88246,6 +99271,7 @@ const ColorSliderItem = observer(({
       defaultValue: value,
       className: name,
       onChange: e => setValue(+e.target.value),
+      onTouchMove: e => e.stopPropagation(),
       style: style
     }), /*#__PURE__*/jsxRuntime.exports.jsx("output", {
       children: value
@@ -88296,14 +99322,7 @@ function ObtainDescription({
 
 var ObtainDescription$1 = observer(ObtainDescription);
 
-function getProps(name) {
-  return {
-    selection: clothStoreDict[name],
-    dataSet: spriteSheetFileData[name],
-    defaultImage: `assets/${name}.png`
-  };
-} // title 
-
+const getProps = characterStore.getProps.bind(characterStore); // title 
 
 const ControllerTitle = observer(({
   name
@@ -88324,6 +99343,7 @@ const ClothesControllerBase = ({
     dataSet,
     defaultImage
   } = getProps(name);
+  const swiper = useSwiper();
   return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
     className: `controller-item controller-item-${name}`,
     children: [/*#__PURE__*/jsxRuntime.exports.jsx("div", {
@@ -88336,7 +99356,8 @@ const ClothesControllerBase = ({
       selection: selection,
       dataSet: dataSet,
       defaultImage: defaultImage,
-      additionalDefaultImage: additionalDefaultImage
+      additionalDefaultImage: additionalDefaultImage,
+      swiper: swiper
     }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
       className: "controller-sub",
       children: children
@@ -88393,26 +99414,23 @@ const ClothesController = ({
   });
 };
 
-const Controller = () => {
-  return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-    className: "controller",
-    children: [/*#__PURE__*/jsxRuntime.exports.jsx(HatsController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(HairstyleController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(ClothesController, {
-      name: "shirts"
-    }), /*#__PURE__*/jsxRuntime.exports.jsx(ClothesController, {
-      name: "pants"
-    })]
-  });
-};
-
 function App() {
   return /*#__PURE__*/jsxRuntime.exports.jsxs(LangsProvider, {
-    children: [/*#__PURE__*/jsxRuntime.exports.jsx(Viewer, {
-      selection: clothStoreDict
-    }), /*#__PURE__*/jsxRuntime.exports.jsx(Controller, {})]
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx(Viewer, {}), /*#__PURE__*/jsxRuntime.exports.jsxs(Controller, {
+      ids: ["hats", "hairstyle", "shirts", "pants"],
+      children: [/*#__PURE__*/jsxRuntime.exports.jsx(HatsController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(HairstyleController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(ClothesController, {
+        name: "shirts"
+      }), /*#__PURE__*/jsxRuntime.exports.jsx(ClothesController, {
+        name: "pants"
+      })]
+    })]
   });
 }
 
 function render() {
+  setReaders({
+    Texture2DReader: LightweightTexture2DReader
+  });
   console.log("pixi!");
   const container = document.getElementById("app");
   const root = createRoot(container);

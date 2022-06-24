@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from "react";
 import { reaction } from "mobx";
 import * as PIXI from "pixi.js";
-import { clamp, lerp, easeOut, isMobileView, ThresholdObserver } from "../utils/utils.js";
+import { clamp, lerp, easeOut, isMobileView } from "../utils/utils.js";
+import { ThresholdObserver } from "../utils/ThresholdObserver.js";
 import { tintedContainer, prismaticContainer } from "../utils/coloredContainers.js";
 
 // constant
@@ -210,7 +210,7 @@ class ScrollSnappedContainer extends PIXI.Container
 	}
 	get rightBoundary()
 	{
-		return this.lineCount - this.screenItemNumber;
+		return Math.max(this.lineCount - this.screenItemNumber, 0);
 	}
 	// main scroll position
 	get scroll_pos()
@@ -344,7 +344,7 @@ class ItemListController
 		this.expanded = false;
 
 		// mobile adjustment
-		this.screenSizeObserver = new ThresholdObserver(MOBILE_MAX_SCREEN_WIDTH, document.body.clientWidth);
+		this.screenSizeObserver = new ThresholdObserver([336, 400, 464, 528, MOBILE_MAX_SCREEN_WIDTH], document.body.clientWidth, 20);
 
 		// mobx reaction
 		this.disposer = ()=>{};
@@ -365,7 +365,6 @@ class ItemListController
 	{
 		// make main container
 		this.container = new ScrollSnappedContainer(this.app.screen);
-		this.container.pivot.set(0.5);
 		this.app.stage.addChild(this.container);
 
 		// make container for the icon
@@ -543,11 +542,10 @@ class ItemListController
 	}
 	resize()
 	{
-		this.container.y = this.app.screen.height / 2;
 		this.screenSizeObserver.update(document.body.clientWidth, ()=>{
 			const multiplier = getScaleMultifier(document.body.clientWidth);
 			this.adjustItemSize(multiplier);
-		});
+		} );
 	}
 }
 

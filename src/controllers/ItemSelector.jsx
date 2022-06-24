@@ -1,7 +1,7 @@
 import { Component, createRef } from "react";
-import ItemListController from "./clothListControllerPixi.js";
 import debounce from "lodash.debounce";
-import { ThresholdObserver } from "../utils/utils.js";
+import ItemListController from "./clothListControllerPixi.js";
+import { ThresholdObserver } from "../utils/ThresholdObserver.js";
 
 const APP_DOM = document.getElementById("app");
 const MOBILE_SCREEN = 768;
@@ -17,19 +17,28 @@ class ItemSelector extends Component
 	constructor(props)
 	{
 		super(props);
+
+		// props
 		const {selection, dataSet, defaultImage, additionalDefaultImage={}} = props;
+		this.swiper = props.swiper;
+
+		// make item list controller pixi.js canvas
 		this.hud = new ItemListController({selectBox:selection, defaultImage, additionalDefaultImage});
 		this.hud.initializeRadio(dataSet.constructor.omittable ? -1 : 0);
 		this.hud.initializeSprites(dataSet, defaultImage, additionalDefaultImage);
 
+		// for attach canvas
 		this.canvasDom = createRef();
 
+		// for expanding 
 		this.state = {
 			expanded : false
 		};
 
+		// for responsive app(reset expand state when viewport is changed)
 		this.resizeObserver = new ThresholdObserver([MOBILE_SCREEN, TABLET_SCREEN], document.body.clientWidth);
 
+		// event listeners
 		this.toggleExpansion = this.toggleExpansion.bind(this);
 		this.screenResize = debounce(this.screenResize.bind(this), 100);
 		this.mobileScrollToggle = debounce(this.mobileScrollToggle.bind(this), 100);
@@ -37,6 +46,7 @@ class ItemSelector extends Component
 			e.preventDefault();
 			let delta = Math.sign(getScrollDelta(e));
 			this.hud.onWheel(delta);
+			e.stopPropagation();
 		}
 	}
 	
@@ -80,19 +90,22 @@ class ItemSelector extends Component
 		});
 	}
 	componentDidUpdate() {
-		setTimeout(()=>this.hud.toggleExpantion(this.state.expanded), 310);
+		setTimeout(()=>{
+			this.hud.toggleExpantion(this.state.expanded);
+			this.swiper.update();
+		}, 350);
 	}
 	render()
 	{
 		return (
 			<div className="selector">
-				<div className={`left-button ${this.state.expanded ? "inactive" : ""}`} onClick={()=>this.hud.slideLeft()}></div>
+				<div className={`ui-icon left-button ${this.state.expanded ? "inactive" : ""}`} onClick={()=>this.hud.slideLeft()}></div>
 				<div className="selector-border">
 					<div className={`hidden ${this.state.expanded ? "expanded" : ""}`} style={{"display":"none"}} />
 					<div className="selector-canvas" ref={this.canvasDom} />
 				</div>
-				<div className={`right-button ${this.state.expanded ? "inactive" : ""}`} onClick={()=>this.hud.slideRight()}></div>
-				<div className="expand-button" onClick={this.toggleExpansion}></div>
+				<div className={`ui-icon right-button ${this.state.expanded ? "inactive" : ""}`} onClick={()=>this.hud.slideRight()}></div>
+				<div className="ui-icon expand-button" onClick={this.toggleExpansion}></div>
 			</div>
 		);
 	}

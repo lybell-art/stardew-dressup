@@ -4,38 +4,9 @@ function isMobileView(screenWidth)
 	return screenWidth < TABLET_MIN_SCREEN_WIDTH;
 }
 
-class ThresholdObserver
+function canTouch()
 {
-	constructor(threshold, _default=0)
-	{
-		this.prev = _default;
-		this.threshold = threshold;
-	}
-	checkEach(current, threshold)
-	{
-		if( (this.prev >= threshold) && (current<threshold) ) return -1;
-		if( (this.prev <= threshold) && (current>threshold) ) return 1;
-		return 0;
-	}
-	update(current, callback)
-	{
-		if(typeof this.threshold === "number")
-		{
-			const res=this.checkEach(current, this.threshold);
-			if(res === 1) callback(1);
-			else if(res === -1) callback(0);
-		}
-		if(Array.isArray(this.threshold))
-		{
-			for(let i=0; i<this.threshold.length; i++)
-			{
-				const res=this.checkEach(current, this.threshold[i]);
-				if(res === 1) callback( (i<<1) + 1 );
-				else if(res === -1) callback( (i<<1) + 0 );
-			}
-		}
-		this.prev = current;
-	}
+	return !!('ontouchstart' in window || window.DocumentTouch && document instanceof window.DocumentTouch);
 }
 
 function clamp(value, min, max)
@@ -109,4 +80,11 @@ function easeOut(x)
 	return 1 - Math.pow(1 - x, 5);
 }
 
-export { isMobileView, ThresholdObserver, HSBtoRGB, colorArrayToHex, getPrismaticColor, clamp, lerp, easeOut };
+function extractFileName(fullname)
+{
+	let matcher = fullname.match(/(.*)\.([^\s.]+)$/);
+	if(matcher === null) return [fullname,null];
+	return [ matcher[1], matcher[2] ];
+}
+
+export { isMobileView, canTouch, HSBtoRGB, colorArrayToHex, getPrismaticColor, clamp, lerp, easeOut, extractFileName };

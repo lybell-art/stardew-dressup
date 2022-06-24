@@ -1,11 +1,13 @@
 import { createElement, createContext } from "react";
 import { makeObservable, observable, computed, action } from "mobx";
 import i18n_en from "../i18n/default.json";
+import i18n_ko from "../i18n/ko-KR.json";
 
 class Langs
 {
 	static langData = {
-		en:i18n_en
+		en:i18n_en,
+		ko:i18n_ko
 	};
 	currentLanguage = "en";
 
