@@ -146,7 +146,7 @@ class HairstyleSheetStore extends SheetDataStore
 	6, 52, 50, 51, 52, 53, 54, 55];
 
 	_clothesData = hairstyleData;
-	_additionalSheet = {"hairstyle2":null};
+	_additionalSheet = {"hairstyles2":null};
 	constructor()
 	{
 		super();

@@ -3,6 +3,7 @@ import * as PIXI from "pixi.js";
 import { clamp, lerp, easeOut, isMobileView } from "../utils/utils.js";
 import { ThresholdObserver } from "../utils/ThresholdObserver.js";
 import { tintedContainer, prismaticContainer } from "../utils/coloredContainers.js";
+import { convertTextureMap } from "../utils/convertTexture.js";
 
 // constant
 const ITEM_GAP = 80;
@@ -40,12 +41,7 @@ class GridedSprite extends PIXI.Sprite
 
 function makeSheetMap(sheet, additionalSheet={})
 {
-	const additionalTexture = {};
-	for(let [key, value] of Object.entries(additionalSheet))
-	{
-		additionalTexture[key] = new PIXI.BaseTexture(value);
-	}
-
+	const additionalTexture = convertTextureMap(additionalSheet);
 	return {default:new PIXI.BaseTexture(sheet), ...additionalTexture};
 }
 
@@ -401,7 +397,7 @@ class ItemListController
 		this.disposer = reaction(()=>({
 			sheet: spritesheetData._spritesheet?.blobURL ?? this.defaultImage, 
 			clothesData: spritesheetData._clothesData, 
-			additionalSheet: spritesheetData._additionalSheet ?? this.additionalDefaultImage 
+			additionalSheet: {...spritesheetData._additionalSheet, ...this.additionalDefaultImage}
 		}),
 		({sheet, additionalSheet})=>this.initializeSprites(spritesheetData, sheet, additionalSheet) );
 

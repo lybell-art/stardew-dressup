@@ -56,7 +56,7 @@ class CharacterStore
 	pantsSheet = new PantsSheetStore();
 
 	// character props
-	direction = FRONT;
+	direction = BACK;
 	isMale = true;
 
 	constructor()
@@ -156,7 +156,7 @@ class CharacterStore
 	get hatBoundBox()
 	{
 		const {width, height} = HatsSheetStore.size;
-		const yOffset = dirSheetIdx(this.direction) * height;
+		const yOffset = dirSheetIdx(this.direction, true) * height;
 		const {x, y} = HatsSheetStore.getSpriteFromIndex(this.hat.index, 0, yOffset);
 		const rect = new Rectangle(x, y, width, height);
 
@@ -175,7 +175,7 @@ class CharacterStore
 	get shirtBoundBox()
 	{
 		const {width, height} = ShirtsSheetStore.size;
-		const yOffset = dirSheetIdx(this.direction) * height;
+		const yOffset = dirSheetIdx(this.direction, true) * height;
 
 		const {x, y} = this.shirtsSheet.getUncoloredSpriteFromIndex(this.shirt.index);
 

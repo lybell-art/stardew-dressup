@@ -1,6 +1,7 @@
 import { reaction } from "mobx";
 import * as PIXI from "pixi.js";
 import { colorArrayToHex, getPrismaticColor } from "../utils/utils.js";
+import { convertTextureMap } from "../utils/convertTexture.js";
 
 function makeDefaultTextures()
 {
@@ -69,6 +70,11 @@ class HatSprite extends ResponsiveSprite
 		this.sprite = new PIXI.Sprite();
 		this.prismatic = false;
 		this.addChild(this.sprite);
+
+		this.subSprite = new PIXI.Sprite();
+		this.subSprite.zIndex = 2;
+
+		this.zIndex = 5;
 	}
 	initialize(farmer)
 	{
@@ -77,17 +83,20 @@ class HatSprite extends ResponsiveSprite
 			()=>{
 				return {
 					boundBox : farmer.hatBoundBox,
-					offsetY : farmer.hatYOffset
+					offsetY : farmer.hatYOffset,
+					isMask : farmer.hat.isMask
 				};
 			}, 
 
-			( {boundBox, offsetY} )=>{
-				console.log("yes!");
+			( {boundBox, offsetY, isMask} )=>{
 				const texture = new PIXI.Texture(this.baseTexture, boundBox);
 
 				this.sprite.texture = texture;
 				this.sprite.x = -2;
 				this.sprite.y = offsetY;
+
+//				this.subSprite.texture = texture;
+//				this.subSprite.y = 8;
 			}
 		);
 
@@ -96,7 +105,6 @@ class HatSprite extends ResponsiveSprite
 			()=>farmer.hatTint, 
 
 			tint=>{
-				console.log("yearh!!");
 				this.prismatic = (tint === "prismatic");
 				if(!this.prismatic) this.sprite.tint = 0xffffff;
 			}
@@ -109,6 +117,77 @@ class HatSprite extends ResponsiveSprite
 			assetURL=>{
 				this.baseTexture = new PIXI.BaseTexture(assetURL);
 				this.sprite.texture.baseTexture = this.baseTexture;
+			}, 
+		false);
+	}
+
+	applyTint(tint)
+	{
+		this.sprite.tint = tint;
+	}
+}
+
+class HairSprite extends ResponsiveSprite
+{
+	constructor(texture, additionalTexture)
+	{
+		super();
+
+		this.baseTexture = texture;
+		this.additionalTexture = additionalTexture;
+
+		this.sprite = new PIXI.Sprite();
+		this.currentSheet = "default";
+		this.addChild(this.sprite);
+
+		this.zIndex = 4;
+	}
+	initialize(farmer)
+	{
+		// change hairstyle index or hairstyle index
+		this.makeReaction( 
+			()=>{
+				return {
+					boundBox : farmer.hairBoundBox,
+					offsetY : farmer.hairstyleYOffset,
+				};
+			}, 
+
+			( {boundBox, offsetY} )=>{
+				const {rect, sheet="default"} = boundBox;
+				const baseTexture = sheet === "default" ? this.baseTexture : this.additionalTexture[sheet];
+				const texture = new PIXI.Texture(baseTexture, rect);
+
+				this.sprite.texture = texture;
+				this.sprite.x = 0;
+				this.sprite.y = offsetY;
+				this.currentSheet = sheet;
+			}
+		);
+
+		// change color
+		this.makeReaction( 
+			()=>farmer.hairTint, 
+
+			tint=>{this.applyTint(tint);}
+		);
+
+		// change sprite sheet
+		this.makeReaction( 
+			()=>{
+				let additional = {...farmer.hairstyleSheet._additionalSheet, hairstyles2:"/assets/hairstyles2.png" };
+				return {
+					base:farmer.hairstyleSheet._spritesheet?.blobURL ?? "/assets/hairstyle.png",
+					additional
+				};
+			},
+
+			({base, additional})=>{
+				this.baseTexture = new PIXI.BaseTexture(base);
+				this.additionalTexture = convertTextureMap(additional);
+
+				const myTexture = this.currentSheet === "default" ? this.baseTexture : this.additionalTexture[this.currentSheet];
+				this.sprite.texture.baseTexture = myTexture;
 			}, 
 		false);
 	}
@@ -140,6 +219,7 @@ class ViewerPixi
 		this.container = new PIXI.Container();
 		this.container.pivot.set(8, 16);
 		this.container.scale.set(5);
+		this.container.sortableChildren = true;
 		this.app.stage.addChild(this.container);
 
 		const debug = new PIXI.Graphics();
@@ -177,7 +257,14 @@ class ViewerPixi
 		// add hat sprite
 		this.hatSprite = new HatSprite(this.baseTextures.get("hats"));
 		this.hatSprite.initialize(this.farmer);
-		this.container.addChild(this.hatSprite);
+		this.container.addChild(this.hatSprite, this.hatSprite.subSprite);
+
+		this.hairSprite = new HairSprite(
+			this.baseTextures.get("hairstyle"), 
+			{hairstyles2:this.baseTextures.get("hairstyle2")}
+		);
+		this.hairSprite.initialize(this.farmer);
+		this.container.addChild(this.hairSprite);
 
 		// add ticker
 		this.app.ticker.add(this.ticker);
@@ -195,7 +282,7 @@ class ViewerPixi
 		const prismaticTint = getPrismaticColor(lerpPercent);
 
 		// apply prismatic tint
-		if(this.hatSprite.prismatic) this.hatSprite.applyTint(prismaticTint);;
+		if(this.hatSprite.prismatic) this.hatSprite.applyTint(prismaticTint);
 	}
 	destroy()
 	{

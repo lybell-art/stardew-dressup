@@ -4,8 +4,8 @@
   "description": "Stardew Valley Clothing Simulator (with react)",
   "main": "index.js",
   "scripts": {
-    "build": "rollup -c builder/rollup.config.js",
-    "watch": "rollup -c builder/rollup.config.js --watch"
+    "build": "rollup -c builder/rollup.config.production.js --environment NODE_ENV:production",
+    "watch": "rollup -c builder/rollup.config.dev.js --watch --environment NODE_ENV:development"
   },
   "keywords": [
     "Stardew Valley"
@@ -13,8 +13,9 @@
   "author": "Lybell",
   "license": "MIT",
   "dependencies": {
-    "@xnb-js/core": "^1.1.0",
-    "@xnb-js/readers": "^1.1.0",
+    "@pixi/layers": "^1.0.11",
+    "@xnb-js/core": "^1.2.0",
+    "@xnb-js/readers": "^1.2.0",
     "lodash.debounce": "^4.0.8",
     "mobx": "^6.6.0",
     "mobx-react-lite": "^3.4.0",
@@ -34,6 +35,7 @@
     "@rollup/plugin-replace": "^4.0.0",
     "rollup": "^2.74.1",
     "rollup-plugin-livereload": "^2.0.5",
-    "rollup-plugin-serve": "^1.1.0"
+    "rollup-plugin-serve": "^1.1.0",
+    "rollup-plugin-terser": "^7.0.2"
   }
 }
