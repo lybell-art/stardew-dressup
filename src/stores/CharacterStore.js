@@ -56,7 +56,7 @@ class CharacterStore
 	pantsSheet = new PantsSheetStore();
 
 	// character props
-	direction = BACK;
+	direction = FRONT;
 	isMale = true;
 
 	constructor()
@@ -143,7 +143,7 @@ class CharacterStore
 
 		return offset;
 	}
-	get shirtsYOffset()
+	get shirtYOffset()
 	{
 		let offset = 15;
 
@@ -165,12 +165,24 @@ class CharacterStore
 	get hairBoundBox()
 	{
 		const width = 16, height = 32;
-		const yOffset = dirSheetIdx(this.direction) * height;
+		let yOffset;
+		if(this.hair.hasUniqueLeftSprite)
+		{
+			switch(this.direction)
+			{
+				case FRONT: yOffset = 0; break;
+				case BACK: yOffset = 2 * height; break;
+				case RIGHT: yOffset = 1 * height; break;
+				case LEFT: yOffset = 3 * height; break;
+			}
+		}
+		else yOffset = dirSheetIdx(this.direction) * height;
 
 		const {x, y, sheet} = this.hairstyleSheet.getSpriteFromInnerIndex(this.hair.index);
 		const rect = new Rectangle(x, y + yOffset, width, height);
+		const flipped = this.hair.hasUniqueLeftSprite ? false : (this.direction === LEFT) ;
 
-		return {rect, sheet};
+		return {rect, sheet, flipped};
 	}
 	get shirtBoundBox()
 	{
@@ -224,13 +236,13 @@ class CharacterStore
 	// action
 	turnLeft()
 	{
-		this.direction--;
-		if (this.direction < 0) this.direction = 3;
+		this.direction++;
+		if (this.direction > 3) this.direction = 0;
 	}
 	turnRight()
 	{
-		this.direction++;
-		if (this.direction > 3) this.direction = 0;
+		this.direction--;
+		if (this.direction < 0) this.direction = 3;
 	}
 	setGender(value)
 	{

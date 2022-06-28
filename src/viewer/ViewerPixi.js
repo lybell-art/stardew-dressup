@@ -3,6 +3,12 @@ import * as PIXI from "pixi.js";
 import { colorArrayToHex, getPrismaticColor } from "../utils/utils.js";
 import { convertTextureMap } from "../utils/convertTexture.js";
 
+// direction constant(using stardew valley code)
+const FRONT = 2;
+const BACK = 0;
+const LEFT = 3;
+const RIGHT = 1;
+
 function makeDefaultTextures()
 {
 	const defaultTextureSrc = {
@@ -84,43 +90,66 @@ class HatSprite extends ResponsiveSprite
 				return {
 					boundBox : farmer.hatBoundBox,
 					offsetY : farmer.hatYOffset,
-					isMask : farmer.hat.isMask
+					masked : farmer.hat.isMask && farmer.direction === BACK
 				};
 			}, 
 
-			( {boundBox, offsetY, isMask} )=>{
-				const texture = new PIXI.Texture(this.baseTexture, boundBox);
-
-				this.sprite.texture = texture;
-				this.sprite.x = -2;
-				this.sprite.y = offsetY;
-
-//				this.subSprite.texture = texture;
-//				this.subSprite.y = 8;
-			}
+			this.changeSprite.bind(this)
 		);
 
 		// change color
 		this.makeReaction( 
 			()=>farmer.hatTint, 
 
-			tint=>{
-				this.prismatic = (tint === "prismatic");
-				if(!this.prismatic) this.sprite.tint = 0xffffff;
-			}
+			this.changePrismatic.bind(this)
 		);
 
 		// change sprite sheet
 		this.makeReaction( 
 			()=>farmer.hatsSheet._spritesheet?.blobURL ?? "/assets/hats.png",
 
-			assetURL=>{
-				this.baseTexture = new PIXI.BaseTexture(assetURL);
-				this.sprite.texture.baseTexture = this.baseTexture;
-			}, 
+			this.changeSpriteSheet.bind(this), 
 		false);
 	}
 
+	changeSprite( {boundBox, offsetY, masked} )
+	{
+		if(masked)
+		{
+			const {x, y, width} = boundBox;
+			const upperTexture = new PIXI.Texture(this.baseTexture, new PIXI.Rectangle( x, y, width, 11 ) );
+			const lowerTexture = new PIXI.Texture(this.baseTexture, new PIXI.Rectangle( x, y+11, width, 9 ));
+
+			this.sprite.texture = lowerTexture;
+			this.sprite.x = -2;
+			this.sprite.y = offsetY + 11;
+
+			this.subSprite.texture = upperTexture;
+			this.subSprite.x = -2;
+			this.subSprite.y = offsetY;
+		}
+		else
+		{
+			const texture = new PIXI.Texture(this.baseTexture, boundBox);
+
+			this.sprite.texture = texture;
+			this.sprite.x = -2;
+			this.sprite.y = offsetY;
+
+			this.subSprite.texture = PIXI.Texture.EMPTY;
+		}
+		
+	}
+	changePrismatic(tint)
+	{
+		this.prismatic = (tint === "prismatic");
+		if(!this.prismatic) this.sprite.tint = 0xffffff;
+	}
+	changeSpriteSheet(assetURL)
+	{
+		this.baseTexture = new PIXI.BaseTexture(assetURL);
+		this.sprite.texture.baseTexture = this.baseTexture;
+	}
 	applyTint(tint)
 	{
 		this.sprite.tint = tint;
@@ -144,7 +173,7 @@ class HairSprite extends ResponsiveSprite
 	}
 	initialize(farmer)
 	{
-		// change hairstyle index or hairstyle index
+		// change hairstyle index
 		this.makeReaction( 
 			()=>{
 				return {
@@ -153,23 +182,14 @@ class HairSprite extends ResponsiveSprite
 				};
 			}, 
 
-			( {boundBox, offsetY} )=>{
-				const {rect, sheet="default"} = boundBox;
-				const baseTexture = sheet === "default" ? this.baseTexture : this.additionalTexture[sheet];
-				const texture = new PIXI.Texture(baseTexture, rect);
-
-				this.sprite.texture = texture;
-				this.sprite.x = 0;
-				this.sprite.y = offsetY;
-				this.currentSheet = sheet;
-			}
+			this.changeSprite.bind(this)
 		);
 
 		// change color
 		this.makeReaction( 
 			()=>farmer.hairTint, 
 
-			tint=>{this.applyTint(tint);}
+			this.applyTint.bind(this)
 		);
 
 		// change sprite sheet
@@ -182,16 +202,167 @@ class HairSprite extends ResponsiveSprite
 				};
 			},
 
-			({base, additional})=>{
-				this.baseTexture = new PIXI.BaseTexture(base);
-				this.additionalTexture = convertTextureMap(additional);
-
-				const myTexture = this.currentSheet === "default" ? this.baseTexture : this.additionalTexture[this.currentSheet];
-				this.sprite.texture.baseTexture = myTexture;
-			}, 
+			this.changeSpriteSheet.bind(this), 
 		false);
 	}
 
+	changeSprite({boundBox, offsetY})
+	{
+		const {rect, sheet="default", flipped} = boundBox;
+		const baseTexture = sheet === "default" ? this.baseTexture : this.additionalTexture[sheet];
+		const texture = new PIXI.Texture(baseTexture, rect);
+
+		this.sprite.texture = texture;
+		this.sprite.x = 0;
+		this.sprite.y = offsetY;
+		this.currentSheet = sheet;
+		this.sprite.scale.x = flipped ? -1 : 1;
+		if(flipped) this.sprite.x = this.sprite.width;
+	}
+	changeSpriteSheet({base, additional})
+	{
+		this.baseTexture = new PIXI.BaseTexture(base);
+		this.additionalTexture = convertTextureMap(additional);
+
+		const myTexture = this.currentSheet === "default" ? this.baseTexture : this.additionalTexture[this.currentSheet];
+		this.sprite.texture.baseTexture = myTexture;
+	}
+	applyTint(tint)
+	{
+		this.sprite.tint = tint;
+	}
+}
+
+class ShirtSprite extends ResponsiveSprite
+{
+	constructor(texture)
+	{
+		super();
+
+		this.baseTexture = texture;
+
+		this.uncoloredSprite = new PIXI.Sprite();
+		this.coloredSprite = new PIXI.Sprite();
+
+		this.prismatic = false;
+		this.addChild(this.uncoloredSprite, this.coloredSprite);
+
+		this.zIndex = 3;
+	}
+	initialize(farmer)
+	{
+		// change shirt index
+		this.makeReaction( 
+			()=>{
+				return {
+					boundBox : farmer.shirtBoundBox,
+					offsetY : farmer.shirtYOffset
+				};
+			}, 
+
+			this.changeSprite.bind(this)
+		);
+
+		// change color
+		this.makeReaction( 
+			()=>farmer.shirtTint,
+
+			this.changeColor.bind(this)
+		);
+
+		// change sprite sheet
+		this.makeReaction( 
+			()=>farmer.shirtsSheet._spritesheet?.blobURL ?? "/assets/shirts.png",
+
+			this.changeSpriteSheet.bind(this), 
+		false);
+	}
+
+	changeSprite({boundBox, offsetY})
+	{
+		const {uncolored, colored} = boundBox;
+		const uncoloredTexture = new PIXI.Texture(this.baseTexture, uncolored);
+		const coloredTexture = new PIXI.Texture(this.baseTexture, colored);
+
+		this.uncoloredSprite.texture = uncoloredTexture;
+		this.uncoloredSprite.x = 4;
+		this.uncoloredSprite.y = offsetY;
+
+		this.coloredSprite.texture = coloredTexture;
+		this.coloredSprite.x = 4;
+		this.coloredSprite.y = offsetY;
+	}
+	changeColor(tint)
+	{
+		this.prismatic = (tint === "prismatic");
+		if(!this.prismatic) this.applyTint(tint);
+	}
+	changeSpriteSheet(assetURL)
+	{
+		this.baseTexture = new PIXI.BaseTexture(assetURL);
+		this.uncoloredSprite.texture.baseTexture = this.baseTexture;
+		this.coloredSprite.texture.baseTexture = this.baseTexture;
+	}
+	applyTint(tint)
+	{
+		this.coloredSprite.tint = tint;
+	}
+}
+
+class PantsSprite extends ResponsiveSprite
+{
+	constructor(texture)
+	{
+		super();
+
+		this.baseTexture = texture;
+
+		this.sprite = new PIXI.Sprite();
+
+		this.prismatic = false;
+		this.addChild(this.sprite);
+
+		this.zIndex = 2;
+	}
+	initialize(farmer)
+	{
+		// change pants index
+		this.makeReaction( 
+			()=>farmer.pantsBoundBox, 
+
+			this.changeSprite.bind(this)
+		);
+
+		// change color
+		this.makeReaction( 
+			()=>farmer.pantsTint,
+
+			this.changeColor.bind(this)
+		);
+
+		// change sprite sheet
+		this.makeReaction( 
+			()=>farmer.pantsSheet._spritesheet?.blobURL ?? "/assets/pants.png",
+
+			this.changeSpriteSheet.bind(this), 
+		false);
+	}
+
+	changeSprite(boundBox)
+	{
+		const texture = new PIXI.Texture(this.baseTexture, boundBox);
+		this.sprite.texture = texture;
+	}
+	changeColor(tint)
+	{
+		this.prismatic = (tint === "prismatic");
+		if(!this.prismatic) this.applyTint(tint);
+	}
+	changeSpriteSheet(assetURL)
+	{
+		this.baseTexture = new PIXI.BaseTexture(assetURL);
+		this.sprite.texture.baseTexture = this.baseTexture;
+	}
 	applyTint(tint)
 	{
 		this.sprite.tint = tint;
@@ -259,12 +430,24 @@ class ViewerPixi
 		this.hatSprite.initialize(this.farmer);
 		this.container.addChild(this.hatSprite, this.hatSprite.subSprite);
 
+		// add hair sprite
 		this.hairSprite = new HairSprite(
 			this.baseTextures.get("hairstyle"), 
 			{hairstyles2:this.baseTextures.get("hairstyle2")}
 		);
 		this.hairSprite.initialize(this.farmer);
 		this.container.addChild(this.hairSprite);
+
+		// add shirt sprite
+		this.shirtSprite = new ShirtSprite(this.baseTextures.get("shirts"));
+		this.shirtSprite.initialize(this.farmer);
+		this.container.addChild(this.shirtSprite);
+
+		// add pants sprite
+		this.pantsSprite = new PantsSprite(this.baseTextures.get("pants"));
+		this.pantsSprite.initialize(this.farmer);
+		this.container.addChild(this.pantsSprite);
+
 
 		// add ticker
 		this.app.ticker.add(this.ticker);
@@ -283,6 +466,9 @@ class ViewerPixi
 
 		// apply prismatic tint
 		if(this.hatSprite.prismatic) this.hatSprite.applyTint(prismaticTint);
+		if(this.shirtSprite.prismatic) this.shirtSprite.applyTint(prismaticTint);
+		if(this.pantsSprite.prismatic) this.pantsSprite.applyTint(prismaticTint);
+
 	}
 	destroy()
 	{

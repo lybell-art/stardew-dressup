@@ -1,15 +1,15 @@
 import {Component, createRef} from "react";
 import ViewerPixi from "./ViewerPixi.js";
-import characterStore from "../stores/CharacterStore.js";
+
 
 class ViewerCanvas extends Component
 {
-	constructor()
+	constructor(props)
 	{
 		super();
 
 		// make item list controller pixi.js canvas
-		this.hud = new ViewerPixi(characterStore);
+		this.hud = new ViewerPixi(props.characterStore);
 
 		// for attach canvas
 		this.canvasDom = createRef();

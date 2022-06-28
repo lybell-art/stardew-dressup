@@ -61,11 +61,51 @@ main::-webkit-scrollbar {
 	max-width: 280px;
 	max-height: 400px;
 	background: #fff;
+	position: relative;
 }
 
 .viewer-canvas {
 	width: 100%;
 	height: 100%;
+}
+
+/* Viewer Buttons */
+
+.viewer-wrapper .left-turn-button {
+	position: absolute;
+	left: 20px;
+	bottom: 100px;
+	transition: transform 0.1s ease-out;
+}
+
+.viewer-wrapper .right-turn-button {
+	position: absolute;
+	right: 20px;
+	bottom: 100px;
+	transition: transform 0.1s ease-out;
+}
+
+.viewer-wrapper .gender-select-wrapper {
+	position: absolute;
+	left: 0px;
+	bottom: 10px;
+	width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.viewer-wrapper .male-button, .viewer-wrapper .female-button {
+	padding: 3px;
+	transition: transform 0.1s ease-out;
+}
+
+.left-turn-button:hover, .right-turn-button:hover, .male-button:hover, .female-button:hover {
+	transform: scale(1.1);
+}
+
+.gender-select-wrapper .selected {
+    outline: 2px solid #24adaf;
 }
 
 /* Controller-main */
