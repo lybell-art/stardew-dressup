@@ -107467,8 +107467,9 @@ class CharacterStore {
   }
 
   get pantsTint() {
-    if (this.pantsSheet.getPrismatic(this.pants.index)) return "prismatic";
-    if (this.pantsSheet.getDyeable(this.pants.index)) return colorArrayToHex(this.pantsSelector.color);
+    const index = this.pantsSelector.value;
+    if (this.pantsSheet.getPrismatic(index)) return "prismatic";
+    if (this.pantsSheet.getDyeable(index)) return colorArrayToHex(this.pantsSelector.color);
     return 0xffffff;
   } // action
 
