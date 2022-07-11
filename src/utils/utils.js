@@ -60,9 +60,9 @@ function hexToColorArray(hex)
 
 function multiplyColor(hex1, hex2)
 {
-	const color1 = hexToColorArray(hex1);
-	const color2 = hexToColorArray(hex2);
-	const multiplied = color1.map((col, i)=>Math.round( (col/255) * ((color2[i])/255) ) * 255);
+	const color1 = typeof hex1 === "number" ? hexToColorArray(hex1) : hex1;
+	const color2 = typeof hex2 === "number" ? hexToColorArray(hex2) : hex2;
+	const multiplied = color1.map( (col, i)=>Math.round( (col/255) * (color2[i]/255) * 255) )
 
 	return colorArrayToHex(multiplied);
 }
