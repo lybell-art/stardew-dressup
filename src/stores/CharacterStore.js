@@ -1,15 +1,15 @@
-import { makeAutoObservable, reaction } from "mobx";
+import { makeAutoObservable } from "mobx";
 import { Rectangle } from "pixi.js";
 
 // observable selector store class
 import ClothSelectorStore from "./ClothSelectorStore.js";
 
 // observable spritesheet data store class
-import {HatsSheetStore, HairstyleSheetStore, ShirtsSheetStore, PantsSheetStore} from "./SpritesheetStore.js";
+import {HatsSheetStore, HairstyleSheetStore, ShirtsSheetStore, PantsSheetStore, BodySheetStore} from "./SpritesheetStore.js";
 import {hatsJsonProcessing, hairstyleJsonProcessing, clothesJsonProcessing} from "../utils/dataProcessing.js";
 
 // color utils
-import {colorArrayToHex} from "../utils/utils.js";
+import {colorArrayToHex, multiplyColor} from "../utils/utils.js";
 
 // direction constant(using stardew valley code)
 const FRONT = 2;
@@ -50,6 +50,7 @@ class CharacterStore
 	pantsSelector = new ClothSelectorStore( {hue:61*360/100, saturation:74, brightness:71} );
 
 	// sprite sheet data store
+	bodySheet = new BodySheetStore();
 	hatsSheet = new HatsSheetStore();
 	hairstyleSheet = new HairstyleSheetStore();
 	shirtsSheet = new ShirtsSheetStore();
@@ -71,9 +72,19 @@ class CharacterStore
 	}
 	get body()
 	{
-		let gender = this.isMale ? "male" : "female";
-		let bald = this.hair.isBald ? "_bald" : "";
-		return `body_${gender}${bald}`;
+		const gender = this.isMale ? "male" : "female";
+		const bald = this.hair.isBald ? "_bald" : "";
+		const sheet = `body_${gender}${bald}`;
+
+		return {sheet};
+	}
+	get bodyMaskedColor()
+	{
+		const {skin, eye, sleeve} = this.bodySheet.bodyColor[this.body.sheet];
+		return {
+			from:[...skin, ...eye, ...sleeve],
+			to:[...skin, ...eye, ...this.sleeveColor]
+		};
 	}
 	get hat()
 	{
@@ -106,7 +117,7 @@ class CharacterStore
 	}
 	get shirt()
 	{
-		const index = this.shirtsSelector.value
+		const index = this.shirtsSelector.value;
 
 		return {
 			index,
@@ -115,9 +126,24 @@ class CharacterStore
 	}
 	get pants()
 	{
-		return {
-			index: this.pantsSelector.value
+		const index = this.pantsSheet.getInnerIndex(this.pantsSelector.value);
+
+		return {index};
+	}
+	get sleeveColor()
+	{
+		if(this.shirt.sleeveless) {
+			return [0xf9ae89, 0xe06b65, 0x6b003a]; //body color-todo
 		};
+		let {light, mid, dark, dyeable=0} = this.shirtsSheet.getSleeveColor(this.shirt.index);
+
+		// tint sleeve color
+		const color = this.shirtsSelector.color;
+		if(dyeable & 4 !== 0) light = multiplyColor(light, color);
+		if(dyeable & 2 !== 0) mid = multiplyColor(mid, color);
+		if(dyeable & 1 !== 0) dark = multiplyColor(dark, color);
+
+		return [light, mid, dark];
 	}
 
 	get hatYOffset()
@@ -153,6 +179,16 @@ class CharacterStore
 		return offset;
 	}
 
+	get bodyBoundBox()
+	{
+		const width = 16, height = 32;
+		const y = dirSheetIdx(this.direction) * height;
+		const flipped = (this.direction === LEFT);
+		const base = new Rectangle(0, y, width, height);
+		const arm = new Rectangle(96, y, width, height);
+
+		return {base, arm, flipped};
+	}
 	get hatBoundBox()
 	{
 		const {width, height} = HatsSheetStore.size;
@@ -203,7 +239,7 @@ class CharacterStore
 		const {columns, deltaX, deltaY} = PantsSheetStore;
 		const index = this.pants.index;
 
-		let x = (index % columns)*deltaX;
+		let x = (index % columns)*deltaX + (this.isMale ? 0 : 96);
 		let y = Math.floor(index / columns)*deltaY + yOffset;
 
 		const rect = new Rectangle(x, y, width, height);

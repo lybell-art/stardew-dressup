@@ -13,6 +13,7 @@
   "author": "Lybell",
   "license": "MIT",
   "dependencies": {
+    "@pixi/filter-multi-color-replace": "^4.1.5",
     "@pixi/layers": "^1.0.11",
     "@xnb-js/core": "^1.2.0",
     "@xnb-js/readers": "^1.2.0",

@@ -2,8 +2,10 @@ import { makeObservable, observable, computed, action } from "mobx";
 import hatsData from "../data/hatsData.json";
 import hairstyleData from "../data/hairstyleData.json";
 import shirtData from "../data/shirtData.json";
+import sleeveData from "../data/sleeveData.json";
 import pantsData from "../data/pantsData.json";
 
+import {extractSleeveColors, extractBodyColors} from "../utils/extractColors.js";
 
 class SheetDataStore
 {
@@ -27,7 +29,8 @@ class SheetDataStore
 
 	setSpritesheet(file)
 	{
-		this._spritesheet = file;
+		const {width, height, blobURL} = file;
+		this._spritesheet = {width, height, blobURL};
 	}
 	setClothesData(file)
 	{
@@ -267,6 +270,7 @@ class ShirtsSheetStore extends SheetDataStore
 	static size={width:8, height:8};
 
 	_clothesData = shirtData;
+	_sleeveData = sleeveData;
 	_gender = "male";
 	constructor()
 	{
@@ -288,10 +292,17 @@ class ShirtsSheetStore extends SheetDataStore
 			getSleeveless: computed,
 			getPrismatic: computed,
 			getItemNameFromIndex: computed,
+			getSleeveColor: computed,
 			count: computed
 		});
 	}
 
+	setSpritesheet(file)
+	{
+		const {width, height, data, blobURL} = file;
+		this._sleeveData = extractSleeveColors(data, width, height);
+		this._spritesheet = {width, height, blobURL};
+	}
 	get gender()
 	{
 		return this._gender;
@@ -348,6 +359,15 @@ class ShirtsSheetStore extends SheetDataStore
 	{
 		return (index)=>this._clothesData[index].name;
 	}
+	get getSleeveColor()
+	{
+		return (index)=>{
+			const data = this._clothesData[index];
+			const spriteIndex = this.gender === "male" ? data.male : data.female;
+			
+			return this._sleeveData[spriteIndex];
+		}
+	}
 	get count()
 	{
 		return this._clothesData.length;
@@ -380,6 +400,7 @@ class PantsSheetStore extends SheetDataStore
 			getDyeable: computed,
 			getPrismatic: computed,
 			getItemNameFromIndex: computed,
+			getInnerIndex: computed,
 			count: computed
 		});
 	}
@@ -424,10 +445,64 @@ class PantsSheetStore extends SheetDataStore
 	{
 		return (index)=>this._clothesData[index].name;
 	}
+	get getInnerIndex()
+	{
+		return (index)=>this._clothesData[index].sheetIndex;
+	}
 	get count()
 	{
 		return this._clothesData.length;
 	}
 }
 
-export {HatsSheetStore, HairstyleSheetStore, ShirtsSheetStore, PantsSheetStore};
+function makeDefaultBodyColor()
+{
+	return {
+		sleeve:[0x8e1f0c, 0x701718, 0x4a0c06],
+		skin:[0xf9ae89, 0xe06b65, 0x6b003a],
+		eye:[0x682b0f, 0x2d1206]
+	}
+}
+
+class BodySheetStore
+{
+	static defaultURLDict = {
+		body_male: "/assets/farmer_base.png",
+		body_male_bald: "/assets/farmer_base_bald.png",
+		body_female: "/assets/farmer_girl_base.png",
+		body_female_bald: "/assets/farmer_girl_base_bald.png"
+	}
+	urlDict = {...BodySheetStore.defaultURLDict}
+	bodyColor = {
+		body_male: makeDefaultBodyColor(),
+		body_male_bald: makeDefaultBodyColor(),
+		body_female: makeDefaultBodyColor(),
+		body_female_bald: makeDefaultBodyColor()
+	}
+	constructor()
+	{
+		makeObservable(this, {
+			urlDict: observable,
+			setSpritesheet: action,
+			resetSpritesheet: action
+		});
+	}
+	setSpritesheet(file, id)
+	{
+		const {blobURL, data} = file;
+		this.bodyColor[id] = extractBodyColors(data);
+		this.urlDict[id] = fileURL;
+	}
+	resetSpritesheet()
+	{
+		this.urlDict = {...BodySheetStore.defaultURLDict};
+		this.bodyColor = {
+			body_male: makeDefaultBodyColor(),
+			body_male_bald: makeDefaultBodyColor(),
+			body_female: makeDefaultBodyColor(),
+			body_female_bald: makeDefaultBodyColor()
+		};
+	}
+}
+
+export {HatsSheetStore, HairstyleSheetStore, ShirtsSheetStore, PantsSheetStore, BodySheetStore};

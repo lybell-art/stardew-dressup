@@ -1,5 +1,6 @@
 import { reaction } from "mobx";
 import * as PIXI from "pixi.js";
+import { MultiColorReplaceFilter } from "@pixi/filter-multi-color-replace";
 import { colorArrayToHex, getPrismaticColor } from "../utils/utils.js";
 import { convertTextureMap } from "../utils/convertTexture.js";
 
@@ -169,7 +170,7 @@ class HairSprite extends ResponsiveSprite
 		this.currentSheet = "default";
 		this.addChild(this.sprite);
 
-		this.zIndex = 4;
+		this.zIndex = 0;
 	}
 	initialize(farmer)
 	{
@@ -177,6 +178,7 @@ class HairSprite extends ResponsiveSprite
 		this.makeReaction( 
 			()=>{
 				return {
+					direction: farmer.direction,
 					boundBox : farmer.hairBoundBox,
 					offsetY : farmer.hairstyleYOffset,
 				};
@@ -206,7 +208,7 @@ class HairSprite extends ResponsiveSprite
 		false);
 	}
 
-	changeSprite({boundBox, offsetY})
+	changeSprite({direction, boundBox, offsetY})
 	{
 		const {rect, sheet="default", flipped} = boundBox;
 		const baseTexture = sheet === "default" ? this.baseTexture : this.additionalTexture[sheet];
@@ -218,6 +220,8 @@ class HairSprite extends ResponsiveSprite
 		this.currentSheet = sheet;
 		this.sprite.scale.x = flipped ? -1 : 1;
 		if(flipped) this.sprite.x = this.sprite.width;
+
+		this.zIndex = direction === BACK ? 4 : 4;
 	}
 	changeSpriteSheet({base, additional})
 	{
@@ -369,6 +373,86 @@ class PantsSprite extends ResponsiveSprite
 	}
 }
 
+class BodySprite extends ResponsiveSprite
+{
+	constructor(textures)
+	{
+		super();
+
+		this.baseTextures = textures;
+		this.currentSheet = "body_male";
+
+		this.baseSprite = new PIXI.Sprite();
+		this.armSprite = new PIXI.Sprite();
+
+		this.addChild(this.baseSprite, this.armSprite);
+
+		// add multi color replace filter
+		const dummyArr = new Array(8).fill(0).map(()=>[0,0]);
+		this.colorReplacer = new MultiColorReplaceFilter( dummyArr ,0.001, 8);
+		this.filters= [this.colorReplacer];
+
+		this.zIndex = 1;
+	}
+	initialize(farmer)
+	{
+		// change body direction
+		this.makeReaction( 
+			()=>{
+				return {
+					boundBox: farmer.bodyBoundBox, 
+					sheetName: farmer.body.sheet
+				};
+			},
+
+			this.changeSprite.bind(this)
+		);
+
+		// change body color
+		this.makeReaction(
+			()=>farmer.bodyMaskedColor,
+
+			this.changeColor.bind(this)
+		);
+
+		// change sprite sheet
+		this.makeReaction( 
+			()=>farmer.bodySheet.urlDict,
+
+			this.changeSpriteSheet.bind(this), 
+		false);
+	}
+
+	changeSprite({boundBox, sheetName})
+	{
+		const {base, arm, flipped} = boundBox;
+
+		const bodyTexture = new PIXI.Texture(this.baseTextures[sheetName], base);
+		const armTexture = new PIXI.Texture(this.baseTextures[sheetName], arm);
+
+		this.baseSprite.texture = bodyTexture;
+		this.armSprite.texture = armTexture;
+
+		this.baseSprite.scale.x = flipped ? -1 : 1;
+		this.baseSprite.x = flipped ? this.baseSprite.width : 0;
+
+		this.armSprite.scale.x = flipped ? -1 : 1;
+		this.armSprite.x = flipped ? this.armSprite.width : 0;
+
+		this.currentSheet = sheetName;
+	}
+	changeColor({from, to})
+	{
+		this.colorReplacer.replacements = from.map( (col, i)=>[col, to[i]] );
+	}
+	changeSpriteSheet(sheetURLs)
+	{
+		this.baseTextures = convertTextureMap(sheetURLs);
+		
+		this.baseSprite.texture.baseTexture = this.baseTextures[this.currentSheet];
+		this.armSprite.texture.baseTexture = this.baseTextures[this.currentSheet];
+	}
+}
 
 class ViewerPixi
 {
@@ -448,6 +532,16 @@ class ViewerPixi
 		this.pantsSprite.initialize(this.farmer);
 		this.container.addChild(this.pantsSprite);
 
+		// add body sprite
+		const bodySpriteSheets = ["body_male", "body_male_bald", "body_female", "body_female_bald"].reduce(
+			(map, key)=>{
+				map[key] = this.baseTextures.get(key);
+				return map;
+			}, {}
+		);
+		this.bodySprite = new BodySprite( bodySpriteSheets );
+		this.bodySprite.initialize(this.farmer);
+		this.container.addChild(this.bodySprite);
 
 		// add ticker
 		this.app.ticker.add(this.ticker);

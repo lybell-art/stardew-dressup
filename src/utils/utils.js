@@ -58,6 +58,15 @@ function hexToColorArray(hex)
 	return [(hex>>16), ( (hex & 0xff<<8) >> 8), ( hex & 0xff )];
 }
 
+function multiplyColor(hex1, hex2)
+{
+	const color1 = hexToColorArray(hex1);
+	const color2 = hexToColorArray(hex2);
+	const multiplied = color1.map((col, i)=>Math.round( (col/255) * ((color2[i])/255) ) * 255);
+
+	return colorArrayToHex(multiplied);
+}
+
 function lerpColor(a, b, v)
 {
 	let red = lerp( getRedToHex(a), getRedToHex(b), v );
@@ -87,4 +96,4 @@ function extractFileName(fullname)
 	return [ matcher[1], matcher[2] ];
 }
 
-export { isMobileView, canTouch, HSBtoRGB, colorArrayToHex, getPrismaticColor, clamp, lerp, easeOut, extractFileName };
+export { isMobileView, canTouch, HSBtoRGB, colorArrayToHex, getPrismaticColor, multiplyColor, clamp, lerp, easeOut, extractFileName };
