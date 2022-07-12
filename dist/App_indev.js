@@ -97956,7 +97956,7 @@ function getRedToHex(hex) {
 }
 
 function getGreenToHex(hex) {
-  return (hex & 0xff << 8) >> 8;
+  return hex >> 8 & 0xff;
 }
 
 function getBlueToHex(hex) {
@@ -97964,7 +97964,7 @@ function getBlueToHex(hex) {
 }
 
 function hexToColorArray(hex) {
-  return [hex >> 16, (hex & 0xff << 8) >> 8, hex & 0xff];
+  return [hex >> 16, hex >> 8 & 0xff, hex & 0xff];
 }
 
 function multiplyColor(hex1, hex2) {
@@ -97972,13 +97972,13 @@ function multiplyColor(hex1, hex2) {
   const color2 = typeof hex2 === "number" ? hexToColorArray(hex2) : hex2;
   const multiplied = color1.map((col, i) => Math.round(col / 255 * (color2[i] / 255) * 255));
   return colorArrayToHex(multiplied);
-}
+} // stardew valley using this change brightness logic
 
 function lerpColor(a, b, v) {
   let red = lerp(getRedToHex(a), getRedToHex(b), v);
   let green = lerp(getGreenToHex(a), getGreenToHex(b), v);
   let blue = lerp(getBlueToHex(a), getBlueToHex(b), v);
-  return colorArrayToHex([red, green, blue]);
+  return (red << 16) + (green << 8) + blue;
 }
 
 function getPrismaticColor(percent) {
@@ -98067,8 +98067,8 @@ class HatSprite extends ResponsiveSprite {
     this.prismatic = false;
     this.addChild(this.sprite);
     this.subSprite = new Sprite();
-    this.subSprite.zIndex = 2;
-    this.zIndex = 5;
+    this.subSprite.zIndex = 2.75;
+    this.zIndex = 4;
   }
 
   initialize(farmer) {
@@ -98138,14 +98138,13 @@ class HairSprite extends ResponsiveSprite {
     this.sprite = new Sprite();
     this.currentSheet = "default";
     this.addChild(this.sprite);
-    this.zIndex = 0;
+    this.zIndex = 3;
   }
 
   initialize(farmer) {
     // change hairstyle index
     this.makeReaction(() => {
       return {
-        direction: farmer.direction,
         boundBox: farmer.hairBoundBox,
         offsetY: farmer.hairstyleYOffset
       };
@@ -98165,7 +98164,6 @@ class HairSprite extends ResponsiveSprite {
   }
 
   changeSprite({
-    direction,
     boundBox,
     offsetY
   }) {
@@ -98182,7 +98180,6 @@ class HairSprite extends ResponsiveSprite {
     this.currentSheet = sheet;
     this.sprite.scale.x = flipped ? -1 : 1;
     if (flipped) this.sprite.x = this.sprite.width;
-    this.zIndex = direction === BACK$1 ? 4 : 4;
   }
 
   changeSpriteSheet({
@@ -98209,7 +98206,7 @@ class ShirtSprite extends ResponsiveSprite {
     this.coloredSprite = new Sprite();
     this.prismatic = false;
     this.addChild(this.uncoloredSprite, this.coloredSprite);
-    this.zIndex = 3;
+    this.zIndex = 2;
   }
 
   initialize(farmer) {
@@ -98268,7 +98265,7 @@ class PantsSprite extends ResponsiveSprite {
     this.sprite = new Sprite();
     this.prismatic = false;
     this.addChild(this.sprite);
-    this.zIndex = 2;
+    this.zIndex = 1;
   }
 
   initialize(farmer) {
@@ -98308,18 +98305,21 @@ class BodySprite extends ResponsiveSprite {
     this.currentSheet = "body_male";
     this.baseSprite = new Sprite();
     this.armSprite = new Sprite();
-    this.addChild(this.baseSprite, this.armSprite); // add multi color replace filter
+    this.addChild(this.baseSprite); // add multi color replace filter
 
     const dummyArr = new Array(8).fill(0).map(() => [0, 0]);
     this.colorReplacer = new MultiColorReplaceFilter(dummyArr, 0.001, 8);
-    this.filters = [this.colorReplacer];
-    this.zIndex = 1;
+    this.baseSprite.filters = [this.colorReplacer];
+    this.armSprite.filters = [this.colorReplacer];
+    this.zIndex = 0;
+    this.armSprite.zIndex = 5;
   }
 
   initialize(farmer) {
     // change body direction
     this.makeReaction(() => {
       return {
+        direction: farmer.direction,
         boundBox: farmer.bodyBoundBox,
         sheetName: farmer.body.sheet
       };
@@ -98331,6 +98331,7 @@ class BodySprite extends ResponsiveSprite {
   }
 
   changeSprite({
+    direction,
     boundBox,
     sheetName
   }) {
@@ -98348,6 +98349,7 @@ class BodySprite extends ResponsiveSprite {
     this.armSprite.scale.x = flipped ? -1 : 1;
     this.armSprite.x = flipped ? this.armSprite.width : 0;
     this.currentSheet = sheetName;
+    if (direction === BACK$1) this.armSprite.zIndex = -1;else this.armSprite.zIndex = 5;
   }
 
   changeColor({
@@ -98383,11 +98385,6 @@ class ViewerPixi {
     this.container.scale.set(5);
     this.container.sortableChildren = true;
     this.app.stage.addChild(this.container);
-    const debug = new Graphics();
-    debug.beginFill(0x24adaf);
-    debug.drawRect(0, 0, 16, 32);
-    debug.endFill();
-    this.container.addChild(debug);
     this.baseTextures = makeDefaultTextures();
     this.farmer = farmer; // for prismatic ticker
 
@@ -98432,7 +98429,7 @@ class ViewerPixi {
     }, {});
     this.bodySprite = new BodySprite(bodySpriteSheets);
     this.bodySprite.initialize(this.farmer);
-    this.container.addChild(this.bodySprite); // add ticker
+    this.container.addChild(this.bodySprite, this.bodySprite.armSprite); // add ticker
 
     this.app.ticker.add(this.ticker);
   }

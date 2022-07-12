@@ -42,11 +42,12 @@ function colorArrayToHex(arr)
 
 function getRedToHex(hex)
 {
-	return hex>>16;
+	return hex >> 16;
 }
+
 function getGreenToHex(hex)
 {
-	return (hex & 0xff<<8) >> 8;
+	return (hex >> 8) & 0xff;
 }
 function getBlueToHex(hex)
 {
@@ -55,7 +56,7 @@ function getBlueToHex(hex)
 
 function hexToColorArray(hex)
 {
-	return [(hex>>16), ( (hex & 0xff<<8) >> 8), ( hex & 0xff )];
+	return [(hex>>16), ( (hex >> 8) & 0xff ), ( hex & 0xff )];
 }
 
 function multiplyColor(hex1, hex2)
@@ -67,13 +68,27 @@ function multiplyColor(hex1, hex2)
 	return colorArrayToHex(multiplied);
 }
 
+// stardew valley using this change brightness logic
+// from decompiled stardew valley code : FarmerRenderer.changeBrightness()
+function changeBrightness(color, brightness)
+{
+	const c = typeof color === "number" ? hexToColorArray(color) : color;
+	const blueBrightness = Math.floor( (brightness > 0) ? (brightness * 5 / 6) : (brightness * 8 / 7) );
+
+	const red = clamp(c[0] + brightness, 0, 255);
+	const green = clamp(c[1] + brightness, 0, 255);
+	const blue = clamp(c[2] + blueBrightness, 0, 255);
+
+	return (red << 16) + (green << 8) + blue;
+}
+
 function lerpColor(a, b, v)
 {
 	let red = lerp( getRedToHex(a), getRedToHex(b), v );
 	let green = lerp( getGreenToHex(a), getGreenToHex(b), v );
 	let blue = lerp( getBlueToHex(a), getBlueToHex(b), v );
 
-	return colorArrayToHex([red, green, blue]);
+	return (red << 16) + (green << 8) + blue;
 }
 
 function getPrismaticColor(percent)

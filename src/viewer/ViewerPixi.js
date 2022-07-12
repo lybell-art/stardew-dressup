@@ -79,9 +79,9 @@ class HatSprite extends ResponsiveSprite
 		this.addChild(this.sprite);
 
 		this.subSprite = new PIXI.Sprite();
-		this.subSprite.zIndex = 2;
+		this.subSprite.zIndex = 2.75;
 
-		this.zIndex = 5;
+		this.zIndex = 4;
 	}
 	initialize(farmer)
 	{
@@ -170,7 +170,7 @@ class HairSprite extends ResponsiveSprite
 		this.currentSheet = "default";
 		this.addChild(this.sprite);
 
-		this.zIndex = 0;
+		this.zIndex = 3;
 	}
 	initialize(farmer)
 	{
@@ -178,7 +178,6 @@ class HairSprite extends ResponsiveSprite
 		this.makeReaction( 
 			()=>{
 				return {
-					direction: farmer.direction,
 					boundBox : farmer.hairBoundBox,
 					offsetY : farmer.hairstyleYOffset,
 				};
@@ -208,7 +207,7 @@ class HairSprite extends ResponsiveSprite
 		false);
 	}
 
-	changeSprite({direction, boundBox, offsetY})
+	changeSprite({boundBox, offsetY})
 	{
 		const {rect, sheet="default", flipped} = boundBox;
 		const baseTexture = sheet === "default" ? this.baseTexture : this.additionalTexture[sheet];
@@ -220,8 +219,6 @@ class HairSprite extends ResponsiveSprite
 		this.currentSheet = sheet;
 		this.sprite.scale.x = flipped ? -1 : 1;
 		if(flipped) this.sprite.x = this.sprite.width;
-
-		this.zIndex = direction === BACK ? 4 : 4;
 	}
 	changeSpriteSheet({base, additional})
 	{
@@ -251,7 +248,7 @@ class ShirtSprite extends ResponsiveSprite
 		this.prismatic = false;
 		this.addChild(this.uncoloredSprite, this.coloredSprite);
 
-		this.zIndex = 3;
+		this.zIndex = 2;
 	}
 	initialize(farmer)
 	{
@@ -326,7 +323,7 @@ class PantsSprite extends ResponsiveSprite
 		this.prismatic = false;
 		this.addChild(this.sprite);
 
-		this.zIndex = 2;
+		this.zIndex = 1;
 	}
 	initialize(farmer)
 	{
@@ -385,14 +382,16 @@ class BodySprite extends ResponsiveSprite
 		this.baseSprite = new PIXI.Sprite();
 		this.armSprite = new PIXI.Sprite();
 
-		this.addChild(this.baseSprite, this.armSprite);
+		this.addChild(this.baseSprite);
 
 		// add multi color replace filter
 		const dummyArr = new Array(8).fill(0).map(()=>[0,0]);
 		this.colorReplacer = new MultiColorReplaceFilter( dummyArr ,0.001, 8);
-		this.filters= [this.colorReplacer];
+		this.baseSprite.filters = [this.colorReplacer];
+		this.armSprite.filters = [this.colorReplacer];
 
-		this.zIndex = 1;
+		this.zIndex = 0;
+		this.armSprite.zIndex = 5;
 	}
 	initialize(farmer)
 	{
@@ -400,6 +399,7 @@ class BodySprite extends ResponsiveSprite
 		this.makeReaction( 
 			()=>{
 				return {
+					direction: farmer.direction,
 					boundBox: farmer.bodyBoundBox, 
 					sheetName: farmer.body.sheet
 				};
@@ -423,7 +423,7 @@ class BodySprite extends ResponsiveSprite
 		false);
 	}
 
-	changeSprite({boundBox, sheetName})
+	changeSprite({direction, boundBox, sheetName})
 	{
 		const {base, arm, flipped} = boundBox;
 
@@ -440,6 +440,9 @@ class BodySprite extends ResponsiveSprite
 		this.armSprite.x = flipped ? this.armSprite.width : 0;
 
 		this.currentSheet = sheetName;
+
+		if(direction === BACK) this.armSprite.zIndex = -1;
+		else this.armSprite.zIndex = 5;
 	}
 	changeColor({from, to})
 	{
@@ -476,13 +479,6 @@ class ViewerPixi
 		this.container.scale.set(5);
 		this.container.sortableChildren = true;
 		this.app.stage.addChild(this.container);
-
-		const debug = new PIXI.Graphics();
-		debug.beginFill(0x24adaf);
-		debug.drawRect(0, 0, 16, 32);
-		debug.endFill();
-
-		this.container.addChild(debug);
 
 		this.baseTextures = makeDefaultTextures();
 		this.farmer = farmer;
@@ -541,7 +537,7 @@ class ViewerPixi
 		);
 		this.bodySprite = new BodySprite( bodySpriteSheets );
 		this.bodySprite.initialize(this.farmer);
-		this.container.addChild(this.bodySprite);
+		this.container.addChild(this.bodySprite, this.bodySprite.armSprite);
 
 		// add ticker
 		this.app.ticker.add(this.ticker);
