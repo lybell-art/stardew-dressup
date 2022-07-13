@@ -1,6 +1,6 @@
 import { Component, createRef } from "react";
 import debounce from "lodash.debounce";
-import ItemListController from "./clothListControllerPixi.js";
+import { ItemListController, SkinColorController } from "./clothListControllerPixi.js";
 import { ThresholdObserver } from "../utils/ThresholdObserver.js";
 
 const APP_DOM = document.getElementById("app");
@@ -19,13 +19,22 @@ class ItemSelector extends Component
 		super(props);
 
 		// props
-		const {selection, dataSet, defaultImage, additionalDefaultImage={}} = props;
+		const {selection, dataSet, defaultImage, additionalDefaultImage={}, hudType="itemList"} = props;
 		this.swiper = props.swiper;
 
 		// make item list controller pixi.js canvas
-		this.hud = new ItemListController({selectBox:selection, defaultImage, additionalDefaultImage});
-		this.hud.initializeRadio(dataSet.constructor.omittable ? -1 : 0);
-		this.hud.initializeSprites(dataSet, defaultImage, additionalDefaultImage);
+		this.hud = null;
+		if(hudType === "skinColor")
+		{
+			this.hud = new SkinColorController(selection);
+			this.hud.initializeRadio(0);
+			this.hud.initializeSprites(dataSet.skinColor);
+		}
+		else {
+			this.hud = new ItemListController(selection, {defaultImage, additionalDefaultImage});
+			this.hud.initializeRadio(dataSet.constructor.omittable ? -1 : 0);
+			this.hud.initializeSprites(dataSet, defaultImage, additionalDefaultImage);
+		}
 
 		// for attach canvas
 		this.canvasDom = createRef();
@@ -99,12 +108,18 @@ class ItemSelector extends Component
 	{
 		return (
 			<div className="selector">
-				<div className={`ui-icon left-button ${this.state.expanded ? "inactive" : ""}`} onClick={()=>this.hud.slideLeft()}></div>
+				<div 
+					className={`ui-icon left-button hover-interact ${this.state.expanded ? "inactive" : ""}`} 
+					onClick={()=>this.hud.slideLeft()}>
+				</div>
 				<div className="selector-border">
 					<div className={`hidden ${this.state.expanded ? "expanded" : ""}`} style={{"display":"none"}} />
 					<div className="selector-canvas" ref={this.canvasDom} />
 				</div>
-				<div className={`ui-icon right-button ${this.state.expanded ? "inactive" : ""}`} onClick={()=>this.hud.slideRight()}></div>
+				<div 
+					className={`ui-icon right-button hover-interact ${this.state.expanded ? "inactive" : ""}`} 
+					onClick={()=>this.hud.slideRight()}>
+				</div>
 				<div className="ui-icon expand-button" onClick={this.toggleExpansion}></div>
 			</div>
 		);

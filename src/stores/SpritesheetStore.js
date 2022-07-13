@@ -4,6 +4,7 @@ import hairstyleData from "../data/hairstyleData.json";
 import shirtData from "../data/shirtData.json";
 import sleeveData from "../data/sleeveData.json";
 import pantsData from "../data/pantsData.json";
+import skinData from "../data/skinData.json";
 
 import {extractSleeveColors, extractBodyColors} from "../utils/extractColors.js";
 
@@ -17,6 +18,7 @@ class SheetDataStore
 	static size={width:20, height:20};
 
 	_spritesheet = null;
+	_defaultClothesData = null;
 	_clothesData = null;
 
 	static getSpriteFromIndex(index, offsetX=0, offsetY=0)
@@ -27,6 +29,12 @@ class SheetDataStore
 		return {x, y};
 	}
 
+	constructor(defaultData)
+	{
+		this._defaultClothesData = defaultData;
+		this._clothesData = defaultData;
+	}
+
 	setSpritesheet(file)
 	{
 		const {width, height, blobURL} = file;
@@ -35,6 +43,11 @@ class SheetDataStore
 	setClothesData(file)
 	{
 		this._clothesData = file;
+	}
+	resetData()
+	{
+		this._spritesheet = null;
+		this._clothesData = this._defaultClothesData;
 	}
 	get getListItemKey()
 	{
@@ -70,15 +83,15 @@ class HatsSheetStore extends SheetDataStore
 	static deltaY=80;
 	static omittable=true;
 
-	_clothesData = hatsData;
 	constructor()
 	{
-		super();
+		super(hatsData);
 		makeObservable(this, {
 			_spritesheet: observable,
 			_clothesData: observable,
 			setSpritesheet: action,
 			setClothesData: action,
+			resetData: action,
 			getUncoloredSpriteFromIndex: computed,
 			getColoredSpriteFromIndex: computed,
 			getPrismaticSpriteFromIndex: computed,
@@ -148,11 +161,10 @@ class HairstyleSheetStore extends SheetDataStore
 	30, 41, 46, 43, 44, 45, 46, 47, 
 	6, 52, 50, 51, 52, 53, 54, 55];
 
-	_clothesData = hairstyleData;
 	_additionalSheet = {"hairstyles2":null};
 	constructor()
 	{
-		super();
+		super(hairstyleData);
 		makeObservable(this, {
 			_spritesheet: observable,
 			_clothesData: observable,
@@ -160,6 +172,8 @@ class HairstyleSheetStore extends SheetDataStore
 			setSpritesheet: action,
 			setClothesData: action,
 			setAdditionalSheet: action,
+			resetData: action,
+
 			getUncoloredSpriteFromIndex: computed,
 			getColoredSpriteFromIndex: computed,
 			getPrismaticSpriteFromIndex: computed,
@@ -176,7 +190,12 @@ class HairstyleSheetStore extends SheetDataStore
 
 	setAdditionalSheet(data)
 	{
-		_additionalSheet = {..._additionalSheet, ...data};
+		this._additionalSheet = {...this._additionalSheet, ...data};
+	}
+	resetData()
+	{
+		super.resetData();
+		this._additionalSheet = {"hairstyles2":null};
 	}
 	get getListItemKey()
 	{
@@ -269,18 +288,18 @@ class ShirtsSheetStore extends SheetDataStore
 	static deltaY=32;
 	static size={width:8, height:8};
 
-	_clothesData = shirtData;
 	_sleeveData = sleeveData;
 	_gender = "male";
 	constructor()
 	{
-		super();
+		super(shirtData);
 		makeObservable(this, {
 			_spritesheet: observable,
 			_clothesData: observable,
 			_gender: observable,
 			setSpritesheet: action,
 			setClothesData: action,
+			resetData: action,
 			gender: computed,
 			setGender: action,
 
@@ -302,6 +321,11 @@ class ShirtsSheetStore extends SheetDataStore
 		const {width, height, data, blobURL} = file;
 		this._sleeveData = extractSleeveColors(data, width, height);
 		this._spritesheet = {width, height, blobURL};
+	}
+	resetData()
+	{
+		super.resetData();
+		this._sleeveData = sleeveData;
 	}
 	get gender()
 	{
@@ -382,16 +406,15 @@ class PantsSheetStore extends SheetDataStore
 	static deltaY=688;
 	static size={width:16, height:16};
 
-	_clothesData = pantsData;
-
 	constructor()
 	{
-		super();
+		super(pantsData);
 		makeObservable(this, {
 			_spritesheet: observable,
 			_clothesData: observable,
 			setSpritesheet: action,
 			setClothesData: action,
+			resetData: action,
 
 			getUncoloredSpriteFromIndex: computed,
 			getColoredSpriteFromIndex: computed,
@@ -479,12 +502,17 @@ class BodySheetStore
 		body_female: makeDefaultBodyColor(),
 		body_female_bald: makeDefaultBodyColor()
 	}
+	skinColor = skinData;
 	constructor()
 	{
 		makeObservable(this, {
 			urlDict: observable,
+			bodyColor: observable,
+			skinColor: observable,
 			setSpritesheet: action,
-			resetSpritesheet: action
+			resetSpritesheet: action,
+
+			getSkinColor: computed
 		});
 	}
 	setSpritesheet(file, id)
@@ -502,6 +530,12 @@ class BodySheetStore
 			body_female: makeDefaultBodyColor(),
 			body_female_bald: makeDefaultBodyColor()
 		};
+		this.skinColor = skinData;
+	}
+
+	get getSkinColor()
+	{
+		return (index)=>this.skinColor[index];
 	}
 }
 

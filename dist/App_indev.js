@@ -42124,6 +42124,7 @@ if (typeof __MOBX_DEVTOOLS_GLOBAL_HOOK__ === "object") {
 }
 
 var i18n_en = {
+	"title.body": "Body",
 	"title.hats": "Hats",
 	"title.hairstyle": "Hairstyle",
 	"title.shirts": "Shirts",
@@ -42852,6 +42853,7 @@ var i18n_en = {
 };
 
 var i18n_ko = {
+	"title.body": "체형",
 	"title.hats": "모자",
 	"title.hairstyle": "머리카락",
 	"title.shirts": "상의",
@@ -43584,6 +43586,11 @@ class Langs {
     en: i18n_en,
     ko: i18n_ko
   };
+
+  static getAllLanguageList() {
+    return Object.keys(this.langData);
+  }
+
   currentLanguage = "en";
 
   constructor() {
@@ -43605,12 +43612,13 @@ class Langs {
 }
 
 Object.freeze(Langs.langData);
+const lang = new Langs();
 const LangsContext = /*#__PURE__*/react.exports.createContext({});
 
 const LangsProvider = ({
   children
 }) => /*#__PURE__*/react.exports.createElement(LangsContext.Provider, {
-  value: new Langs()
+  value: lang
 }, children);
 
 /**
@@ -106456,6 +106464,129 @@ var pantsData = [
 	}
 ];
 
+var skinData = [
+	{
+		light: 16363145,
+		mid: 14707557,
+		dark: 7012410
+	},
+	{
+		light: 14781542,
+		mid: 11027261,
+		dark: 5579829
+	},
+	{
+		light: 15769730,
+		mid: 13725256,
+		dark: 5579829
+	},
+	{
+		light: 16234906,
+		mid: 14914951,
+		dark: 7353145
+	},
+	{
+		light: 12870727,
+		mid: 10108717,
+		dark: 5774613
+	},
+	{
+		light: 11427641,
+		mid: 7350809,
+		dark: 4266002
+	},
+	{
+		light: 10634770,
+		mid: 7806996,
+		dark: 4330251
+	},
+	{
+		light: 13797947,
+		mid: 12475948,
+		dark: 6692890
+	},
+	{
+		light: 12417348,
+		mid: 10635290,
+		dark: 5580056
+	},
+	{
+		light: 16755634,
+		mid: 12743534,
+		dark: 8141108
+	},
+	{
+		light: 14070441,
+		mid: 10117484,
+		dark: 5452876
+	},
+	{
+		light: 15239774,
+		mid: 10698797,
+		dark: 5579047
+	},
+	{
+		light: 14869169,
+		mid: 9994847,
+		dark: 5518900
+	},
+	{
+		light: 15699104,
+		mid: 11292250,
+		dark: 5579829
+	},
+	{
+		light: 9196585,
+		mid: 5908499,
+		dark: 3017476
+	},
+	{
+		light: 14320468,
+		mid: 11485225,
+		dark: 5580337
+	},
+	{
+		light: 6864872,
+		mid: 29134,
+		dark: 1617
+	},
+	{
+		light: 12445832,
+		mid: 4239894,
+		dark: 213264
+	},
+	{
+		light: 16748174,
+		mid: 11474454,
+		dark: 4129539
+	},
+	{
+		light: 11702783,
+		mid: 7864526,
+		dark: 3938902
+	},
+	{
+		light: 16768396,
+		mid: 13403418,
+		dark: 5121795
+	},
+	{
+		light: 14537427,
+		mid: 8944769,
+		dark: 4340803
+	},
+	{
+		light: 16764318,
+		mid: 16417397,
+		dark: 7932990
+	},
+	{
+		light: 16765877,
+		mid: 16751495,
+		dark: 7483186
+	}
+];
+
 function extractPixel(colorArray, index) {
   return [colorArray[index * 4], colorArray[index * 4 + 1], colorArray[index * 4 + 2], colorArray[index * 4 + 3]];
 }
@@ -106534,6 +106665,7 @@ class SheetDataStore {
     height: 20
   };
   _spritesheet = null;
+  _defaultClothesData = null;
   _clothesData = null;
 
   static getSpriteFromIndex(index, offsetX = 0, offsetY = 0) {
@@ -106543,6 +106675,11 @@ class SheetDataStore {
       x,
       y
     };
+  }
+
+  constructor(defaultData) {
+    this._defaultClothesData = defaultData;
+    this._clothesData = defaultData;
   }
 
   setSpritesheet(file) {
@@ -106560,6 +106697,11 @@ class SheetDataStore {
 
   setClothesData(file) {
     this._clothesData = file;
+  }
+
+  resetData() {
+    this._spritesheet = null;
+    this._clothesData = this._defaultClothesData;
   }
 
   get getListItemKey() {
@@ -106594,15 +106736,15 @@ class HatsSheetStore extends SheetDataStore {
   static deltaX = 20;
   static deltaY = 80;
   static omittable = true;
-  _clothesData = hatsData;
 
   constructor() {
-    super();
+    super(hatsData);
     makeObservable(this, {
       _spritesheet: observable,
       _clothesData: observable,
       setSpritesheet: action,
       setClothesData: action,
+      resetData: action,
       getUncoloredSpriteFromIndex: computed,
       getColoredSpriteFromIndex: computed,
       getPrismaticSpriteFromIndex: computed,
@@ -106664,13 +106806,12 @@ class HairstyleSheetStore extends SheetDataStore {
     height: 20
   };
   static coveredTable = [7, 1, 7, 11, 7, 5, 6, 7, 7, 9, 7, 11, 7, 7, 7, 7, 30, 17, 23, 23, 20, 23, 30, 23, 24, 25, 30, 27, 28, 29, 30, 23, 32, 33, 34, 30, 36, 30, 30, 39, 30, 41, 46, 43, 44, 45, 46, 47, 6, 52, 50, 51, 52, 53, 54, 55];
-  _clothesData = hairstyleData;
   _additionalSheet = {
     "hairstyles2": null
   };
 
   constructor() {
-    super();
+    super(hairstyleData);
     makeObservable(this, {
       _spritesheet: observable,
       _clothesData: observable,
@@ -106678,6 +106819,7 @@ class HairstyleSheetStore extends SheetDataStore {
       setSpritesheet: action,
       setClothesData: action,
       setAdditionalSheet: action,
+      resetData: action,
       getUncoloredSpriteFromIndex: computed,
       getColoredSpriteFromIndex: computed,
       getPrismaticSpriteFromIndex: computed,
@@ -106692,8 +106834,15 @@ class HairstyleSheetStore extends SheetDataStore {
   }
 
   setAdditionalSheet(data) {
-    _additionalSheet = { ..._additionalSheet,
+    this._additionalSheet = { ...this._additionalSheet,
       ...data
+    };
+  }
+
+  resetData() {
+    super.resetData();
+    this._additionalSheet = {
+      "hairstyles2": null
     };
   }
 
@@ -106796,18 +106945,18 @@ class ShirtsSheetStore extends SheetDataStore {
     width: 8,
     height: 8
   };
-  _clothesData = shirtData;
   _sleeveData = sleeveData;
   _gender = "male";
 
   constructor() {
-    super();
+    super(shirtData);
     makeObservable(this, {
       _spritesheet: observable,
       _clothesData: observable,
       _gender: observable,
       setSpritesheet: action,
       setClothesData: action,
+      resetData: action,
       gender: computed,
       setGender: action,
       getUncoloredSpriteFromIndex: computed,
@@ -106836,6 +106985,11 @@ class ShirtsSheetStore extends SheetDataStore {
       height,
       blobURL
     };
+  }
+
+  resetData() {
+    super.resetData();
+    this._sleeveData = sleeveData;
   }
 
   get gender() {
@@ -106915,15 +107069,15 @@ class PantsSheetStore extends SheetDataStore {
     width: 16,
     height: 16
   };
-  _clothesData = pantsData;
 
   constructor() {
-    super();
+    super(pantsData);
     makeObservable(this, {
       _spritesheet: observable,
       _clothesData: observable,
       setSpritesheet: action,
       setClothesData: action,
+      resetData: action,
       getUncoloredSpriteFromIndex: computed,
       getColoredSpriteFromIndex: computed,
       getPrismaticSpriteFromIndex: computed,
@@ -107010,12 +107164,16 @@ class BodySheetStore {
     body_female: makeDefaultBodyColor(),
     body_female_bald: makeDefaultBodyColor()
   };
+  skinColor = skinData;
 
   constructor() {
     makeObservable(this, {
       urlDict: observable,
+      bodyColor: observable,
+      skinColor: observable,
       setSpritesheet: action,
-      resetSpritesheet: action
+      resetSpritesheet: action,
+      getSkinColor: computed
     });
   }
 
@@ -107037,6 +107195,11 @@ class BodySheetStore {
       body_female: makeDefaultBodyColor(),
       body_female_bald: makeDefaultBodyColor()
     };
+    this.skinColor = skinData;
+  }
+
+  get getSkinColor() {
+    return index => this.skinColor[index];
   }
 
 }
@@ -107202,6 +107365,7 @@ function dirSheetIdx(direction, hasLeft = false) {
 
 class CharacterStore {
   // selector store
+  bodySelector = new ClothSelectorStore();
   hatsSelector = new ClothSelectorStore({
     value: -1
   });
@@ -107498,7 +107662,7 @@ class CharacterStore {
     return {
       selection: this[`${name}Selector`],
       dataSet: this[`${name}Sheet`],
-      defaultImage: `assets/${name}.png`
+      defaultImage: name === "body" ? "assets/farmer_base_bald.png" : `assets/${name}.png`
     };
   } // import json data
 
@@ -107534,10 +107698,10 @@ function GenderSelector({
   return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
     className: "gender-select-wrapper",
     children: [/*#__PURE__*/jsxRuntime.exports.jsx("div", {
-      className: `ui-icon male-button ${gender ? "selected" : ""}`,
+      className: `ui-icon male-button hover-interact ${gender ? "selected" : ""}`,
       onClick: () => selectGender(true)
     }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
-      className: `ui-icon female-button ${!gender ? "selected" : ""}`,
+      className: `ui-icon female-button hover-interact ${!gender ? "selected" : ""}`,
       onClick: () => selectGender(false)
     })]
   });
@@ -107551,10 +107715,10 @@ const Viewer = () => {
       children: [/*#__PURE__*/jsxRuntime.exports.jsx(ViewerCanvas, {
         characterStore: characterStore
       }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
-        className: "ui-icon left-turn-button",
+        className: "ui-icon left-turn-button hover-interact",
         onClick: () => characterStore.turnLeft()
       }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
-        className: "ui-icon right-turn-button",
+        className: "ui-icon right-turn-button hover-interact",
         onClick: () => characterStore.turnRight()
       }), /*#__PURE__*/jsxRuntime.exports.jsx(GenderSelector, {
         characterStore: characterStore
@@ -114608,6 +114772,41 @@ function copyStaticProperties(base, target) {
 
 observerBatching(reactDom.exports.unstable_batchedUpdates);
 
+const LanguageList = observer(({
+  isOpened
+}) => {
+  const langs = react.exports.useContext(LangsContext);
+  const allLangs = Langs.getAllLanguageList();
+  return /*#__PURE__*/jsxRuntime.exports.jsx("div", {
+    className: `language-list ${!isOpened ? "hidden" : ""}`,
+    children: allLangs.map(langCode => /*#__PURE__*/jsxRuntime.exports.jsx("p", {
+      onClick: () => {
+        langs.changeLanguage(langCode);
+      },
+      children: langs.getText(`UI.language.${langCode}`)
+    }, langCode))
+  });
+});
+
+function LanguageSelector() {
+  const [isOpened, open] = react.exports.useState(false);
+  return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
+    className: "language-wrapper",
+    children: [/*#__PURE__*/jsxRuntime.exports.jsx("div", {
+      className: "ui-icon language-button hover-interact",
+      onClick: () => open(prev => !prev)
+    }), /*#__PURE__*/jsxRuntime.exports.jsx(LanguageList, {
+      isOpened: isOpened
+    })]
+  });
+}
+
+function Banner() {
+  return /*#__PURE__*/jsxRuntime.exports.jsx(LangsProvider, {
+    children: /*#__PURE__*/jsxRuntime.exports.jsx(LanguageSelector, {})
+  });
+}
+
 /**
  * lodash (Custom Build) <https://lodash.com/>
  * Build: `lodash modularize exports="npm" -o ./`
@@ -115085,6 +115284,14 @@ class GridedSprite extends Sprite {
     this.y = 0;
   }
 
+  arrangePosition(columns, axis = AXIS_X, multiplier = 1) {
+    const index = this.innerIndex;
+    const x = index % columns;
+    const y = Math.floor(index / columns);
+    this.x = grid(x, multiplier);
+    this.y = axis === AXIS_Y ? grid(y, multiplier) : 0;
+  }
+
 }
 
 function makeSheetMap(sheet, additionalSheet = {}) {
@@ -115121,11 +115328,7 @@ function generateItem(i, sheets, sheetPos, size = {
 
 function arrangeItems(container, columns, axis = AXIS_X, multiplier = 1) {
   for (let child of container.children) {
-    const index = child.innerIndex;
-    const x = index % columns;
-    const y = Math.floor(index / columns);
-    child.x = grid(x, multiplier);
-    child.y = axis === AXIS_Y ? grid(y, multiplier) : 0;
+    child.arrangePosition(columns, axis, multiplier);
   }
 }
 
@@ -115339,12 +115542,8 @@ class ScrollSnappedContainer extends Container {
 
 }
 
-class ItemListController {
-  constructor({
-    selectBox,
-    defaultImage,
-    additionalDefaultImage = {}
-  }) {
+class ItemListControllerBase {
+  constructor(selectBox) {
     // set application
     this.app = new Application({
       resolution: 1,
@@ -115356,10 +115555,7 @@ class ItemListController {
     this.setContainer(selectBox); // optimize pixi.js setting to pixel environment
 
     settings$1.SCALE_MODE = SCALE_MODES$5.NEAREST;
-    settings$1.ROUND_PIXELS = true; // cache default image link
-
-    this.defaultImage = defaultImage;
-    this.additionalDefaultImage = additionalDefaultImage; // expanding toggler
+    settings$1.ROUND_PIXELS = true; // expanding toggler
 
     this.expanded = false; // mobile adjustment
 
@@ -115385,13 +115581,9 @@ class ItemListController {
     this.container = new ScrollSnappedContainer(this.app.screen);
     this.app.stage.addChild(this.container); // make container for the icon
 
-    this.radioButton = new RadioButtons(selectBox);
-    this.uncolored = new Container();
-    this.colored = new tintedContainer(selectBox);
-    this.prismatic = new prismaticContainer(); // attach to container
+    this.radioButton = new RadioButtons(selectBox); // attach to container
 
     this.radioButton.attachToParent(this.container);
-    this.container.addChild(this.uncolored, this.colored, this.prismatic);
   } // attach to dom
 
 
@@ -115407,66 +115599,21 @@ class ItemListController {
     this.radioButton.setInitialValue(i);
   }
 
-  initialize(spritesheetData) {
-    this.app.start(); // add the mobx reaction for spritesheet data(image change or data change)
+  setDisposer(args) {}
 
-    this.disposer = reaction(() => ({
-      sheet: spritesheetData._spritesheet?.blobURL ?? this.defaultImage,
-      clothesData: spritesheetData._clothesData,
-      additionalSheet: { ...spritesheetData._additionalSheet,
-        ...this.additionalDefaultImage
-      }
-    }), ({
-      sheet,
-      additionalSheet
-    }) => this.initializeSprites(spritesheetData, sheet, additionalSheet)); // add resize event listener
+  initialize(args) {
+    this.app.start();
+    this.setDisposer(args); // add resize event listener
 
     window.addEventListener("resize", this.resize); // add ticker
 
     this.app.ticker.add(this.ticker);
   }
 
-  initializeSprites(spritesheetData, sheet, additionalSheet) {
-    const size = spritesheetData.constructor.size;
-    const omittable = spritesheetData.constructor.omittable;
-    const shift = omittable ? 1 : 0; // remove all icons
-
-    this.flushChildren(); // make baseTexture map ( Dict<String, PIXI.BaseTexture> )
-
-    const sheets = makeSheetMap(sheet, additionalSheet); // make icon generator
-
-    const makeItemArray = [{
-      parent: this.uncolored,
-      positioner: spritesheetData.getUncoloredSpriteFromIndex
-    }, {
-      parent: this.colored,
-      positioner: spritesheetData.getColoredSpriteFromIndex
-    }, {
-      parent: this.prismatic,
-      positioner: spritesheetData.getPrismaticSpriteFromIndex
-    }].map(({
-      parent,
-      positioner
-    }) => i => {
-      const child = generateItem(i + shift, sheets, positioner(i), size, this.multiplier);
-      if (child) parent.addChild(child);
-    }); // make icons and attach to parent
-
-    for (let i = -shift; i < spritesheetData.count; i++) {
-      this.radioButton.generateButton(i, i + shift, this.multiplier);
-      makeItemArray.forEach(makeItem => makeItem(i));
-    } // reset container's item amount & hit area
-
-
-    this.container.itemAmount = spritesheetData.count + shift;
-    this.container.lineCount = this.container.itemAmount;
-    this.container.resetHitArea();
-  }
+  initializeSprites() {}
 
   ticker(dt) {
     const FPS = 60;
-    this.colored.autoTint();
-    this.prismatic.progress(dt * FPS);
     this.container.progress(dt * FPS);
   }
 
@@ -115484,6 +115631,8 @@ class ItemListController {
     this.container.slide(delta);
   }
 
+  arrangeIcons(arranger) {}
+
   arrangeContainerItems(multiplier) {
     // calculate axis, itemAmout, lines
     const axis = this.expanded ? AXIS_Y : AXIS_X;
@@ -115495,9 +115644,7 @@ class ItemListController {
 
 
     arranger(this.radioButton.container);
-    arranger(this.uncolored);
-    arranger(this.colored);
-    arranger(this.prismatic);
+    this.arrangeIcons(arranger);
   }
 
   toggleExpantion(state) {
@@ -115536,9 +115683,6 @@ class ItemListController {
 
   flushChildren() {
     this.radioButton.flush();
-    this.uncolored.removeChildren();
-    this.colored.removeChildren();
-    this.prismatic.removeChildren();
   }
 
   halt() {
@@ -115553,6 +115697,181 @@ class ItemListController {
       const multiplier = getScaleMultifier(document.body.clientWidth);
       this.adjustItemSize(multiplier);
     });
+  }
+
+}
+
+class ItemListController extends ItemListControllerBase {
+  constructor(selectBox, {
+    defaultImage,
+    additionalDefaultImage = {}
+  }) {
+    super(selectBox); // cache default image link
+
+    this.defaultImage = defaultImage;
+    this.additionalDefaultImage = additionalDefaultImage;
+  }
+
+  setContainer(selectBox) {
+    // make main container, radioButton
+    super.setContainer(selectBox); // make container for the icon
+
+    this.uncolored = new Container();
+    this.colored = new tintedContainer(selectBox);
+    this.prismatic = new prismaticContainer(); // attach to container
+
+    this.container.addChild(this.uncolored, this.colored, this.prismatic);
+  }
+
+  setDisposer(spritesheetData) {
+    // add the mobx reaction for spritesheet data(image change or data change)
+    this.disposer = reaction(() => ({
+      sheet: spritesheetData._spritesheet?.blobURL ?? this.defaultImage,
+      clothesData: spritesheetData._clothesData,
+      additionalSheet: { ...spritesheetData._additionalSheet,
+        ...this.additionalDefaultImage
+      }
+    }), ({
+      sheet,
+      additionalSheet
+    }) => this.initializeSprites(spritesheetData, sheet, additionalSheet));
+  }
+
+  initializeSprites(spritesheetData, sheet, additionalSheet) {
+    const size = spritesheetData.constructor.size;
+    const omittable = spritesheetData.constructor.omittable;
+    const shift = omittable ? 1 : 0; // remove all icons
+
+    this.flushChildren(); // make baseTexture map ( Dict<String, PIXI.BaseTexture> )
+
+    const sheets = makeSheetMap(sheet, additionalSheet); // make icon generator
+
+    const maker = [{
+      parent: this.uncolored,
+      positioner: spritesheetData.getUncoloredSpriteFromIndex
+    }, {
+      parent: this.colored,
+      positioner: spritesheetData.getColoredSpriteFromIndex
+    }, {
+      parent: this.prismatic,
+      positioner: spritesheetData.getPrismaticSpriteFromIndex
+    }].map(({
+      parent,
+      positioner
+    }) => i => {
+      const child = generateItem(i + shift, sheets, positioner(i), size, this.multiplier);
+      if (child) parent.addChild(child);
+    }); // make icons and attach to parent
+
+    for (let i = -shift; i < spritesheetData.count; i++) {
+      this.radioButton.generateButton(i, i + shift, this.multiplier);
+      maker.forEach(makeItem => makeItem(i));
+    } // reset container's item amount & hit area
+
+
+    this.container.itemAmount = spritesheetData.count + shift;
+    this.container.lineCount = this.container.itemAmount;
+    this.container.resetHitArea();
+  }
+
+  flushChildren() {
+    super.flushChildren();
+    this.uncolored.removeChildren();
+    this.colored.removeChildren();
+    this.prismatic.removeChildren();
+  }
+
+  arrangeIcons(arranger) {
+    arranger(this.uncolored);
+    arranger(this.colored);
+    arranger(this.prismatic);
+  }
+
+  ticker(dt) {
+    super.ticker(dt);
+    const FPS = 60;
+    this.colored.autoTint();
+    this.prismatic.progress(dt * FPS);
+  }
+
+}
+
+class SkinColorController extends ItemListControllerBase {
+  constructor(selectBox) {
+    super(selectBox);
+    const loader = new Loader();
+    loader.add("body_icon", "assets/body_icon.png");
+    loader.load((loader, resource) => {
+      let sprite = Sprite.from(resource.body_icon.texture);
+      let pixels = this.app.renderer.plugins.extract.pixels(sprite);
+      console.log(pixels);
+    });
+    this.texture = this.makeSkinIconTexture();
+  }
+
+  makeSkinIconTexture() {
+    let texture = Texture$1.from("assets/body_icon.png"); //		let pixels = this.app.renderer.plugins.extract.pixels(texture);
+    //		console.log(pixels);
+
+    return texture;
+  }
+
+  makeFilter({
+    light,
+    mid,
+    dark
+  }) {
+    const replaceMap = [[0xf9ae89, light], [0xe06b65, mid], [0x6b003a, dark]];
+    return new MultiColorReplaceFilter(replaceMap, 0.001);
+  }
+
+  setContainer(selectBox) {
+    // make main container, radioButton
+    super.setContainer(selectBox); // make container for the icon
+
+    this.icons = new Container(); // attach to container
+
+    this.container.addChild(this.icons);
+  }
+
+  setDisposer(spritesheetData) {
+    // add the mobx reaction for spritesheet data(image change or data change)
+    this.disposer = reaction(() => spritesheetData.skinColor, skinColors => this.initializeSprites(skinColors));
+  }
+
+  initializeSprites(skinColors) {
+    // remove all icons
+    this.flushChildren(); // make icon generator
+
+    const maker = i => {
+      const child = new GridedSprite(i, this.texture);
+      this.makeFilter(skinColors[i]); //			child.filters = [ colorReplacer ];
+
+      child.setPosition(this.multiplier);
+      child.anchor.set(0.5);
+      child.scale.set(3 * this.multiplier);
+      if (child) this.icons.addChild(child);
+    }; // make icons and attach to parent
+
+
+    for (let i = 0; i < skinColors.length; i++) {
+      this.radioButton.generateButton(i, i, this.multiplier);
+      maker(i);
+    } // reset container's item amount & hit area
+
+
+    this.container.itemAmount = skinColors.length;
+    this.container.lineCount = this.container.itemAmount;
+    this.container.resetHitArea();
+  }
+
+  flushChildren() {
+    super.flushChildren();
+    this.icons.removeChildren();
+  }
+
+  arrangeIcons(arranger) {
+    arranger(this.icons);
   }
 
 }
@@ -115573,17 +115892,26 @@ class ItemSelector extends react.exports.Component {
       selection,
       dataSet,
       defaultImage,
-      additionalDefaultImage = {}
+      additionalDefaultImage = {},
+      hudType = "itemList"
     } = props;
     this.swiper = props.swiper; // make item list controller pixi.js canvas
 
-    this.hud = new ItemListController({
-      selectBox: selection,
-      defaultImage,
-      additionalDefaultImage
-    });
-    this.hud.initializeRadio(dataSet.constructor.omittable ? -1 : 0);
-    this.hud.initializeSprites(dataSet, defaultImage, additionalDefaultImage); // for attach canvas
+    this.hud = null;
+
+    if (hudType === "skinColor") {
+      this.hud = new SkinColorController(selection);
+      this.hud.initializeRadio(0);
+      this.hud.initializeSprites(dataSet.skinColor);
+    } else {
+      this.hud = new ItemListController(selection, {
+        defaultImage,
+        additionalDefaultImage
+      });
+      this.hud.initializeRadio(dataSet.constructor.omittable ? -1 : 0);
+      this.hud.initializeSprites(dataSet, defaultImage, additionalDefaultImage);
+    } // for attach canvas
+
 
     this.canvasDom = /*#__PURE__*/react.exports.createRef(); // for expanding 
 
@@ -115673,7 +116001,7 @@ class ItemSelector extends react.exports.Component {
     return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
       className: "selector",
       children: [/*#__PURE__*/jsxRuntime.exports.jsx("div", {
-        className: `ui-icon left-button ${this.state.expanded ? "inactive" : ""}`,
+        className: `ui-icon left-button hover-interact ${this.state.expanded ? "inactive" : ""}`,
         onClick: () => this.hud.slideLeft()
       }), /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
         className: "selector-border",
@@ -115687,7 +116015,7 @@ class ItemSelector extends react.exports.Component {
           ref: this.canvasDom
         })]
       }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
-        className: `ui-icon right-button ${this.state.expanded ? "inactive" : ""}`,
+        className: `ui-icon right-button hover-interact ${this.state.expanded ? "inactive" : ""}`,
         onClick: () => this.hud.slideRight()
       }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
         className: "ui-icon expand-button",
@@ -115824,11 +116152,26 @@ const ClothesControllerBase = ({
       dataSet: dataSet,
       defaultImage: defaultImage,
       additionalDefaultImage: additionalDefaultImage,
-      swiper: swiper
+      swiper: swiper,
+      hudType: name === "body" ? "skinColor" : "itemList"
     }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
       className: "controller-sub",
       children: children
     })]
+  });
+};
+
+const BodyController = () => {
+  const name = "body";
+  const {
+    selection
+  } = getProps(name);
+  return /*#__PURE__*/jsxRuntime.exports.jsx(ClothesControllerBase, {
+    name: name,
+    children: /*#__PURE__*/jsxRuntime.exports.jsx(ColorSlider$1, {
+      type: name,
+      selection: selection
+    })
   });
 };
 
@@ -115884,8 +116227,8 @@ const ClothesController = ({
 function App() {
   return /*#__PURE__*/jsxRuntime.exports.jsxs(LangsProvider, {
     children: [/*#__PURE__*/jsxRuntime.exports.jsx(Viewer, {}), /*#__PURE__*/jsxRuntime.exports.jsxs(Controller, {
-      ids: ["hats", "hairstyle", "shirts", "pants"],
-      children: [/*#__PURE__*/jsxRuntime.exports.jsx(HatsController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(HairstyleController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(ClothesController, {
+      ids: ["body", "hats", "hairstyle", "shirts", "pants"],
+      children: [/*#__PURE__*/jsxRuntime.exports.jsx(BodyController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(HatsController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(HairstyleController, {}), /*#__PURE__*/jsxRuntime.exports.jsx(ClothesController, {
         name: "shirts"
       }), /*#__PURE__*/jsxRuntime.exports.jsx(ClothesController, {
         name: "pants"
@@ -115894,14 +116237,18 @@ function App() {
   });
 }
 
+function renderComponent(component, containerID) {
+  const container = document.getElementById(containerID);
+  const root = createRoot(container);
+  root.render(component);
+}
+
 function render() {
   setReaders({
     Texture2DReader: LightweightTexture2DReader
   });
-  console.log("pixi!");
-  const container = document.getElementById("app");
-  const root = createRoot(container);
-  root.render( /*#__PURE__*/jsxRuntime.exports.jsx(App, {}));
+  renderComponent( /*#__PURE__*/jsxRuntime.exports.jsx(App, {}), "app");
+  renderComponent( /*#__PURE__*/jsxRuntime.exports.jsx(Banner, {}), "banner");
 }
 
 export { render as default };

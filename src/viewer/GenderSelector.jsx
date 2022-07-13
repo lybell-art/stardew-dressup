@@ -11,8 +11,8 @@ function GenderSelector({characterStore})
 	}
 
 	return <div className="gender-select-wrapper">
-		<div className={`ui-icon male-button ${gender ? "selected" : ""}`} onClick={()=>selectGender(true)} ></div>
-		<div className={`ui-icon female-button ${!gender ? "selected" : ""}`} onClick={()=>selectGender(false)} ></div>
+		<div className={`ui-icon male-button hover-interact ${gender ? "selected" : ""}`} onClick={()=>selectGender(true)} ></div>
+		<div className={`ui-icon female-button hover-interact ${!gender ? "selected" : ""}`} onClick={()=>selectGender(false)} ></div>
 	</div>
 }
 

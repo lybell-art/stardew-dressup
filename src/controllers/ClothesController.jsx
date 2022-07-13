@@ -36,6 +36,7 @@ const ClothesControllerBase = ({name, additionalDefaultImage={}, children})=>{
 			defaultImage={defaultImage}
 			additionalDefaultImage={additionalDefaultImage}
 			swiper={swiper}
+			hudType={name === "body" ? "skinColor" : "itemList"}
 		/>
 		<div className="controller-sub">{children}</div>
 	</div>
@@ -43,6 +44,16 @@ const ClothesControllerBase = ({name, additionalDefaultImage={}, children})=>{
 };
 
 
+const BodyController = ()=>{
+	const name = "body";
+	const {selection} = getProps(name);
+
+	return (
+	<ClothesControllerBase name={name}>
+		<ColorSlider type={name} selection={selection} />
+	</ClothesControllerBase>
+	)
+};
 
 const HatsController = ()=>{
 	const name = "hats";
@@ -77,4 +88,4 @@ const ClothesController = ({name})=>{
 	)
 };
 
-export {HatsController, HairstyleController, ClothesController};
+export {BodyController, HatsController, HairstyleController, ClothesController};

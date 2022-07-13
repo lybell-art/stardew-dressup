@@ -7,6 +7,22 @@ h2, h3, p{
 	maring-bottom: 0.2rem;
 }
 
+h2, h3 {
+    font-family: 'Stardust Pixel Title';
+}
+
+h2 {
+	font-size: 36px;
+}
+
+h3 {
+	font-size: 24px;
+}
+
+p {
+    font-family: 'Noto Sans KR';
+}
+
 /* Header */
 header {
 	width: 100vw;
@@ -20,6 +36,27 @@ header {
 	display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+/* Language button */
+
+.language-wrapper {
+	position: relative;
+	width: 30px;
+	height: 30px;
+}
+
+.language-list {
+	position: absolute;
+	top: 40px;
+	left: calc( 50% - 50px );
+	background-color: white;
+	box-shadow: 2px 2px 4px #00000022;
+	width: 100px;
+	display: flex;
+	gap: 5px;
+	flex-direction: column;
+	align-items: center;
 }
 
 /* Main */
@@ -75,14 +112,12 @@ main::-webkit-scrollbar {
 	position: absolute;
 	left: 20px;
 	bottom: 100px;
-	transition: transform 0.1s ease-out;
 }
 
 .viewer-wrapper .right-turn-button {
 	position: absolute;
 	right: 20px;
 	bottom: 100px;
-	transition: transform 0.1s ease-out;
 }
 
 .viewer-wrapper .gender-select-wrapper {
@@ -97,11 +132,6 @@ main::-webkit-scrollbar {
 
 .viewer-wrapper .male-button, .viewer-wrapper .female-button {
 	padding: 3px;
-	transition: transform 0.1s ease-out;
-}
-
-.left-turn-button:hover, .right-turn-button:hover, .male-button:hover, .female-button:hover {
-	transform: scale(1.1);
 }
 
 .gender-select-wrapper .selected {
@@ -214,11 +244,6 @@ main::-webkit-scrollbar {
 	position: absolute;
 	top: calc(50% - 18px);
 	z-index: 10;
-	transition: transform 0.1s ease-out;
-}
-
-.selector .left-button:hover, .selector .right-button:hover {
-	transform: scale(1.1);
 }
 
 .selector .left-button {
@@ -525,7 +550,7 @@ footer {
 	--base-width: 30px;
 	--base-height: 30px;
 }
-.hats-icon, .hairstyle-icon, .shirts-icon, .pants-icon {
+.hats-icon, .hairstyle-icon, .shirts-icon, .pants-icon, .body-icon {
 	--base-width: 20px;
 	--base-height: 20px;
 	--scale: 2;
@@ -577,8 +602,11 @@ footer {
 .pants-icon:after {
 	background-position: -60px -30px;
 }
-.shuffle-button:after {
+.body-icon:after {
 	background-position: -80px -30px;
+}
+.shuffle-button:after {
+	background-position: -88px -0px;
 }
 .male-button:after {
 	background-position: 0px -50px;
@@ -599,7 +627,15 @@ footer {
 	background-position: -72px -50px;
 }
 .expand-button:after {
-	background-position: -80px -40px;
+	background-position: -89px -10px;
+}
+
+.hover-interact {
+	transition: transform 0.1s ease-out;
+}
+
+.hover-interact:hover {
+	transform: scale(1.1);
 }
 
 .inactive {

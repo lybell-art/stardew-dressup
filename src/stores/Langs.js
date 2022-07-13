@@ -9,6 +9,11 @@ class Langs
 		en:i18n_en,
 		ko:i18n_ko
 	};
+	static getAllLanguageList()
+	{
+		return Object.keys(this.langData);
+	}
+
 	currentLanguage = "en";
 
 	constructor()
@@ -30,12 +35,12 @@ class Langs
 }
 Object.freeze(Langs.langData);
 
-
+const lang = new Langs();
 const LangsContext = createContext({});
 
 const LangsProvider = ({children})=>createElement(
 	LangsContext.Provider, 
-	{value: new Langs()},
+	{value: lang},
 	children
 );
 

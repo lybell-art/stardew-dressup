@@ -1,9 +1,12 @@
 import { reaction } from "mobx";
 import * as PIXI from "pixi.js";
+import { MultiColorReplaceFilter } from "@pixi/filter-multi-color-replace";
+
 import { clamp, lerp, easeOut, isMobileView } from "../utils/utils.js";
 import { ThresholdObserver } from "../utils/ThresholdObserver.js";
 import { tintedContainer, prismaticContainer } from "../utils/coloredContainers.js";
 import { convertTextureMap } from "../utils/convertTexture.js";
+import { replaceColorsFromBuffer } from "../utils/replaceColorsFromBuffer.js";
 
 // constant
 const ITEM_GAP = 80;
@@ -35,6 +38,14 @@ class GridedSprite extends PIXI.Sprite
 	{
 		this.x = grid(this.innerIndex, multiplier);
 		this.y = 0;
+	}
+	arrangePosition(columns, axis=AXIS_X, multiplier = 1)
+	{
+		const index = this.innerIndex;
+		const x = index % columns;
+		const y = Math.floor(index / columns);
+		this.x = grid(x, multiplier);
+		this.y = axis === AXIS_Y ? grid(y, multiplier) : 0;
 	}
 }
 
@@ -68,11 +79,7 @@ function arrangeItems(container, columns, axis=AXIS_X, multiplier=1)
 {
 	for(let child of container.children)
 	{
-		const index = child.innerIndex;
-		const x = index % columns;
-		const y = Math.floor(index / columns);
-		child.x = grid(x, multiplier);
-		child.y = axis === AXIS_Y ? grid(y, multiplier) : 0;
+		child.arrangePosition(columns, axis, multiplier);
 	}
 }
 
@@ -313,9 +320,9 @@ class ScrollSnappedContainer extends PIXI.Container
 	}
 }
 
-class ItemListController
+class ItemListControllerBase
 {
-	constructor({ selectBox, defaultImage, additionalDefaultImage={} })
+	constructor(selectBox)
 	{
 		// set application
 		this.app = new PIXI.Application({
@@ -331,10 +338,6 @@ class ItemListController
 		// optimize pixi.js setting to pixel environment
 		PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 		PIXI.settings.ROUND_PIXELS = true;
-
-		// cache default image link
-		this.defaultImage = defaultImage;
-		this.additionalDefaultImage = additionalDefaultImage;
 
 		// expanding toggler
 		this.expanded = false;
@@ -365,13 +368,9 @@ class ItemListController
 
 		// make container for the icon
 		this.radioButton = new RadioButtons(selectBox);
-		this.uncolored = new PIXI.Container();
-		this.colored = new tintedContainer(selectBox);
-		this.prismatic = new prismaticContainer();
 
 		// attach to container
 		this.radioButton.attachToParent(this.container);
-		this.container.addChild(this.uncolored, this.colored, this.prismatic);
 	}
 
 	// attach to dom
@@ -389,17 +388,14 @@ class ItemListController
 		this.radioButton.setInitialValue(i);
 	}
 
-	initialize(spritesheetData)
+	setDisposer(args)
+	{
+	}
+	initialize(args)
 	{
 		this.app.start();
 
-		// add the mobx reaction for spritesheet data(image change or data change)
-		this.disposer = reaction(()=>({
-			sheet: spritesheetData._spritesheet?.blobURL ?? this.defaultImage, 
-			clothesData: spritesheetData._clothesData, 
-			additionalSheet: {...spritesheetData._additionalSheet, ...this.additionalDefaultImage}
-		}),
-		({sheet, additionalSheet})=>this.initializeSprites(spritesheetData, sheet, additionalSheet) );
+		this.setDisposer(args);
 
 		// add resize event listener
 		window.addEventListener("resize", this.resize);
@@ -407,46 +403,13 @@ class ItemListController
 		// add ticker
 		this.app.ticker.add(this.ticker);
 	}
-	initializeSprites(spritesheetData, sheet, additionalSheet)
+	
+	initializeSprites()
 	{
-		const size = spritesheetData.constructor.size;
-		const omittable = spritesheetData.constructor.omittable;
-		const shift = omittable ? 1 : 0;
-
-		// remove all icons
-		this.flushChildren();
-
-		// make baseTexture map ( Dict<String, PIXI.BaseTexture> )
-		const sheets = makeSheetMap(sheet, additionalSheet);
-
-		// make icon generator
-		const makeItemArray = [
-			{parent:this.uncolored,		positioner:spritesheetData.getUncoloredSpriteFromIndex},
-			{parent:this.colored,		positioner:spritesheetData.getColoredSpriteFromIndex},
-			{parent:this.prismatic,		positioner:spritesheetData.getPrismaticSpriteFromIndex}
-		].map( ({parent, positioner})=>(i=>{
-			const child=generateItem(i + shift, sheets, positioner(i), size, this.multiplier);
-			if(child) parent.addChild(child);
-		}) );
-
-		// make icons and attach to parent
-		for(let i = -shift; i<spritesheetData.count; i++)
-		{
-			this.radioButton.generateButton(i, i + shift, this.multiplier);
-			makeItemArray.forEach((makeItem)=>makeItem(i));
-		}
-
-		// reset container's item amount & hit area
-		this.container.itemAmount = spritesheetData.count + shift;
-		this.container.lineCount = this.container.itemAmount;
-		this.container.resetHitArea();
 	}
 	ticker(dt)
 	{
 		const FPS = 60;
-		this.colored.autoTint();
-		this.prismatic.progress(dt*FPS);
-
 		this.container.progress(dt*FPS);
 	}
 	slideLeft()
@@ -463,6 +426,9 @@ class ItemListController
 	{
 		this.container.slide(delta);
 	}
+	arrangeIcons(arranger)
+	{
+	}
 	arrangeContainerItems(multiplier)
 	{
 		// calculate axis, itemAmout, lines
@@ -475,9 +441,7 @@ class ItemListController
 
 		// arrange items
 		arranger(this.radioButton.container);
-		arranger(this.uncolored);
-		arranger(this.colored);
-		arranger(this.prismatic);
+		this.arrangeIcons(arranger);
 	}
 	toggleExpantion(state)
 	{
@@ -525,9 +489,6 @@ class ItemListController
 	flushChildren()
 	{
 		this.radioButton.flush();
-		this.uncolored.removeChildren();
-		this.colored.removeChildren();
-		this.prismatic.removeChildren();
 	}
 	halt()
 	{
@@ -545,5 +506,192 @@ class ItemListController
 	}
 }
 
+class ItemListController extends ItemListControllerBase
+{
+	constructor(selectBox, { defaultImage, additionalDefaultImage={} })
+	{
+		super(selectBox);
 
-export default ItemListController;
+		// cache default image link
+		this.defaultImage = defaultImage;
+		this.additionalDefaultImage = additionalDefaultImage;
+
+	}
+	setContainer(selectBox)
+	{
+		// make main container, radioButton
+		super.setContainer(selectBox);
+
+		// make container for the icon
+		this.uncolored = new PIXI.Container();
+		this.colored = new tintedContainer(selectBox);
+		this.prismatic = new prismaticContainer();
+
+		// attach to container
+		this.container.addChild(this.uncolored, this.colored, this.prismatic);
+	}
+	setDisposer(spritesheetData)
+	{
+		// add the mobx reaction for spritesheet data(image change or data change)
+		this.disposer = reaction( 
+			()=>({
+				sheet: spritesheetData._spritesheet?.blobURL ?? this.defaultImage, 
+				clothesData: spritesheetData._clothesData, 
+				additionalSheet: {...spritesheetData._additionalSheet, ...this.additionalDefaultImage}
+			}),
+			({sheet, additionalSheet})=>this.initializeSprites(spritesheetData, sheet, additionalSheet)
+		);
+	}
+	initializeSprites(spritesheetData, sheet, additionalSheet)
+	{
+		const size = spritesheetData.constructor.size;
+		const omittable = spritesheetData.constructor.omittable;
+		const shift = omittable ? 1 : 0;
+
+		// remove all icons
+		this.flushChildren();
+
+		// make baseTexture map ( Dict<String, PIXI.BaseTexture> )
+		const sheets = makeSheetMap(sheet, additionalSheet);
+
+		// make icon generator
+		const maker = [
+			{parent:this.uncolored,		positioner:spritesheetData.getUncoloredSpriteFromIndex},
+			{parent:this.colored,		positioner:spritesheetData.getColoredSpriteFromIndex},
+			{parent:this.prismatic,		positioner:spritesheetData.getPrismaticSpriteFromIndex}
+		].map( ({parent, positioner})=>(i=>{
+			const child=generateItem(i + shift, sheets, positioner(i), size, this.multiplier);
+			if(child) parent.addChild(child);
+		}) );
+
+		// make icons and attach to parent
+		for(let i = -shift; i<spritesheetData.count; i++)
+		{
+			this.radioButton.generateButton(i, i + shift, this.multiplier);
+			maker.forEach((makeItem)=>makeItem(i));
+		}
+
+		// reset container's item amount & hit area
+		this.container.itemAmount = spritesheetData.count + shift;
+		this.container.lineCount = this.container.itemAmount;
+		this.container.resetHitArea();
+	}
+	flushChildren()
+	{
+		super.flushChildren();
+		this.uncolored.removeChildren();
+		this.colored.removeChildren();
+		this.prismatic.removeChildren();
+	}
+	arrangeIcons(arranger)
+	{
+		arranger(this.uncolored);
+		arranger(this.colored);
+		arranger(this.prismatic);
+	}
+	ticker(dt)
+	{
+		super.ticker(dt);
+		const FPS = 60;
+		this.colored.autoTint();
+		this.prismatic.progress(dt*FPS);
+	}
+}
+
+
+class SkinColorController extends ItemListControllerBase
+{
+	constructor(selectBox)
+	{
+		super(selectBox);
+
+		this.basePixels = null;
+
+		this.texture = this.makeSkinIconTexture();
+	}
+	loadPixelData(callback)
+	{
+		const loader = new PIXI.Loader();
+		loader.add("body_icon", "assets/body_icon.png");
+		loader.load((loader,resource)=>{
+			const sprite = PIXI.Sprite.from(resource.body_icon.texture);
+			this.basePixels = this.app.renderer.plugins.extract.pixels(sprite);
+			console.log(this.basePixels);
+			callback();
+		});
+	}
+	makeTexture({light=0xf9ae89, mid=0xe06b65, dark=0x6b003a}={})
+	{
+		// replace pixel
+		const replaceMap = [ [0xf9ae89, light], [0xe06b65, mid], [0x6b003a, dark] ];
+		let newPixel = replaceColorsFromBuffer(this.basePixels, replaceMap);
+
+		// make buffer resource
+		return PIXI.Texture.fromBuffer(newPixel, {width:16, height:16});
+	}
+	setContainer(selectBox)
+	{
+		// make main container, radioButton
+		super.setContainer(selectBox);
+
+		// make container for the icon
+		this.icons = new PIXI.Container();
+
+		// attach to container
+		this.container.addChild(this.icons);
+	}
+	setDisposer(spritesheetData)
+	{
+		// add the mobx reaction for spritesheet data(image change or data change)
+		this.disposer = reaction( 
+			()=>spritesheetData.skinColor,
+			skinColors=>this.initializeSprites(skinColors)
+		);
+	}
+	_initializeSprites(skinColors)
+	{
+		// remove all icons
+		this.flushChildren();
+
+		// make icon generator
+		const maker = (i)=>{
+			const texture = this.makeTexture(skinColors[i]);
+			const child = new GridedSprite(i, texture);
+			child.setPosition(this.multiplier);
+			child.anchor.set(0.5);
+			child.scale.set(3 * this.multiplier);
+			if(child) this.icons.addChild(child);
+		}
+
+		// make icons and attach to parent
+		for(let i = 0; i<skinColors.length; i++)
+		{
+			this.radioButton.generateButton(i, i, this.multiplier);
+			maker(i);
+		}
+
+		// reset container's item amount & hit area
+		this.container.itemAmount = skinColors.length;
+		this.container.lineCount = this.container.itemAmount;
+		this.container.resetHitArea();
+	}
+	initializeSprites(skinColors)
+	{
+		if(this.basePixels !== null) {
+			this.loadPixelData(this._initializeSprites(skinColors));
+		}
+		else this._initializeSprites(skinColors);
+	}
+	flushChildren()
+	{
+		super.flushChildren();
+		this.icons.removeChildren();
+	}
+	arrangeIcons(arranger)
+	{
+		arranger(this.icons);
+	}
+}
+
+
+export {ItemListController, SkinColorController};

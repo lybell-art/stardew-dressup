@@ -44,6 +44,7 @@ function getHair(hairIndex, hatHairDrawType, getCoveredHairIndex)
 class CharacterStore
 {
 	// selector store
+	bodySelector = new ClothSelectorStore();
 	hatsSelector = new ClothSelectorStore( {value:-1} );
 	hairstyleSelector = new ClothSelectorStore( {hue:4*360/100, saturation:74, brightness:75} );
 	shirtsSelector = new ClothSelectorStore();
@@ -301,7 +302,7 @@ class CharacterStore
 		return {
 			selection : this[`${name}Selector`],
 			dataSet : this[`${name}Sheet`],
-			defaultImage : `assets/${name}.png`
+			defaultImage : name === "body" ? "assets/farmer_base_bald.png" : `assets/${name}.png`
 		};
 	}
 
