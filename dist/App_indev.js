@@ -98387,7 +98387,6 @@ class ViewerPixi {
 
     settings$1.SCALE_MODE = SCALE_MODES$5.NEAREST;
     settings$1.ROUND_PIXELS = true;
-    this.app.stage.pivot.set(0.5);
     this.container = new Container();
     this.container.pivot.set(8, 16);
     this.container.scale.set(5);
@@ -98407,7 +98406,7 @@ class ViewerPixi {
     this.app.resizeTo = dom;
     this.app.screen.height = dom.clientHeight;
     this.app.view.height = dom.clientHeight;
-    this.app.stage.pivot.set(-this.app.screen.width / 2, -this.app.screen.height / 2);
+    this.app.stage.pivot.set(-this.app.screen.width / 2, -this.app.screen.height * 0.45);
   }
 
   initialize() {
@@ -99839,9 +99838,9 @@ class ClothSelectorStore {
       changeBrightness: action
     });
     this.value = value;
-    this.hue = hue;
-    this.saturation = saturation;
-    this.brightness = brightness;
+    this.hue = Math.round(hue);
+    this.saturation = Math.round(saturation);
+    this.brightness = Math.round(brightness);
   }
 
   get color() {
@@ -107144,8 +107143,11 @@ class PantsSheetStore extends SheetDataStore {
 function makeDefaultBodyColor() {
   return {
     sleeve: [0x8e1f0c, 0x701718, 0x4a0c06],
+    //[light, mid, dark]
     skin: [0xf9ae89, 0xe06b65, 0x6b003a],
-    eye: [0x682b0f, 0x2d1206]
+    //[light, mid, dark]
+    eye: [0x682b0f, 0x2d1206] //[base, dark]
+
   };
 }
 
@@ -107365,7 +107367,11 @@ function dirSheetIdx(direction, hasLeft = false) {
 
 class CharacterStore {
   // selector store
-  bodySelector = new ClothSelectorStore();
+  bodySelector = new ClothSelectorStore({
+    hue: 3 * 360 / 100,
+    saturation: 57,
+    brightness: 47
+  });
   hatsSelector = new ClothSelectorStore({
     value: -1
   });
@@ -107416,7 +107422,7 @@ class CharacterStore {
     } = this.bodySheet.bodyColor[this.body.sheet];
     return {
       from: [...skin, ...eye, ...sleeve],
-      to: [...skin, ...eye, ...this.sleeveColor]
+      to: [...this.skinColor, ...this.eyeColor, ...this.sleeveColor]
     };
   }
 
@@ -107467,9 +107473,24 @@ class CharacterStore {
     };
   }
 
+  get skinColor() {
+    const index = this.bodySelector.value;
+    const {
+      light,
+      mid,
+      dark
+    } = this.bodySheet.getSkinColor(index);
+    return [light, mid, dark];
+  }
+
+  get eyeColor() {
+    const baseColor = colorArrayToHex(this.bodySelector.color);
+    return [baseColor, baseColor];
+  }
+
   get sleeveColor() {
     if (this.shirt.sleeveless) {
-      return [0xf9ae89, 0xe06b65, 0x6b003a]; //body color-todo
+      return this.skinColor;
     }
     let {
       light,

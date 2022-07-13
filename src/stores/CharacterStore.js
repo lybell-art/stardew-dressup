@@ -44,7 +44,7 @@ function getHair(hairIndex, hatHairDrawType, getCoveredHairIndex)
 class CharacterStore
 {
 	// selector store
-	bodySelector = new ClothSelectorStore();
+	bodySelector = new ClothSelectorStore( {hue:3*360/100, saturation:57, brightness:47} );
 	hatsSelector = new ClothSelectorStore( {value:-1} );
 	hairstyleSelector = new ClothSelectorStore( {hue:4*360/100, saturation:74, brightness:75} );
 	shirtsSelector = new ClothSelectorStore();
@@ -84,7 +84,7 @@ class CharacterStore
 		const {skin, eye, sleeve} = this.bodySheet.bodyColor[this.body.sheet];
 		return {
 			from:[...skin, ...eye, ...sleeve],
-			to:[...skin, ...eye, ...this.sleeveColor]
+			to:[...this.skinColor, ...this.eyeColor, ...this.sleeveColor]
 		};
 	}
 	get hat()
@@ -131,10 +131,22 @@ class CharacterStore
 
 		return {index};
 	}
+
+	get skinColor()
+	{
+		const index = this.bodySelector.value;
+		const {light, mid, dark} = this.bodySheet.getSkinColor(index);
+		return [light, mid, dark];
+	}
+	get eyeColor()
+	{
+		const baseColor = colorArrayToHex(this.bodySelector.color);
+		return [baseColor, baseColor];
+	}
 	get sleeveColor()
 	{
 		if(this.shirt.sleeveless) {
-			return [0xf9ae89, 0xe06b65, 0x6b003a]; //body color-todo
+			return this.skinColor;
 		};
 		let {light, mid, dark, dyeable=0} = this.shirtsSheet.getSleeveColor(this.shirt.index);
 

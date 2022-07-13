@@ -472,8 +472,6 @@ class ViewerPixi
 		PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 		PIXI.settings.ROUND_PIXELS = true;
 
-		this.app.stage.pivot.set(0.5);
-
 		this.container = new PIXI.Container();
 		this.container.pivot.set(8, 16);
 		this.container.scale.set(5);
@@ -498,7 +496,7 @@ class ViewerPixi
 		this.app.resizeTo = dom;
 		this.app.screen.height = dom.clientHeight;
 		this.app.view.height = dom.clientHeight;
-		this.app.stage.pivot.set(-this.app.screen.width/2, -this.app.screen.height/2);
+		this.app.stage.pivot.set(-this.app.screen.width/2, -this.app.screen.height * 0.45);
 	}
 
 	initialize()

@@ -22,9 +22,9 @@ class ClothSelectorStore
 			changeBrightness: action
 		});
 		this.value=value;
-		this.hue=hue;
-		this.saturation=saturation;
-		this.brightness=brightness;
+		this.hue=Math.round(hue);
+		this.saturation=Math.round(saturation);
+		this.brightness=Math.round(brightness);
 	}
 	get color()
 	{

@@ -481,9 +481,9 @@ class PantsSheetStore extends SheetDataStore
 function makeDefaultBodyColor()
 {
 	return {
-		sleeve:[0x8e1f0c, 0x701718, 0x4a0c06],
-		skin:[0xf9ae89, 0xe06b65, 0x6b003a],
-		eye:[0x682b0f, 0x2d1206]
+		sleeve:[0x8e1f0c, 0x701718, 0x4a0c06], //[light, mid, dark]
+		skin:[0xf9ae89, 0xe06b65, 0x6b003a], //[light, mid, dark]
+		eye:[0x682b0f, 0x2d1206] //[base, dark]
 	}
 }
 
