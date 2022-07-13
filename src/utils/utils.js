@@ -111,4 +111,4 @@ function extractFileName(fullname)
 	return [ matcher[1], matcher[2] ];
 }
 
-export { isMobileView, canTouch, HSBtoRGB, colorArrayToHex, getPrismaticColor, multiplyColor, clamp, lerp, easeOut, extractFileName };
+export { isMobileView, canTouch, HSBtoRGB, colorArrayToHex, hexToColorArray, getPrismaticColor, multiplyColor, clamp, lerp, easeOut, extractFileName };

@@ -115257,6 +115257,24 @@ class prismaticContainer extends tintedContainer {
 
 }
 
+function replaceColorsFromBuffer(bitmap, replaceMap) {
+  let replaced = new Uint8Array(bitmap);
+  let map = new Map(replaceMap);
+
+  for (let i = 0; i < replaced.length; i += 4) {
+    let color = colorArrayToHex([replaced[i + 0], replaced[i + 1], replaced[i + 2]]);
+
+    if (map.has(color)) {
+      let [r, g, b] = hexToColorArray(map.get(color));
+      replaced[i + 0] = r;
+      replaced[i + 1] = g;
+      replaced[i + 2] = b;
+    }
+  }
+
+  return replaced;
+}
+
 const ITEM_GAP = 80;
 const DRAG_THRESHOLD = 30;
 const SWIPE_THRESHOLD = 6;
@@ -115799,30 +115817,29 @@ class ItemListController extends ItemListControllerBase {
 class SkinColorController extends ItemListControllerBase {
   constructor(selectBox) {
     super(selectBox);
+    this.basePixels = null;
+  }
+
+  loadPixelData(callback) {
     const loader = new Loader();
     loader.add("body_icon", "assets/body_icon.png");
     loader.load((loader, resource) => {
-      let sprite = Sprite.from(resource.body_icon.texture);
-      let pixels = this.app.renderer.plugins.extract.pixels(sprite);
-      console.log(pixels);
+      const sprite = Sprite.from(resource.body_icon.texture);
+      this.basePixels = this.app.renderer.plugins.extract.pixels(sprite);
+      callback();
     });
-    this.texture = this.makeSkinIconTexture();
   }
 
-  makeSkinIconTexture() {
-    let texture = Texture$1.from("assets/body_icon.png"); //		let pixels = this.app.renderer.plugins.extract.pixels(texture);
-    //		console.log(pixels);
-
-    return texture;
-  }
-
-  makeFilter({
-    light,
-    mid,
-    dark
-  }) {
+  makeTexture({
+    light = 0xf9ae89,
+    mid = 0xe06b65,
+    dark = 0x6b003a
+  } = {}) {
+    // replace pixel
     const replaceMap = [[0xf9ae89, light], [0xe06b65, mid], [0x6b003a, dark]];
-    return new MultiColorReplaceFilter(replaceMap, 0.001);
+    const newPixel = replaceColorsFromBuffer(this.basePixels, replaceMap); // make buffer resource
+
+    return Texture$1.fromBuffer(newPixel, 16, 16);
   }
 
   setContainer(selectBox) {
@@ -115839,14 +115856,13 @@ class SkinColorController extends ItemListControllerBase {
     this.disposer = reaction(() => spritesheetData.skinColor, skinColors => this.initializeSprites(skinColors));
   }
 
-  initializeSprites(skinColors) {
+  _initializeSprites(skinColors) {
     // remove all icons
     this.flushChildren(); // make icon generator
 
     const maker = i => {
-      const child = new GridedSprite(i, this.texture);
-      this.makeFilter(skinColors[i]); //			child.filters = [ colorReplacer ];
-
+      const texture = this.makeTexture(skinColors[i]);
+      const child = new GridedSprite(i, texture);
       child.setPosition(this.multiplier);
       child.anchor.set(0.5);
       child.scale.set(3 * this.multiplier);
@@ -115863,6 +115879,10 @@ class SkinColorController extends ItemListControllerBase {
     this.container.itemAmount = skinColors.length;
     this.container.lineCount = this.container.itemAmount;
     this.container.resetHitArea();
+  }
+
+  initializeSprites(skinColors) {
+    if (this.basePixels !== null) this._initializeSprites(skinColors);else this.loadPixelData(() => this._initializeSprites(skinColors));
   }
 
   flushChildren() {

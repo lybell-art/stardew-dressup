@@ -606,8 +606,6 @@ class SkinColorController extends ItemListControllerBase
 		super(selectBox);
 
 		this.basePixels = null;
-
-		this.texture = this.makeSkinIconTexture();
 	}
 	loadPixelData(callback)
 	{
@@ -616,7 +614,6 @@ class SkinColorController extends ItemListControllerBase
 		loader.load((loader,resource)=>{
 			const sprite = PIXI.Sprite.from(resource.body_icon.texture);
 			this.basePixels = this.app.renderer.plugins.extract.pixels(sprite);
-			console.log(this.basePixels);
 			callback();
 		});
 	}
@@ -624,10 +621,10 @@ class SkinColorController extends ItemListControllerBase
 	{
 		// replace pixel
 		const replaceMap = [ [0xf9ae89, light], [0xe06b65, mid], [0x6b003a, dark] ];
-		let newPixel = replaceColorsFromBuffer(this.basePixels, replaceMap);
+		const newPixel = replaceColorsFromBuffer(this.basePixels, replaceMap);
 
 		// make buffer resource
-		return PIXI.Texture.fromBuffer(newPixel, {width:16, height:16});
+		return PIXI.Texture.fromBuffer(newPixel, 16, 16);
 	}
 	setContainer(selectBox)
 	{
@@ -677,10 +674,8 @@ class SkinColorController extends ItemListControllerBase
 	}
 	initializeSprites(skinColors)
 	{
-		if(this.basePixels !== null) {
-			this.loadPixelData(this._initializeSprites(skinColors));
-		}
-		else this._initializeSprites(skinColors);
+		if(this.basePixels !== null) this._initializeSprites(skinColors);
+		else this.loadPixelData(()=>this._initializeSprites(skinColors));
 	}
 	flushChildren()
 	{
