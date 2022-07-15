@@ -416,7 +416,6 @@ class BodySprite extends ResponsiveSprite
 		);
 
 		// change sprite sheet
-		console.log(farmer.bodySheet.urlDict);
 		this.makeReaction( 
 			()=>farmer.bodySheet.urlDict,
 
@@ -451,7 +450,6 @@ class BodySprite extends ResponsiveSprite
 	}
 	changeSpriteSheet(sheetURLs)
 	{
-		console.log("yes!");
 		this.baseTextures = convertTextureMap(sheetURLs);
 		
 		this.baseSprite.texture.baseTexture = this.baseTextures[this.currentSheet];
@@ -465,10 +463,13 @@ class ViewerPixi
 	{
 		// set application
 		this.app = new PIXI.Application({
+			width: 200,
+			height: 200,
 			resolution: 1,
 			antialias: true,
-			backgroundColor: 0xffffff,
-			autoResize:true
+			useContextAlpha: true,
+			backgroundColor: 0x000000,
+			backgroundAlpha: 0
 		});
 		// optimize pixi.js setting to pixel environment
 		PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
@@ -488,7 +489,6 @@ class ViewerPixi
 
 		// event listener
 		this.ticker = this.ticker.bind(this);
-		this.resize = this.resize.bind(this);
 	}
 
 	// attach to dom
@@ -496,10 +496,7 @@ class ViewerPixi
 	{
 		dom.appendChild(this.app.view);
 
-		this.app.resizeTo = dom;
-		this.app.screen.height = dom.clientHeight;
-		this.app.view.height = dom.clientHeight;
-		this.app.stage.pivot.set(-this.app.screen.width/2, -this.app.screen.height * 0.45);
+		this.app.stage.pivot.set(-this.app.screen.width/2, -this.app.screen.height/2);
 	}
 
 	initializeSprites()
@@ -571,11 +568,6 @@ class ViewerPixi
 	destroy()
 	{
 		this.container.destroy({children:true});
-	}
-	resize()
-	{
-		this.app.resize();
-		this.app.stage.pivot.set(-this.app.screen.width/2, -this.app.screen.height * 0.45);
 	}
 }
 

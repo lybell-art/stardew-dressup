@@ -7,6 +7,7 @@ import pantsData from "../data/pantsData.json";
 import skinData from "../data/skinData.json";
 
 import {extractSleeveColors, extractBodyColors} from "../utils/extractColors.js";
+import {extractSkinColors} from "../utils/extractSkinColors.js";
 
 class SheetDataStore
 {
@@ -525,6 +526,7 @@ class BodySheetStore
 			skinColor: observable,
 			setSpritesheet: action,
 			resetSpritesheet: action,
+			setSkinColor: action,
 
 			getSkinColor: computed
 		});
@@ -535,6 +537,11 @@ class BodySheetStore
 		this.bodyColor = {...this.bodyColor, [id]:extractBodyColors(data)};
 		if(this.urlDict[id] !== BodySheetStore.defaultURLDict[id] ) URL.revokeObjectURL(this.urlDict[id]);
 		this.urlDict = { ...this.urlDict, [id]:blobURL};
+	}
+	setSkinColor(file)
+	{
+		const {data, width, height} = file;
+		this.skinColor = extractSkinColors(data, width, height);
 	}
 	resetSpritesheet()
 	{

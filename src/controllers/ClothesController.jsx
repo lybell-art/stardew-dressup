@@ -57,7 +57,12 @@ const BodyController = ()=>{
 
 	return (
 	<ClothesControllerBase name={name}
-		importers={<BodyImporter store={dataSet} />}
+		importers={<>
+			<BodyImporter store={dataSet} />
+			<TextureImporter store={dataSet} 
+				handler={ (retex)=>{dataSet.setSkinColor(retex)} } 
+				text="UI.import.skin"/>
+		</>}
 	>
 		<ColorSlider type={name} selection={selection} />
 	</ClothesControllerBase>

@@ -104,6 +104,16 @@ main::-webkit-scrollbar {
 .viewer-canvas {
 	width: 100%;
 	height: 100%;
+
+	display: flex;
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
+    background-color: #24adaf;
+}
+
+.viewer-canvas canvas{
+	transform: translateY(-30px);
 }
 
 /* Viewer Buttons */
