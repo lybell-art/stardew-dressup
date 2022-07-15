@@ -99,9 +99,9 @@ class RadioButtons
 	constructor(selectBox)
 	{
 		this.initialValue = 0;
+		this.previousCheck = 0;
 
 		this.selectBox = selectBox;
-		this.previousCheck = 0;
 		this.container = new PIXI.Container();
 		this.parent = null;
 		this.buttons = [];
@@ -120,7 +120,7 @@ class RadioButtons
 	generateButton(i, x, multiplier=1)
 	{
 		const button = new GridedSprite(x);
-		if(i === this.initialValue) button.texture = this.constructor.selectedTexture;
+		if(i === this.previousCheck) button.texture = this.constructor.selectedTexture;
 		else button.texture = this.constructor.deselectedTexture;
 
 		button.interactive = true;

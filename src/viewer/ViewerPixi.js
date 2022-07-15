@@ -32,6 +32,11 @@ function makeDefaultTextures()
 	return map;
 }
 
+function replaceBaseTexture(texture, baseTexture)
+{
+	return new PIXI.Texture(baseTexture, texture.frame);
+}
+
 class ResponsiveSprite extends PIXI.Container
 {
 	constructor()
@@ -149,7 +154,7 @@ class HatSprite extends ResponsiveSprite
 	changeSpriteSheet(assetURL)
 	{
 		this.baseTexture = new PIXI.BaseTexture(assetURL);
-		this.sprite.texture.baseTexture = this.baseTexture;
+		this.sprite.texture = replaceBaseTexture(this.sprite.texture, this.baseTexture);
 	}
 	applyTint(tint)
 	{
@@ -226,7 +231,7 @@ class HairSprite extends ResponsiveSprite
 		this.additionalTexture = convertTextureMap(additional);
 
 		const myTexture = this.currentSheet === "default" ? this.baseTexture : this.additionalTexture[this.currentSheet];
-		this.sprite.texture.baseTexture = myTexture;
+		this.sprite.texture = replaceBaseTexture(this.sprite.texture, myTexture);
 	}
 	applyTint(tint)
 	{
@@ -301,8 +306,8 @@ class ShirtSprite extends ResponsiveSprite
 	changeSpriteSheet(assetURL)
 	{
 		this.baseTexture = new PIXI.BaseTexture(assetURL);
-		this.uncoloredSprite.texture.baseTexture = this.baseTexture;
-		this.coloredSprite.texture.baseTexture = this.baseTexture;
+		this.uncoloredSprite.texture = replaceBaseTexture(this.uncoloredSprite.texture, this.baseTexture);
+		this.coloredSprite.texture = replaceBaseTexture(this.coloredSprite.texture, this.baseTexture);
 	}
 	applyTint(tint)
 	{
@@ -362,7 +367,7 @@ class PantsSprite extends ResponsiveSprite
 	changeSpriteSheet(assetURL)
 	{
 		this.baseTexture = new PIXI.BaseTexture(assetURL);
-		this.sprite.texture.baseTexture = this.baseTexture;
+		this.sprite.texture = replaceBaseTexture(this.sprite.texture, this.baseTexture);
 	}
 	applyTint(tint)
 	{
