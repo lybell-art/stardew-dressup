@@ -4,6 +4,13 @@ import { decode } from "fast-png";
 
 import { extractFileName } from "../../utils/utils.js";
 import FileImportButton from "./FileImportButton.jsx";
+import { getText } from "../../stores/Langs.js";
+
+function localizedAlert(textID)
+{
+	const text = getText(textID);
+	alert(text);
+}
 
 
 function TextureImporter({ store, handler=(retex)=>{store.setSpritesheet(retex)}, text="UI.import.texture" })
@@ -31,15 +38,22 @@ function TextureImporter({ store, handler=(retex)=>{store.setSpritesheet(retex)}
 		try
 		{
 			const xnbData = await bufferToXnb(buffer);
-			const { width, height, data } = xnbData.content.export;
-			const {content} = await xnbDataToContent(xnbData);
-			const blobURL = URL.createObjectURL(content);
+			const {content, type} = await xnbDataToContent(xnbData);
 
+			// if xnb is not texture, show alert
+			if(type !== "Texture2D")
+			{
+				localizedAlert("error.noTextureXnb");
+				return;
+			}
+
+			const { width, height, data } = xnbData.content.export;
+			const blobURL = URL.createObjectURL(content);
 			handler({width, height, data, blobURL});
 		}
 		catch(e)
 		{
-			alert("Not a proper xnb file!\nThis xnb file does not contain any texture data.");
+			localizedAlert("error.errorReadingXnb");
 			console.error(e);
 		}
 	}

@@ -416,6 +416,7 @@ class BodySprite extends ResponsiveSprite
 		);
 
 		// change sprite sheet
+		console.log(farmer.bodySheet.urlDict);
 		this.makeReaction( 
 			()=>farmer.bodySheet.urlDict,
 
@@ -450,6 +451,7 @@ class BodySprite extends ResponsiveSprite
 	}
 	changeSpriteSheet(sheetURLs)
 	{
+		console.log("yes!");
 		this.baseTextures = convertTextureMap(sheetURLs);
 		
 		this.baseSprite.texture.baseTexture = this.baseTextures[this.currentSheet];
@@ -576,6 +578,7 @@ class ViewerPixi
 		this.app.stage.pivot.set(-this.app.screen.width/2, -this.app.screen.height * 0.45);
 	}
 }
+
 
 
 export default ViewerPixi;

@@ -18,6 +18,9 @@
 	"UI.import.body.female_bald" : "Female(Bald)",
 	"UI.import.skin" : "Import Skin Colors",
 
+	"error.noTextureXnb" : "Not a valid xnb file!\nYou should import an xnb file containing texture data.",
+	"error.errorReadingXnb" : "Error reading xnb file!",
+
 	"hats.name.0" : "Cowboy Hat",
 	"hats.name.1" : "Bowler Hat",
 	"hats.name.2" : "Top Hat",
@@ -331,7 +334,7 @@
 	"pants.name.999": "Prismatic Genie Pants",
 	"pants.name.default": "Pants",
 
-
+	"hats.desc.-1" : "",
 	"hats.desc.0" : "Achieve 'A Complete Collection' and purchase for 1,000g in the Hat Shop.",
 	"hats.desc.1" : "Achieve 'Millionaire' and purchase for 1,000g in the Hat Shop.",
 	"hats.desc.2" : "Purchase for 8,000 Qi Coins in Qi's Casino.",

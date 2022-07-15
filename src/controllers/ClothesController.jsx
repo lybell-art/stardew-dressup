@@ -13,6 +13,7 @@ import ObtainDescription from "./ObtainDescription.jsx";
 
 // file-importers
 import TextureImporter from "./FileImporter/TextureImporter.jsx";
+import BodyImporter from "./FileImporter/BodyImporter.jsx";
 
 // extract selection mobx box, dataset mobx box, default image url from name
 const getProps = characterStore.getProps.bind(characterStore);
@@ -52,10 +53,12 @@ const ClothesControllerBase = ({name, additionalDefaultImage={}, importers, chil
 
 const BodyController = ()=>{
 	const name = "body";
-	const {selection} = getProps(name);
+	const {selection, dataSet} = getProps(name);
 
 	return (
-	<ClothesControllerBase name={name}>
+	<ClothesControllerBase name={name}
+		importers={<BodyImporter store={dataSet} />}
+	>
 		<ColorSlider type={name} selection={selection} />
 	</ClothesControllerBase>
 	)

@@ -18,6 +18,9 @@
 	"UI.import.body.female_bald" : "여성(대머리)",
 	"UI.import.skin" : "피부색 불러오기",
 
+	"error.noTextureXnb" : "적절한 xnb 파일 형식이 아닙니다!\n텍스처 데이터를 담은 xnb 파일이어야 합니다.",
+	"error.errorReadingXnb" : "xnb 파일을 읽는 데 에러가 발생했습니다!",
+
 	"hats.name.0": "카우보이 모자",
 	"hats.name.1": "중절모",
 	"hats.name.2": "실크해트",

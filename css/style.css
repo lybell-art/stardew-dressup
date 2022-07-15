@@ -220,6 +220,7 @@ main::-webkit-scrollbar {
 	justify-content: space-between;
 	width: 100%;
 	height: 40px;
+	z-index: 11;
 }
 
 .importer {

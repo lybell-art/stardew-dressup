@@ -1,33 +1,36 @@
 import { useState, useContext } from "react";
-import Langs, { LangsContext } from "../stores/Langs.js";
 import { observer } from "mobx-react-lite";
 
-const LanguageList = observer( ({isOpened})=>
+import Langs, { LangsContext } from "../stores/Langs.js";
+import Dropdown from "../atom/Dropdown.jsx";
+
+
+const LanguageList = observer( ()=>
 {
 	const langs = useContext(LangsContext);
 	const allLangs = Langs.getAllLanguageList();
 
-	return (
-		<div className={`language-list ${!isOpened ? "hidden" : ""}`}>
-			{ allLangs.map(langCode => <p key={langCode} onClick={()=>{
-				langs.changeLanguage(langCode);
-			}}>
-				{langs.getText(`UI.language.${langCode}`)}
-			</p>) }
-		</div>
-	);
+	function makeLangSelector(langCode)
+	{
+		return <p key={langCode} onClick={ ()=>langs.changeLanguage(langCode) }>
+			{langs.getText(`UI.language.${langCode}`)}
+		</p>
+	}
+
+	return <>
+			{allLangs.map(makeLangSelector)}
+	</>;
 } );
 
 function LanguageSelector()
 {
-	const [isOpened, open] = useState(false);
-
-	return (
-		<div className="language-wrapper">
-			<div className="ui-icon language-button hover-interact" onClick={()=>open(prev=>!prev)}></div>
-			<LanguageList isOpened={isOpened}/>
-		</div>
-	);
+	return <Dropdown 
+		wrapperClass="language-wrapper"
+		buttonClass="ui-icon language-button" 
+		listClass="language-list"
+	>
+		<LanguageList/>
+	</Dropdown>
 }
 
 export default LanguageSelector;

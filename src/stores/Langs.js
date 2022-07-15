@@ -30,12 +30,19 @@ class Langs
 	}
 	get getText()
 	{
-		return (key)=>Langs.langData[this.currentLanguage][key];
+		return (key)=>{
+			let langDict = Langs.langData[this.currentLanguage]
+			if(langDict === undefined) langDict = Langs.langData.en;
+			
+			if(langDict[key] === undefined) return key;
+			return langDict[key];
+		}
 	}
 }
 Object.freeze(Langs.langData);
 
 const lang = new Langs();
+const getText = lang.getText.bind(lang);
 const LangsContext = createContext({});
 
 const LangsProvider = ({children})=>createElement(
@@ -44,5 +51,5 @@ const LangsProvider = ({children})=>createElement(
 	children
 );
 
-export {LangsContext, LangsProvider};
+export {LangsContext, LangsProvider, getText};
 export default Langs;

@@ -1,7 +1,6 @@
 import {Component, createRef} from "react";
 import ViewerPixi from "./ViewerPixi.js";
 
-
 class ViewerCanvas extends Component
 {
 	constructor(props)

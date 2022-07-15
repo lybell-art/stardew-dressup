@@ -532,9 +532,9 @@ class BodySheetStore
 	setSpritesheet(file, id)
 	{
 		const {blobURL, data} = file;
-		this.bodyColor[id] = extractBodyColors(data);
+		this.bodyColor = {...this.bodyColor, [id]:extractBodyColors(data)};
 		if(this.urlDict[id] !== BodySheetStore.defaultURLDict[id] ) URL.revokeObjectURL(this.urlDict[id]);
-		this.urlDict[id] = blobURL;
+		this.urlDict = { ...this.urlDict, [id]:blobURL};
 	}
 	resetSpritesheet()
 	{
