@@ -1,6 +1,4 @@
 import {createRoot} from "react-dom/client";
-import { setReaders } from "@xnb-js/core";
-import { LightweightTexture2DReader as Texture2DReader } from "@xnb-js/readers";
 
 import {LangsProvider} from "./stores/Langs.js";
 import Viewer from "./Viewer.jsx";
@@ -34,8 +32,6 @@ function renderComponent(component, containerID)
 
 export default function render()
 {
-	setReaders({Texture2DReader});
-
 	renderComponent(<App />, "app");
 	renderComponent(<Banner />, "banner");
 }

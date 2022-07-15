@@ -17,6 +17,7 @@
     "@pixi/layers": "^1.0.11",
     "@xnb-js/core": "^1.2.0",
     "@xnb-js/readers": "^1.2.0",
+    "fast-png": "^6.1.0",
     "lodash.debounce": "^4.0.8",
     "mobx": "^6.6.0",
     "mobx-react-lite": "^3.4.0",

@@ -486,6 +486,7 @@ class ViewerPixi
 
 		// event listener
 		this.ticker = this.ticker.bind(this);
+		this.resize = this.resize.bind(this);
 	}
 
 	// attach to dom
@@ -499,10 +500,8 @@ class ViewerPixi
 		this.app.stage.pivot.set(-this.app.screen.width/2, -this.app.screen.height * 0.45);
 	}
 
-	initialize()
+	initializeSprites()
 	{
-		this.app.start();
-
 		// add hat sprite
 		this.hatSprite = new HatSprite(this.baseTextures.get("hats"));
 		this.hatSprite.initialize(this.farmer);
@@ -536,6 +535,15 @@ class ViewerPixi
 		this.bodySprite = new BodySprite( bodySpriteSheets );
 		this.bodySprite.initialize(this.farmer);
 		this.container.addChild(this.bodySprite, this.bodySprite.armSprite);
+	}
+	initialize()
+	{
+		this.app.start();
+
+		this.initializeSprites();
+
+		// add resize event listener
+		window.addEventListener("resize", this.resize);
 
 		// add ticker
 		this.app.ticker.add(this.ticker);
@@ -561,6 +569,11 @@ class ViewerPixi
 	destroy()
 	{
 		this.container.destroy({children:true});
+	}
+	resize()
+	{
+		this.app.resize();
+		this.app.stage.pivot.set(-this.app.screen.width/2, -this.app.screen.height * 0.45);
 	}
 }
 

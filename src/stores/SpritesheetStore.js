@@ -38,6 +38,7 @@ class SheetDataStore
 	setSpritesheet(file)
 	{
 		const {width, height, blobURL} = file;
+		URL.revokeObjectURL(this._spritesheet?.blobURL);
 		this._spritesheet = {width, height, blobURL};
 	}
 	setClothesData(file)
@@ -46,6 +47,7 @@ class SheetDataStore
 	}
 	resetData()
 	{
+		URL.revokeObjectURL(this._spritesheet?.blobURL);
 		this._spritesheet = null;
 		this._clothesData = this._defaultClothesData;
 	}
@@ -190,11 +192,22 @@ class HairstyleSheetStore extends SheetDataStore
 
 	setAdditionalSheet(data)
 	{
+		// flush blob urls
+		for(let key of Object.keys(data))
+		{
+			if(this._additionalSheet[key]) {
+				URL.revokeObjectURL(this._additionalSheet[key]);
+			}
+		}
 		this._additionalSheet = {...this._additionalSheet, ...data};
 	}
 	resetData()
 	{
 		super.resetData();
+		for(let sheetURL of Object.values(this._additionalSheet))
+		{
+			URL.revokeObjectURL(sheetURL);
+		}
 		this._additionalSheet = {"hairstyles2":null};
 	}
 	get getListItemKey()
@@ -320,6 +333,7 @@ class ShirtsSheetStore extends SheetDataStore
 	{
 		const {width, height, data, blobURL} = file;
 		this._sleeveData = extractSleeveColors(data, width, height);
+		URL.revokeObjectURL(this._spritesheet?.blobURL);
 		this._spritesheet = {width, height, blobURL};
 	}
 	resetData()
@@ -519,10 +533,15 @@ class BodySheetStore
 	{
 		const {blobURL, data} = file;
 		this.bodyColor[id] = extractBodyColors(data);
-		this.urlDict[id] = fileURL;
+		if(this.urlDict[id] !== BodySheetStore.defaultURLDict[id] ) URL.revokeObjectURL(this.urlDict[id]);
+		this.urlDict[id] = blobURL;
 	}
 	resetSpritesheet()
 	{
+		for(let key of Object.keys(this.urlDict)) {
+			if(this.urlDict[key] !== BodySheetStore.defaultURLDict[key] ) URL.revokeObjectURL(this.urlDict[key]);
+		}
+		
 		this.urlDict = {...BodySheetStore.defaultURLDict};
 		this.bodyColor = {
 			body_male: makeDefaultBodyColor(),
