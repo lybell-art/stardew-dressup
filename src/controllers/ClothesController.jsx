@@ -21,7 +21,7 @@ const getProps = characterStore.getProps.bind(characterStore);
 // title 
 const ControllerTitle = observer( ({name})=>{
 	const langs = useContext(LangsContext);
-	return <h2><span className={`ui-icon ${name}-icon inline`}></span>{langs.getText(`title.${name}`)}</h2>;
+	return <h2><span className={`ui-icon ${name}-icon inline`}></span> {langs.getText(`title.${name}`)}</h2>;
 } );
 
 const ClothesControllerBase = ({name, additionalDefaultImage={}, importers, children})=>{

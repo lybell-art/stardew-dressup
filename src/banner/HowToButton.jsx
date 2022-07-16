@@ -5,7 +5,7 @@ import { LangsContext } from "../stores/Langs.js";
 import { clamp } from "../utils/utils.js";
 import Dropdown from "../atom/Dropdown.jsx";
 
-function HowToScene()
+const HowToScene = observer( ()=>
 {
 	let lang = useContext(LangsContext);
 	const [START, END] = [1, 7];
@@ -32,7 +32,7 @@ function HowToScene()
 			<div className={`ui-icon right-button ${rightStyle}`} onClick={after}></div>
 		</div>
 	</>
-}
+} );
 
 
 function HowToButton()

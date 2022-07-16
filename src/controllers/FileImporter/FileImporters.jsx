@@ -1,4 +1,4 @@
-import characterStore from "../stores/CharacterStore.js";
+import characterStore from "../../stores/CharacterStore.js";
 
 import TextureImporter from "./TextureImporter.jsx";
 
@@ -22,11 +22,11 @@ function BodyTextureImporter()
 			handler={ retex=>{
 				store.setSpritesheet(retex, `body_${key}`);
 			} } 
-		text={`UI.import.body.${key}`}/>
+		text={`UI.import.body.${key}`}/>;
 	}
 	const keyList = ["male", "male_bald", "female", "female_bald"];
 
-	return {keyList.map(makeTextureImporter)}
+	return <>{keyList.map(makeTextureImporter)}</>;
 }
 
 // skin importer
@@ -37,7 +37,7 @@ function SkinImporter()
 	return <TextureImporter store={dataSet} 
 		callback={({count})=>adjustIndex(selection, count)}
 		handler={ (retex)=>{dataSet.setSkinColor(retex)} } 
-		text="UI.import.skin"/>
+		text="UI.import.skin"/>;
 }
 
 // hairstyle importer
@@ -51,15 +51,15 @@ function HairstyleTextureImporter()
 		<TextureImporter store={dataSet} callback={adjustHairstyleIdx}
 			handler={ (retex)=>{dataSet.setAdditionalSheet({hairstyles2: retex.blobURL})} } 
 			text="UI.import.additionalTexture"/>
-	</>
+	</>;
 }
 
 // clothes texture importer(hats, shirts, pants, accessary)
-function ClothesTextureImporter(name)
+function ClothesTextureImporter({name})
 {
-	const {dataSet} = getProps("body");
+	const {dataSet} = getProps(name);
 
-	return <TextureImporter store={dataSet} />
+	return <TextureImporter store={dataSet} />;
 }
 
 export {BodyTextureImporter, SkinImporter, HairstyleTextureImporter, ClothesTextureImporter};

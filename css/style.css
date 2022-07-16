@@ -627,7 +627,7 @@ footer {
 	--base-width: 30px;
 	--base-height: 30px;
 }
-.hats-icon, .hairstyle-icon, .shirts-icon, .pants-icon, .body-icon {
+.hats-icon, .skin-icon, .hairstyle-icon, .shirts-icon, .pants-icon, .body-icon {
 	--base-width: 20px;
 	--base-height: 20px;
 	--scale: 2;
@@ -684,7 +684,7 @@ footer {
 .pants-icon:after {
 	background-position: -60px -30px;
 }
-.body-icon:after {
+.body-icon:after, .skin-icon:after {
 	background-position: -80px -30px;
 }
 .shuffle-button:after {

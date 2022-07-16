@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { bufferToXnb, xnbDataToContent } from "../../libs/xnb.js";
 import { decode } from "fast-png";
+import { observer } from "mobx-react-lite";
 
 import { extractFileName } from "../../utils/utils.js";
 import FileImportButton from "./FileImportButton.jsx";
@@ -13,7 +14,7 @@ function localizedAlert(textID)
 }
 
 
-function TextureImporter({ store, handler=(retex)=>{store.setSpritesheet(retex)}, text="UI.import.texture", callback})
+function TextureImporter({ store, handler=(retex)=>{store.setSpritesheet(retex);}, text="UI.import.texture", callback})
 {
 	const fileDom = useRef();
 	async function handleFile(e)
@@ -50,6 +51,7 @@ function TextureImporter({ store, handler=(retex)=>{store.setSpritesheet(retex)}
 
 			const { width, height, data } = xnbData.content.export;
 			const blobURL = URL.createObjectURL(content);
+			console.log(store);
 			handler({width, height, data, blobURL});
 			if(typeof callback === "function") callback(store);
 		}
@@ -72,4 +74,4 @@ function TextureImporter({ store, handler=(retex)=>{store.setSpritesheet(retex)}
 	</>
 }
 
-export default TextureImporter;
+export default observer(TextureImporter);

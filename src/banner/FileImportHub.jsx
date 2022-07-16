@@ -1,11 +1,11 @@
-import {Dropdown} from "../atom/Dropdown.jsx";
-import {ConrollerTitle} from "../controllers/ClothesController.jsx";
+import Dropdown from "../atom/Dropdown.jsx";
+import {ControllerTitle} from "../controllers/ClothesController.jsx";
 import {BodyTextureImporter, SkinImporter, HairstyleTextureImporter, ClothesTextureImporter} from "../controllers/FileImporter/FileImporters.jsx";
 
 function FileImportHubItem({name, children})
 {
 	return <div className="import-hub-card">
-		<ConrollerTitle name={name} />
+		<ControllerTitle name={name} />
 		<div className="import-hub-card-items">
 			{children}
 		</div>
@@ -19,7 +19,7 @@ function FileImportHubModal()
 			<BodyTextureImporter />
 		</FileImportHubItem>
 		<FileImportHubItem name="skin">
-			<SkinTextureImporter />
+			<SkinImporter />
 		</FileImportHubItem>
 		<FileImportHubItem name="hats">
 			<ClothesTextureImporter name="hats"/>
