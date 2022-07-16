@@ -1,6 +1,6 @@
 {
   "name": "stardew_dressup",
-  "version": "0.7.0",
+  "version": "0.9.0",
   "description": "Stardew Valley Clothing Simulator (with react)",
   "main": "index.js",
   "scripts": {

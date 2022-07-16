@@ -13,7 +13,7 @@ function localizedAlert(textID)
 }
 
 
-function TextureImporter({ store, handler=(retex)=>{store.setSpritesheet(retex)}, text="UI.import.texture" })
+function TextureImporter({ store, handler=(retex)=>{store.setSpritesheet(retex)}, text="UI.import.texture", callback})
 {
 	const fileDom = useRef();
 	async function handleFile(e)
@@ -31,6 +31,7 @@ function TextureImporter({ store, handler=(retex)=>{store.setSpritesheet(retex)}
 			const {width, height, data} = await decode(buffer);
 			const blobURL = URL.createObjectURL(file);
 			handler({width, height, data, blobURL});
+			if(typeof callback === "function") callback(store);
 			return;
 		}
 
@@ -50,6 +51,7 @@ function TextureImporter({ store, handler=(retex)=>{store.setSpritesheet(retex)}
 			const { width, height, data } = xnbData.content.export;
 			const blobURL = URL.createObjectURL(content);
 			handler({width, height, data, blobURL});
+			if(typeof callback === "function") callback(store);
 		}
 		catch(e)
 		{

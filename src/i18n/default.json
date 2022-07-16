@@ -18,6 +18,23 @@
 	"UI.import.body.female_bald" : "Female(Bald)",
 	"UI.import.skin" : "Import Skin Colors",
 
+	"howto.title.1": "Preview",
+	"howto.title.2": "Selection",
+	"howto.title.3": "Import Texture File",
+	"howto.title.4": "How to Obtain",
+	"howto.title.5": "Body Section",
+	"howto.title.6": "Navigation Bar",
+	"howto.title.7": "In Mobile",
+
+	"howto.desc.1": "You can preview the appearence of the character you coordinated on the controller.\nYou can rotate it with the [icon=left-turn-button][icon=right-turn-button] buttons, select the character's gender with the [icon=male-button][icon=female-button] buttons.",
+	"howto.desc.2": "This where you can choose the character's outfit.\nYou can browse the item with swiping the carousel, mouse wheel, or the [icon=left-button][icon=right-button] buttons, and select it by clicking on the item.\nYou can expand and fold the selection box with the [icon=expand-button] button.\nIf color slides exist, you can change the color of the item only for items that can be colored.",
+	"howto.desc.3": "You can import your character's texture with 'Import Texture' button.\nFiles that can be imported are png and xnb.\nIn hairstyle section, you can import hairstyles2.xnb file by clicking 'Import Additional Texture' button.",
+	"howto.desc.4": "In this area, you can see how to obtain the item you chose.",
+	"howto.desc.5": "In body section, you can set the character's appearence, skin colors, and eye colors.\nYou can choose the skin color with item selection carousel, and select the eye color with color slides.\nYou can import your body texture files with 'Import body Texture' button.",
+	"howto.desc.6": "You can set the language with the [icon=language-button] button. Currently, English and Korean are available.\nYou can open the guide again with the [icon=help-button] button.\nYou can open the texture import hub modal with [icon=import-button] button.",
+	"howto.desc.7": "Some operations are different in a mobile environment.\nIf you slide the screen up, you can expand the item selection carousel. And if you slide down, you can fold it back.\nIf you want to import your texture files, press menu button-[icon=import-button] button.",
+
+
 	"error.noTextureXnb" : "Not a valid xnb file!\nYou should import an xnb file containing texture data.",
 	"error.errorReadingXnb" : "Error reading xnb file!",
 

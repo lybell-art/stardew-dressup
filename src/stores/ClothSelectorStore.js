@@ -17,6 +17,7 @@ class ClothSelectorStore
 			brightness: observable,
 			color: computed,
 			changeSelect: action,
+			adjustSelect: action,
 			changeHue: action,
 			changeSaturation: action,
 			changeBrightness: action
@@ -34,6 +35,10 @@ class ClothSelectorStore
 	changeSelect(value)
 	{
 		this.value = value;
+	}
+	adjustSelect(count)
+	{
+		if(this.value >= count) this.value = 0;
 	}
 	changeHue(hue)
 	{

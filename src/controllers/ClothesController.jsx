@@ -21,7 +21,7 @@ const getProps = characterStore.getProps.bind(characterStore);
 // title 
 const ControllerTitle = observer( ({name})=>{
 	const langs = useContext(LangsContext);
-	return <h2>{langs.getText(`title.${name}`)}</h2>;
+	return <h2><span className={`ui-icon ${name}-icon inline`}></span>{langs.getText(`title.${name}`)}</h2>;
 } );
 
 
@@ -55,11 +55,16 @@ const BodyController = ()=>{
 	const name = "body";
 	const {selection, dataSet} = getProps(name);
 
+	function adjustIndex({count})
+	{
+		selection.adjustSelect(count);
+	}
+
 	return (
 	<ClothesControllerBase name={name}
 		importers={<>
 			<BodyImporter store={dataSet} />
-			<TextureImporter store={dataSet} 
+			<TextureImporter store={dataSet} callback={adjustIndex}
 				handler={ (retex)=>{dataSet.setSkinColor(retex)} } 
 				text="UI.import.skin"/>
 		</>}
@@ -86,11 +91,16 @@ const HairstyleController = ()=>{
 	const name = "hairstyle";
 	const {selection, dataSet} = getProps(name);
 
+	function adjustIndex({count})
+	{
+		selection.adjustSelect(count);
+	}
+
 	return (
 	<ClothesControllerBase name={name} additionalDefaultImage={ {hairstyles2:"assets/hairstyles2.png"} }
 		importers={<>
-			<TextureImporter store={dataSet} />
-			<TextureImporter store={dataSet} 
+			<TextureImporter store={dataSet} callback={adjustIndex} />
+			<TextureImporter store={dataSet} callback={adjustIndex}
 				handler={ (retex)=>{dataSet.setAdditionalSheet({hairstyles2: retex.blobURL})} } 
 				text="UI.import.additionalTexture"/>
 		</>}
@@ -113,4 +123,4 @@ const ClothesController = ({name})=>{
 	)
 };
 
-export {BodyController, HatsController, HairstyleController, ClothesController};
+export {ControllerTitle, BodyController, HatsController, HairstyleController, ClothesController};

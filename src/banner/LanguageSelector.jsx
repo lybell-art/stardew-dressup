@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useContext } from "react";
 import { observer } from "mobx-react-lite";
 
 import Langs, { LangsContext } from "../stores/Langs.js";
@@ -18,16 +18,17 @@ const LanguageList = observer( ()=>
 	}
 
 	return <>
-			{allLangs.map(makeLangSelector)}
+		{allLangs.map(makeLangSelector)}
 	</>;
 } );
 
 function LanguageSelector()
 {
 	return <Dropdown 
-		wrapperClass="language-wrapper"
+		wrapperClass="language-wrapper dropdown-wrapper-center"
 		buttonClass="ui-icon language-button" 
-		listClass="language-list"
+		listClass="dropdown-list language-list"
+		type="dropdown"
 	>
 		<LanguageList/>
 	</Dropdown>

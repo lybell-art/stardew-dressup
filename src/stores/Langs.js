@@ -1,5 +1,6 @@
 import { createElement, createContext } from "react";
 import { makeObservable, observable, computed, action } from "mobx";
+import { convertIconedText } from "./langs/convertIconedText.jsx";
 import i18n_en from "../i18n/default.json";
 import i18n_ko from "../i18n/ko-KR.json";
 
@@ -32,10 +33,17 @@ class Langs
 	{
 		return (key)=>{
 			let langDict = Langs.langData[this.currentLanguage]
-			if(langDict === undefined) langDict = Langs.langData.en;
+			if(langDict === undefined || langDict[key] === undefined) langDict = Langs.langData.en;
 			
 			if(langDict[key] === undefined) return key;
 			return langDict[key];
+		}
+	}
+	get getTextHTML()
+	{
+		return (key)=>{
+			const rawText = this.getText(key);
+			return convertIconedText(rawText);
 		}
 	}
 }

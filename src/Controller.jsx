@@ -30,7 +30,7 @@ function Controller({ids, children})
 			type:"custom",
 			renderCustom: renderCustomMaker(ids)
 		}}
-		mousewheel={ true }
+		mousewheel={ {releaseOnEdges: true} }
 
 		breakpoints={ {
 			1366: {

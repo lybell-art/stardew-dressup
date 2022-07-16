@@ -471,6 +471,9 @@ class ItemListControllerBase
 		const currentLine = Math.floor(this.radioButton.current / lines) - 2;
 		this.container.slide(currentLine, 1);
 	}
+	scaleIcons(pixelIconScale)
+	{
+	}
 	adjustItemSize(multiplier)
 	{
 		const radioButtonScale = 1 * multiplier;
@@ -478,9 +481,7 @@ class ItemListControllerBase
 
 		// adjust scale
 		adjustScale(this.radioButton.container, radioButtonScale);
-		adjustScale(this.uncolored, pixelIconScale);
-		adjustScale(this.colored, pixelIconScale);
-		adjustScale(this.prismatic, pixelIconScale);
+		this.scaleIcons(pixelIconScale);
 
 		this.arrangeContainerItems(multiplier);
 		this.container.resetHitArea();
@@ -589,6 +590,12 @@ class ItemListController extends ItemListControllerBase
 		arranger(this.colored);
 		arranger(this.prismatic);
 	}
+	scaleIcons(pixelIconScale)
+	{
+		adjustScale(this.uncolored, pixelIconScale);
+		adjustScale(this.colored, pixelIconScale);
+		adjustScale(this.prismatic, pixelIconScale);
+	}
 	ticker(dt)
 	{
 		super.ticker(dt);
@@ -685,6 +692,10 @@ class SkinColorController extends ItemListControllerBase
 	arrangeIcons(arranger)
 	{
 		arranger(this.icons);
+	}
+	scaleIcons(pixelIconScale)
+	{
+		adjustScale(this.icons, pixelIconScale);
 	}
 }
 

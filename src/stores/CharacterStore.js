@@ -9,7 +9,7 @@ import {HatsSheetStore, HairstyleSheetStore, ShirtsSheetStore, PantsSheetStore, 
 import {hatsJsonProcessing, hairstyleJsonProcessing, clothesJsonProcessing} from "../utils/dataProcessing.js";
 
 // color utils
-import {colorArrayToHex, multiplyColor} from "../utils/utils.js";
+import {colorArrayToHex, multiplyColor, changeBrightness} from "../utils/utils.js";
 
 // direction constant(using stardew valley code)
 const FRONT = 2;
@@ -140,8 +140,10 @@ class CharacterStore
 	}
 	get eyeColor()
 	{
-		const baseColor = colorArrayToHex(this.bodySelector.color);
-		return [baseColor, baseColor];
+		let baseColor = colorArrayToHex(this.bodySelector.color);
+		let multipliedColor = changeBrightness(baseColor, -75);
+		if(baseColor === multipliedColor) baseColor += 10; //add 10 to blue
+		return [baseColor, multipliedColor];
 	}
 	get sleeveColor()
 	{

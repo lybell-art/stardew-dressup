@@ -8,7 +8,7 @@ import TextureImporter from "./TextureImporter.jsx";
 const BodyImporterTitle=observer( ()=>
 {
 	const langs = useContext(LangsContext);
-	return <div>{langs.getText("UI.import.body")}</div>
+	return <p>{langs.getText("UI.import.body")}</p>
 } );
 
 function BodyImporter({store})
@@ -25,6 +25,8 @@ function BodyImporter({store})
 
 	return <Dropdown
 		button={<BodyImporterTitle />}
+		wrapperClass="dropdown-wrapper-center"
+		type="dropdown"
 	>
 		{keyList.map(makeTextureImporter)}
 	</Dropdown>

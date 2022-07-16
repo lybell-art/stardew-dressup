@@ -528,7 +528,8 @@ class BodySheetStore
 			resetSpritesheet: action,
 			setSkinColor: action,
 
-			getSkinColor: computed
+			getSkinColor: computed,
+			count: computed
 		});
 	}
 	setSpritesheet(file, id)
@@ -562,6 +563,10 @@ class BodySheetStore
 	get getSkinColor()
 	{
 		return (index)=>this.skinColor[index];
+	}
+	get count()
+	{
+		return this.skinColor.length;
 	}
 }
 
