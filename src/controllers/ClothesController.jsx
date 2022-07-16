@@ -12,7 +12,7 @@ import ColorSlider from "./ColorSlider.jsx";
 import ObtainDescription from "./ObtainDescription.jsx";
 
 // file-importers
-import TextureImporter from "./FileImporter/TextureImporter.jsx";
+import {SkinImporter, HairstyleTextureImporter, ClothesTextureImporter} from "./FileImporter/FileImporters.jsx";
 import BodyImporter from "./FileImporter/BodyImporter.jsx";
 
 // extract selection mobx box, dataset mobx box, default image url from name
@@ -23,7 +23,6 @@ const ControllerTitle = observer( ({name})=>{
 	const langs = useContext(LangsContext);
 	return <h2><span className={`ui-icon ${name}-icon inline`}></span>{langs.getText(`title.${name}`)}</h2>;
 } );
-
 
 const ClothesControllerBase = ({name, additionalDefaultImage={}, importers, children})=>{
 	const {selection, dataSet, defaultImage} = getProps(name);
@@ -53,7 +52,7 @@ const ClothesControllerBase = ({name, additionalDefaultImage={}, importers, chil
 
 const BodyController = ()=>{
 	const name = "body";
-	const {selection, dataSet} = getProps(name);
+	const {selection} = getProps(name);
 
 	function adjustIndex({count})
 	{
@@ -63,10 +62,8 @@ const BodyController = ()=>{
 	return (
 	<ClothesControllerBase name={name}
 		importers={<>
-			<BodyImporter store={dataSet} />
-			<TextureImporter store={dataSet} callback={adjustIndex}
-				handler={ (retex)=>{dataSet.setSkinColor(retex)} } 
-				text="UI.import.skin"/>
+			<BodyImporter />
+			<SkinImporter />
 		</>}
 	>
 		<ColorSlider type={name} selection={selection} />
@@ -76,12 +73,10 @@ const BodyController = ()=>{
 
 const HatsController = ()=>{
 	const name = "hats";
-	const {selection, dataSet} = getProps(name);
+	const {selection} = getProps(name);
 
 	return (
-	<ClothesControllerBase name={name}
-		importers={<TextureImporter store={dataSet} />}
-	>
+	<ClothesControllerBase name={name} importers={<ClothesTextureImporter name={name}/>}>
 		<ObtainDescription type={name} selection={selection} />
 	</ClothesControllerBase>
 	)
@@ -89,21 +84,13 @@ const HatsController = ()=>{
 
 const HairstyleController = ()=>{
 	const name = "hairstyle";
-	const {selection, dataSet} = getProps(name);
-
-	function adjustIndex({count})
-	{
-		selection.adjustSelect(count);
-	}
+	const {selection} = getProps(name);
 
 	return (
-	<ClothesControllerBase name={name} additionalDefaultImage={ {hairstyles2:"assets/hairstyles2.png"} }
-		importers={<>
-			<TextureImporter store={dataSet} callback={adjustIndex} />
-			<TextureImporter store={dataSet} callback={adjustIndex}
-				handler={ (retex)=>{dataSet.setAdditionalSheet({hairstyles2: retex.blobURL})} } 
-				text="UI.import.additionalTexture"/>
-		</>}
+	<ClothesControllerBase 
+		name={name} 
+		additionalDefaultImage={ {hairstyles2:"assets/hairstyles2.png"} }
+		importers={ <HairstyleTextureImporter /> }
 	>
 		<ColorSlider type={name} selection={selection} />
 	</ClothesControllerBase>
@@ -111,12 +98,10 @@ const HairstyleController = ()=>{
 };
 
 const ClothesController = ({name})=>{
-	const {selection, dataSet} = getProps(name);
+	const {selection} = getProps(name);
 
 	return (
-	<ClothesControllerBase name={name}
-		importers={<TextureImporter store={dataSet} />}
-	>
+	<ClothesControllerBase name={name} importers={<ClothesTextureImporter name={name}/>}>
 		<ColorSlider type={name} selection={selection} />
 		<ObtainDescription type={name} selection={selection} />
 	</ClothesControllerBase>

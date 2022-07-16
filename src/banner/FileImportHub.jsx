@@ -1,37 +1,40 @@
-import { useContext } from "react";
-import { observer } from "mobx-react-lite";
-
-// stores
-import { LangsContext } from "../stores/Langs.js";
-import characterStore from "../stores/CharacterStore.js";
-
+import {Dropdown} from "../atom/Dropdown.jsx";
 import {ConrollerTitle} from "../controllers/ClothesController.jsx";
-import TextureImporter from "../controllers/FileImporter/TextureImporter.jsx";
-
-// extract selection mobx box, dataset mobx box, default image url from name
-const getProps = characterStore.getProps.bind(characterStore);
-
+import {BodyTextureImporter, SkinImporter, HairstyleTextureImporter, ClothesTextureImporter} from "../controllers/FileImporter/FileImporters.jsx";
 
 function FileImportHubItem({name, children})
 {
-	const langs = useContext(LangsContext);
 	return <div className="import-hub-card">
 		<ConrollerTitle name={name} />
-		<div className="import-hub-card-list">
+		<div className="import-hub-card-items">
 			{children}
 		</div>
 	</div>
 }
 
-
-const FileImportHubModal = observer( ()=>
+function FileImportHubModal()
 {
-	return <>
+	return <div className="improt-hub-list">
 		<FileImportHubItem name="body">
-			<TextureImporter />
+			<BodyTextureImporter />
 		</FileImportHubItem>
-	</>
-} );
+		<FileImportHubItem name="skin">
+			<SkinTextureImporter />
+		</FileImportHubItem>
+		<FileImportHubItem name="hats">
+			<ClothesTextureImporter name="hats"/>
+		</FileImportHubItem>
+		<FileImportHubItem name="hairstyle">
+			<HairstyleTextureImporter />
+		</FileImportHubItem>
+		<FileImportHubItem name="shirts">
+			<ClothesTextureImporter name="shirts"/>
+		</FileImportHubItem>
+		<FileImportHubItem name="pants">
+			<ClothesTextureImporter name="pants"/>
+		</FileImportHubItem>
+	</div>
+}
 
 
 function FileImportHub()
