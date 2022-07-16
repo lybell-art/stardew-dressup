@@ -208,7 +208,8 @@ class HairSprite extends ResponsiveSprite
 				};
 			},
 
-			this.changeSpriteSheet.bind(this), 
+//			this.changeSpriteSheet.bind(this),
+			(observable)=>this.changeSpriteSheet(observable, farmer), 
 		false);
 	}
 
@@ -216,22 +217,32 @@ class HairSprite extends ResponsiveSprite
 	{
 		const {rect, sheet="default", flipped} = boundBox;
 		const baseTexture = sheet === "default" ? this.baseTexture : this.additionalTexture[sheet];
-		const texture = new PIXI.Texture(baseTexture, rect);
 
-		this.sprite.texture = texture;
+		try {
+			const texture = new PIXI.Texture(baseTexture, rect);
+			this.sprite.texture = texture;
+		}
+		catch(e) {
+			// When you load a sprite, the reaction runs first before you load the spritesheet, to prevent it
+			if(!e.message.startsWith("Texture Error: frame does not fit inside the base Texture dimensions:")) throw e;
+		}
+
 		this.sprite.x = 0;
 		this.sprite.y = offsetY;
 		this.currentSheet = sheet;
 		this.sprite.scale.x = flipped ? -1 : 1;
 		if(flipped) this.sprite.x = this.sprite.width;
+
 	}
-	changeSpriteSheet({base, additional})
+	changeSpriteSheet({base, additional}, farmer)
 	{
 		this.baseTexture = new PIXI.BaseTexture(base);
 		this.additionalTexture = convertTextureMap(additional);
 
 		const myTexture = this.currentSheet === "default" ? this.baseTexture : this.additionalTexture[this.currentSheet];
 		this.sprite.texture = replaceBaseTexture(this.sprite.texture, myTexture);
+		const {hairBoundBox:boundBox, hairstyleYOffset:offsetY} = farmer;
+		this.changeSprite({boundBox, offsetY});
 	}
 	applyTint(tint)
 	{

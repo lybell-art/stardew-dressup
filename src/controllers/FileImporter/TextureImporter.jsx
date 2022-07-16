@@ -51,7 +51,6 @@ function TextureImporter({ store, handler=(retex)=>{store.setSpritesheet(retex);
 
 			const { width, height, data } = xnbData.content.export;
 			const blobURL = URL.createObjectURL(content);
-			console.log(store);
 			handler({width, height, data, blobURL});
 			if(typeof callback === "function") callback(store);
 		}

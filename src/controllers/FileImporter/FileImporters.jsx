@@ -20,7 +20,7 @@ function BodyTextureImporter()
 	{
 		return <TextureImporter store={dataSet} key={key}
 			handler={ retex=>{
-				store.setSpritesheet(retex, `body_${key}`);
+				dataSet.setSpritesheet(retex, `body_${key}`);
 			} } 
 		text={`UI.import.body.${key}`}/>;
 	}
@@ -62,4 +62,9 @@ function ClothesTextureImporter({name})
 	return <TextureImporter store={dataSet} />;
 }
 
-export {BodyTextureImporter, SkinImporter, HairstyleTextureImporter, ClothesTextureImporter};
+function ResetTexture({store})
+{
+	return <div className="reset-texture" onClick={()=>store.resetData()}>RESET</div>
+}
+
+export {BodyTextureImporter, SkinImporter, HairstyleTextureImporter, ClothesTextureImporter, ResetTexture};

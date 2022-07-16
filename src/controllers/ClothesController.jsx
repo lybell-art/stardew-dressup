@@ -12,7 +12,7 @@ import ColorSlider from "./ColorSlider.jsx";
 import ObtainDescription from "./ObtainDescription.jsx";
 
 // file-importers
-import {SkinImporter, HairstyleTextureImporter, ClothesTextureImporter} from "./FileImporter/FileImporters.jsx";
+import {SkinImporter, HairstyleTextureImporter, ClothesTextureImporter, ResetTexture} from "./FileImporter/FileImporters.jsx";
 import BodyImporter from "./FileImporter/BodyImporter.jsx";
 
 // extract selection mobx box, dataset mobx box, default image url from name
@@ -34,6 +34,7 @@ const ClothesControllerBase = ({name, additionalDefaultImage={}, importers, chil
 			<ControllerTitle name={name} />
 			<div className="file-importer-wrapper">
 				{importers}
+				<ResetTexture store={dataSet} />
 			</div>
 		</div>
 		<ItemSelector name={name} 

@@ -525,7 +525,7 @@ class BodySheetStore
 			bodyColor: observable,
 			skinColor: observable,
 			setSpritesheet: action,
-			resetSpritesheet: action,
+			resetData: action,
 			setSkinColor: action,
 
 			getSkinColor: computed,
@@ -544,7 +544,7 @@ class BodySheetStore
 		const {data, width, height} = file;
 		this.skinColor = extractSkinColors(data, width, height);
 	}
-	resetSpritesheet()
+	resetData()
 	{
 		for(let key of Object.keys(this.urlDict)) {
 			if(this.urlDict[key] !== BodySheetStore.defaultURLDict[key] ) URL.revokeObjectURL(this.urlDict[key]);

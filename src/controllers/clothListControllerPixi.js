@@ -591,8 +591,9 @@ class ItemListController extends ItemListControllerBase
 
 		// reset container's item amount & hit area
 		this.container.itemAmount = spritesheetData.count + shift;
-		this.container.lineCount = this.container.itemAmount;
-		this.container.resetHitArea();
+		this.toggleExpantion(this.expanded);
+//		this.container.lineCount = this.container.itemAmount;
+//		this.container.resetHitArea();
 	}
 	flushChildren()
 	{
@@ -693,8 +694,7 @@ class SkinColorController extends ItemListControllerBase
 
 		// reset container's item amount & hit area
 		this.container.itemAmount = skinColors.length;
-		this.container.lineCount = this.container.itemAmount;
-		this.container.resetHitArea();
+		this.toggleExpantion(this.expanded);
 	}
 	initializeSprites(skinColors)
 	{
