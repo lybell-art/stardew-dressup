@@ -98,7 +98,6 @@ class RadioButtons
 
 	constructor(selectBox)
 	{
-		this.initialValue = 0;
 		this.previousCheck = 0;
 
 		this.selectBox = selectBox;
@@ -144,7 +143,7 @@ class RadioButtons
 			// prevent selection while dragging
 			if( this.parent?.isDragged ) return;
 
-			if(this.buttons[this.previousCheck] || this.previousCheck !== i) {
+			if(this.buttons[this.previousCheck] && this.previousCheck !== i) {
 				this.buttons[this.previousCheck].texture = this.constructor.deselectedTexture;
 			}
 			this.selectBox.changeSelect(i);
@@ -154,8 +153,16 @@ class RadioButtons
 	}
 	setInitialValue(i)
 	{
-		this.initialValue = i;
 		this.previousCheck = i;
+	}
+	syncronize()
+	{
+		const value = this.selectBox.value;
+		if(this.previousCheck === value) return {resync:false, value};
+
+		this.buttons[value].texture = this.constructor.selectedTexture;
+		this.previousCheck = value;
+		return {resync:true, value};
 	}
 }
 
@@ -226,13 +233,17 @@ class ScrollSnappedContainer extends PIXI.Container
 		else this.x = value;
 	}
 	// Invoke sliding with the specified offset index
-	slide(to, transitionTime=ScrollSnappedContainer.transitionTime)
+	slideTo(to, transitionTime=ScrollSnappedContainer.transitionTime)
 	{
-		this.scroll_index = clamp(this.scroll_index + to, 0, this.rightBoundary);
+		this.scroll_index = clamp(to, 0, this.rightBoundary);
 
 		this.scroll_time = clamp(transitionTime, 1, Infinity);
 		this.scroll_prevPos = this.scroll_pos;
 		this.scroll_nextPos = -this.gap*this.scroll_index;
+	}
+	slide(offset, transitionTime=ScrollSnappedContainer.transitionTime)
+	{
+		this.slideTo(this.scroll_index + offset);
 	}
 	slideLeft()
 	{
@@ -356,6 +367,10 @@ class ItemListControllerBase
 		this.onWheel = this.onWheel.bind(this);
 		this.toggleExpantion = this.toggleExpantion.bind(this);
 	}
+	get lines()
+	{
+		return this.expanded ? (this.container.container.width / (ITEM_GAP * this.multiplier) ) : 1;
+	}
 	get multiplier()
 	{
 		return getScaleMultifier(document.body.clientWidth);
@@ -410,6 +425,10 @@ class ItemListControllerBase
 	ticker(dt)
 	{
 		const FPS = 60;
+		const {resync, value} = this.radioButton.syncronize();
+		if(resync){
+			this.container.slideTo( Math.floor(value / this.lines) );
+		}
 		this.container.progress(dt*FPS);
 	}
 	slideLeft()
@@ -448,8 +467,6 @@ class ItemListControllerBase
 		this.app.resize();
 		// toggle expanded property
 		this.expanded = state ?? !this.expanded;
-
-		const lines = this.expanded ? (this.container.container.width / (ITEM_GAP * this.multiplier) ) : 1;
 		
 		// arrange items
 		this.arrangeContainerItems( this.multiplier );
@@ -465,10 +482,10 @@ class ItemListControllerBase
 		else this.container.y = this.app.screen.height / 2;
 
 		this.container.scroll_index = 0;
-		this.container.lineCount = Math.ceil(this.container.itemAmount / lines);
+		this.container.lineCount = Math.ceil(this.container.itemAmount / this.lines);
 		this.container.resetHitArea();
 
-		const currentLine = Math.floor(this.radioButton.current / lines) - 2;
+		const currentLine = Math.floor(this.radioButton.current / this.lines) - 2;
 		this.container.slide(currentLine, 1);
 	}
 	scaleIcons(pixelIconScale)
