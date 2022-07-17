@@ -62,9 +62,4 @@ function ClothesTextureImporter({name})
 	return <TextureImporter store={dataSet} />;
 }
 
-function ResetTexture({store})
-{
-	return <div className="reset-texture" onClick={()=>store.resetData()}>RESET</div>
-}
-
-export {BodyTextureImporter, SkinImporter, HairstyleTextureImporter, ClothesTextureImporter, ResetTexture};
+export {BodyTextureImporter, SkinImporter, HairstyleTextureImporter, ClothesTextureImporter};

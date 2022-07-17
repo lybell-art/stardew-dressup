@@ -8,7 +8,7 @@ import {BodyTextureImporter} from "./FileImporters.jsx";
 const BodyImporterTitle=observer( ()=>
 {
 	const langs = useContext(LangsContext);
-	return <p>{langs.getText("UI.import.body")}</p>
+	return <p className="file-import">{langs.getTextHTML("UI.import.body")}</p>
 } );
 
 function BodyImporter()

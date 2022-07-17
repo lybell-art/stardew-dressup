@@ -1,6 +1,7 @@
 import Dropdown from "../atom/Dropdown.jsx";
 import {ControllerTitle} from "../controllers/ClothesController.jsx";
 import {BodyTextureImporter, SkinImporter, HairstyleTextureImporter, ClothesTextureImporter} from "../controllers/FileImporter/FileImporters.jsx";
+import {ResetImportButton, ResetAllButton} from "../controllers/FileImporter/ResetImport.jsx";
 
 function FileImportHubItem({name, children})
 {
@@ -9,12 +10,13 @@ function FileImportHubItem({name, children})
 		<div className="import-hub-card-items">
 			{children}
 		</div>
+		<ResetImportButton name={name} />
 	</div>
 }
 
 function FileImportHubModal()
 {
-	return <div className="improt-hub-list">
+	return <div className="import-hub-list">
 		<FileImportHubItem name="body">
 			<BodyTextureImporter />
 		</FileImportHubItem>
@@ -42,10 +44,11 @@ function FileImportHub()
 	return <Dropdown 
 		wrapperClass="import-hub-wrapper"
 		buttonClass="ui-icon import-button" 
-		listClass="howto-modal"
+		listClass="modal"
 		type="modal"
 	>
 		<FileImportHubModal />
+		<ResetAllButton />
 	</Dropdown>
 }
 

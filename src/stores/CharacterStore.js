@@ -336,6 +336,20 @@ class CharacterStore
 		this.shirtsSheet.setClothesData( shirtsData );
 		this.pantsSheet.setClothesData( shirtsData );
 	}
+
+	// reset all
+	resetAll()
+	{
+		const allSheets=[
+			this.bodySheet,
+			this.hatsSheet,
+			this.hairstyleSheet,
+			this.shirtsSheet,
+			this.pantsSheet
+		];
+
+		allSheets.forEach(dataSet=>dataSet.resetData());
+	}
 }
 
 const characterStore = new CharacterStore();

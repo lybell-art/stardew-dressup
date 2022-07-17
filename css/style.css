@@ -97,7 +97,7 @@ header {
 }
 
 /* Howto */
-.howto-modal {
+.modal {
 	position: fixed;
 	top: calc( 50vh - 300px );
 	left: calc( 50vw - 500px );
@@ -120,6 +120,32 @@ header {
 	justify-content: space-between;
 	position: absolute;
 	bottom: 30px;
+}
+
+/* Import Hub */
+.import-hub-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.import-hub-card {
+    width: 250px;
+    height: 200px;
+    border-radius: 5px;
+    box-shadow: 0px 2px 5px #0002;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.import-hub-card-items {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
 }
 
 
@@ -297,11 +323,37 @@ main::-webkit-scrollbar {
 	z-index: 11;
 }
 
+.file-importer-wrapper {
+	display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
 .importer {
 	width: 100px;
 	height: 100%;
 	background: #fff;
 	cursor: pointer;
+}
+
+.file-import {
+	width: 120px;
+    height: 40px;
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Stardust Pixel Title';
+    background-color: #c2c1ff;
+    border-radius: 5px;
+}
+
+.import-hub-card-items .file-import {
+    width: 200px;
+    min-height: 15px;
+    height: auto;
+    padding: 6px 0px;
 }
 
 /* Item Selector */
@@ -657,6 +709,11 @@ footer {
 	--base-height: 10px;
 	--scale: 3;
 }
+.reset-button, .reset-button-white {
+	--base-width: 7px;
+	--base-height: 7px;
+	--scale: 3;
+}
 .close-button {
 	--base-width: 5px;
 	--base-height: 5px;
@@ -714,6 +771,12 @@ footer {
 .close-button:after {
 	background-position: -90px -20px;
 }
+.reset-icon:after {
+	background-position: -93px -50px;
+}
+.reset-icon-white:after {
+	background-position: -93px -57px;
+}
 
 .inline {
 	display: inline-block;
@@ -765,7 +828,7 @@ footer {
 	}
 
 	/* Howto */
-	.howto-modal {
+	.modal {
 		top: calc( 50vh - 300px );
 		left: 10vw;
 		width: 80vw;
@@ -850,7 +913,7 @@ footer {
 	}
 
 	/* Howto */
-	.howto-modal {
+	.modal {
 		top: 10vh;
 		left: 10vw;
 		width: 80vw;

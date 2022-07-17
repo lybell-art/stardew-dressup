@@ -1,6 +1,6 @@
 import { createElement, createContext } from "react";
 import { makeObservable, observable, computed, action } from "mobx";
-import { convertIconedText } from "./langs/convertIconedText.jsx";
+import { parseStyledText } from "./langs/StyledTextParser.js";
 import i18n_en from "../i18n/default.json";
 import i18n_ko from "../i18n/ko-KR.json";
 
@@ -43,7 +43,8 @@ class Langs
 	{
 		return (key)=>{
 			const rawText = this.getText(key);
-			return convertIconedText(rawText);
+			const result = parseStyledText(rawText);
+			return result;
 		}
 	}
 }
