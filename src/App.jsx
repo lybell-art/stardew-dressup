@@ -22,6 +22,11 @@ function App()
 	);
 }
 
+function setScreenSize() {
+	let vh = window.innerHeight * 0.01;
+
+	document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
 
 function renderComponent(component, containerID)
 {
@@ -32,6 +37,9 @@ function renderComponent(component, containerID)
 
 export default function render()
 {
+	setScreenSize();
+	window.addEventListener('resize', setScreenSize);
+	
 	renderComponent(<App />, "app");
 	renderComponent(<Banner />, "banner");
 }

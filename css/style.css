@@ -25,6 +25,10 @@ p {
 	font-family: 'Noto Sans KR';
 }
 
+.bold {
+	font-weight: bold;
+}
+
 .hover-interact {
 	transition: transform 0.1s ease-out;
 	cursor: pointer;
@@ -75,7 +79,7 @@ p {
 
 .modal {
 	position: fixed;
-	top: calc( 50vh - 300px );
+	top: calc( var(--vh, 1vh) * 50 - 300px );
 	left: calc( 50vw - 500px );
 	width: 1000px;
 	height: 600px;
@@ -102,7 +106,7 @@ p {
 	top: 0px;
 	left: 0px;
 	width: 100vw;
-	height: 100vh;
+	height: calc(var(--vh, 1vh) * 100);
 	background-color: #000000aa;
 	z-index: 99;
 }
@@ -162,7 +166,7 @@ header {
 	background-color: #fff;
 	width: 80vw;
 	max-width: 400px;
-	height: 100vh;
+	height: calc(var(--vh, 1vh) * 100);
 	z-index: 50;
 	transform: translateX(0vw);
 	transition: transform 0.5s ease;
@@ -248,7 +252,7 @@ header {
 /* Main */
 main {
 	width: 1200px;
-	height: calc( 100vh - 120px );
+	height: calc( var(--vh, 1vh) * 100 - 120px );
 	margin: 0px calc(50% - 600px);
 	position: relative;
 	top: 80px;
@@ -964,7 +968,7 @@ footer {
 
 	main {
 		width: 100vw;
-		height: calc( 100vh - 60px );
+		height: calc( var(--vh, 1vh) * 100 - 60px );
 		margin: 0px;
 		top: 60px;
 		flex-direction: column;
@@ -974,7 +978,7 @@ footer {
 
 	/* Howto */
 	.modal {
-		top: calc( 50vh - 300px );
+		top: calc( var(--vh, 1vh) * 50 - 300px );
 		left: 10vw;
 		width: 80vw;
 		height: 600px;
@@ -1059,15 +1063,15 @@ footer {
 
 	/* Howto */
 	.modal {
-		top: 10vh;
+		top: calc( var(--vh, 1vh) * 10 );
 		left: 10vw;
 		width: 80vw;
-		height: 80vh;
+		height: calc( var(--vh, 1vh) * 80 );
 	}
 
 	main {
 		top: 50px;
-		height: calc( 100vh - 50px );
+		height: calc( var(--vh, 1vh) * 100 - 50px );
 		overflow: auto;
 		scroll-behavior: smooth;
 		scroll-snap-type: y mandatory;
@@ -1103,13 +1107,13 @@ footer {
 
 	/* Viewer */
 	.viewer {
-		height: calc( 100vh - 320px );
+		height: calc( var(--vh, 1vh) * 100 - 320px );
 		scroll-snap-align: start;
 	}
 
 	/* Controller-main */
 	.controller {
-		height: 80vh;
+		height: calc( var(--vh, 1vh) * 80 );
 		scroll-snap-align: start;
 	}
 
@@ -1140,7 +1144,7 @@ footer {
 	}
 
 	.expanded + .selector-canvas {
-		height: calc( 80vh - 320px );
+		height: calc( var(--vh, 1vh) * 80 - 320px );
 	}
 
 	/* Controller-sub */
