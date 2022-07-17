@@ -34,4 +34,4 @@ function LanguageSelector()
 	</Dropdown>
 }
 
-export default LanguageSelector;
+export {LanguageSelector, LanguageList};

@@ -111,4 +111,17 @@ function extractFileName(fullname)
 	return [ matcher[1], matcher[2] ];
 }
 
-export { isMobileView, canTouch, HSBtoRGB, colorArrayToHex, hexToColorArray, getPrismaticColor, multiplyColor, changeBrightness, clamp, lerp, easeOut, extractFileName };
+function hasParentElement(child, parent)
+{
+	if(parent === window) return true;
+	if(parent === null) return false;
+
+	let node = child;
+	while(node.parentNode !== null){
+		if(node === parent) return true;
+		node = node.parentNode;
+	}
+	return false;
+}
+
+export { isMobileView, canTouch, HSBtoRGB, colorArrayToHex, hexToColorArray, getPrismaticColor, multiplyColor, changeBrightness, clamp, lerp, easeOut, extractFileName, hasParentElement };

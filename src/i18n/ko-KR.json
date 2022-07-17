@@ -10,6 +10,11 @@
 	"UI.language.ko" : "한국어",
 	"UI.color" : "색상 선택",
 	"UI.howToObtain" : "획득 방법",
+
+	"UI.aside.language" : "언어",
+	"UI.aside.help" : "도움말",
+	"UI.aside.import" : "리텍스처 불러오기",
+
 	"UI.import.texture" : "[style=size:0.7]리텍[/style] 불러오기",
 	"UI.import.additionalTexture" : "[style=size:0.7]추가 리텍[/style] 불러오기",
 	"UI.import.body" : "[style=size:0.7]체형 리텍[/style] 불러오기",

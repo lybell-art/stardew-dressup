@@ -1,18 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-
-function hasParentElement(child, parent)
-{
-	if(parent === window) return true;
-	if(parent === null) return false;
-
-	let node = child;
-	while(node.parentNode !== null){
-		if(node === parent) return true;
-		node = node.parentNode;
-	}
-	return false;
-}
-
+import {hasParentElement} from "../utils/utils.js";
 
 /** @api
  *
@@ -55,7 +42,6 @@ function Dropdown( {
 
 	let [isOpened, open] = useState(false);
 	let wrapperRef = useRef(null);
-	let modalRef = useRef(null);
 	
 	useEffect( ()=>{
 		if(!closeOutside) return;
@@ -78,14 +64,11 @@ function Dropdown( {
 			{button}
 		</div>
 		{hasModalBG && <div className={`modal-bg ${hidden}`} onClick={()=>open(false)}></div>}
-		<div className={`${listClass} ${hidden}`} ref={modalRef}>
+		<div className={`${listClass} ${hidden}`}>
 			{hasCloseButton && <div className="ui-icon close-button modal-close hover-interact" onClick={()=>open(false)}></div>}
 			{children}
 		</div>
 	</div>
 }
-
-
-
 
 export default Dropdown;

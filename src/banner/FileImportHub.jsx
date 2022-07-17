@@ -52,4 +52,4 @@ function FileImportHub()
 	</Dropdown>
 }
 
-export default FileImportHub;
+export {FileImportHubModal, FileImportHub};

@@ -45,4 +45,4 @@ function HowToButton()
 	</Dropdown>
 }
 
-export default HowToButton;
+export {HowToScene, HowToButton};

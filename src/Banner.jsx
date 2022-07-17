@@ -1,15 +1,13 @@
 import {LangsProvider} from "./stores/Langs.js";
-import LanguageSelector from "./banner/LanguageSelector.jsx";
-import HowToButton from "./banner/HowToButton.jsx";
-import FileImportHub from "./banner/FileImportHub.jsx";
+import PCBanner from "./banner/PCBanner.jsx";
+import MobileBanner from "./banner/MobileBanner.jsx";
 
 function Banner()
 {
 	return (
 		<LangsProvider>
-			<LanguageSelector />
-			<HowToButton />
-			<FileImportHub />
+			<PCBanner />
+			<MobileBanner />
 		</LangsProvider>
 	);
 }
