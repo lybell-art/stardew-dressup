@@ -18,6 +18,8 @@
 	"UI.import.body.female" : "여성",
 	"UI.import.body.female_bald" : "여성(대머리)",
 	"UI.import.skin" : "[style=size:0.7]피부색[/style] 불러오기",
+	"UI.import.reset" : "리텍 되돌리기",
+	"UI.import.resetAll" : "모든 리텍 되돌리기",
 
 	"howto.title.1": "미리보기",
 	"howto.title.2": "의상 선택 영역",

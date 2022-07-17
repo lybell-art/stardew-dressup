@@ -18,6 +18,8 @@
 	"UI.import.body.female" : "Female",
 	"UI.import.body.female_bald" : "Female(Bald)",
 	"UI.import.skin" : "Import [style=size:0.7]Skin Colors[/style]",
+	"UI.import.reset" : "Reset Texture",
+	"UI.import.resetAll" : "Reset All Textures",
 
 	"howto.title.1": "Preview",
 	"howto.title.2": "Selection",

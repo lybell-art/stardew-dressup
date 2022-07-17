@@ -1,6 +1,5 @@
 import { useContext } from "react";
-import { observer } from "mobx-react-lite";
-import { LangsContext } from "../../stores/Langs.js";
+import { Text } from "../../atom/Text.jsx";
 
 import characterStore from "../../stores/CharacterStore.js";
 
@@ -10,7 +9,6 @@ function ResetImportIcon({store})
 {
 	return <div className="ui-icon reset-icon hover-interact" onClick={()=>store.resetData()}></div>
 }
-
 
 function getResetFunc(name)
 {
@@ -26,25 +24,22 @@ function getResetFunc(name)
 	return dataSet.resetData.bind(dataSet);
 }
 
-const ResetImportButton = observer( ({name})=>
-{
-	const langs = useContext(LangsContext);
 
+function ResetImportButton({name})
+{
 	const resetFunc = getResetFunc(name);
 	return <div className="reset-button hover-interact" onClick={resetFunc}>
 		<span className="ui-icon reset-icon-white inline"></span>
-		{langs.getText("UI.import.reset")}
+		<Text text="UI.import.reset" />
 	</div>
-} );
+}
 
-const ResetAllButton = observer( ()=>
+function ResetAllButton()
 {
-	const langs = useContext(LangsContext);
-
 	return <div className="reset-button hover-interact" onClick={()=>characterStore.resetAll()}>
 		<span className="ui-icon reset-icon-white inline"></span>
-		{langs.getText("UI.import.resetAll")}
+		<Text text="UI.import.resetAll" />
 	</div>
-} );
+}
 
 export {ResetImportIcon, ResetImportButton, ResetAllButton};

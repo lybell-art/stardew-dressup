@@ -1,6 +1,7 @@
-import { useContext } from "react";
-import { observer } from "mobx-react-lite";
 import { useSwiper } from "swiper/react";
+
+// text
+import { Text } from "../atom/Text.jsx";
 
 // stores
 import characterStore from "../stores/CharacterStore.js";
@@ -20,10 +21,14 @@ import BodyImporter from "./FileImporter/BodyImporter.jsx";
 const getProps = characterStore.getProps.bind(characterStore);
 
 // title 
-const ControllerTitle = observer( ({name})=>{
-	const langs = useContext(LangsContext);
-	return <h2><span className={`ui-icon ${name}-icon inline`}></span> {langs.getText(`title.${name}`)}</h2>;
-} );
+function ControllerTitle({name})
+{
+	return <h2>
+		<span className={`ui-icon ${name}-icon inline`}></span>
+		<span> </span>
+		<Text text={`title.${name}`} />
+	</h2>
+}
 
 const ClothesControllerBase = ({name, additionalDefaultImage={}, importers, children})=>{
 	const {selection, dataSet, defaultImage} = getProps(name);

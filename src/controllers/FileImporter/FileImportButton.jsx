@@ -1,11 +1,11 @@
 import { useContext } from "react";
-import { observer } from "mobx-react-lite";
-import { LangsContext } from "../../stores/Langs.js";
+import { TextElement } from "../../atom/Text.jsx";
 
 function FileImportButton( {text, onClick} )
 {
-	const langs = useContext(LangsContext);
-	return <div className="file-import hover-interact" onClick={onClick} >{langs.getTextHTML(text)}</div>
+	return <div className="file-import hover-interact" onClick={onClick} >
+		<TextElement text={text} />
+	</div>
 }
 
-export default observer(FileImportButton);
+export default FileImportButton;

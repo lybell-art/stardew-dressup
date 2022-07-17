@@ -44,7 +44,7 @@ function FileImportHub()
 	return <Dropdown 
 		wrapperClass="import-hub-wrapper"
 		buttonClass="ui-icon import-button" 
-		listClass="modal"
+		listClass="modal scrolling-modal"
 		type="modal"
 	>
 		<FileImportHubModal />

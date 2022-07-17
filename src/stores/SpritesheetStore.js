@@ -544,7 +544,7 @@ class BodySheetStore
 		const {data, width, height} = file;
 		this.skinColor = extractSkinColors(data, width, height);
 	}
-	resetData()
+	resetBody()
 	{
 		for(let key of Object.keys(this.urlDict)) {
 			if(this.urlDict[key] !== BodySheetStore.defaultURLDict[key] ) URL.revokeObjectURL(this.urlDict[key]);
@@ -557,7 +557,16 @@ class BodySheetStore
 			body_female: makeDefaultBodyColor(),
 			body_female_bald: makeDefaultBodyColor()
 		};
+	}
+	resetSkin()
+	{
 		this.skinColor = skinData;
+	}
+
+	resetData()
+	{
+		this.resetBody();
+		this.resetSkin();
 	}
 
 	get getSkinColor()

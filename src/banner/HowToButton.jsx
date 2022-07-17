@@ -4,7 +4,7 @@ import { Text, TextElement } from "../atom/Text.jsx";
 import { clamp } from "../utils/utils.js";
 import Dropdown from "../atom/Dropdown.jsx";
 
-const HowToScene = observer( ()=>
+function HowToScene()
 {
 	const [START, END] = [1, 7];
 
@@ -24,13 +24,13 @@ const HowToScene = observer( ()=>
 
 	return <>
 		<h2><Text text={`howto.title.${pageNo}`} /></h2>
-		<p><Text text={`howto.desc.${pageNo}`} /></p>
+		<p><TextElement text={`howto.desc.${pageNo}`} /></p>
 		<div className="howto-nav">
 			<div className={`ui-icon left-button ${leftStyle}`} onClick={before}></div>
 			<div className={`ui-icon right-button ${rightStyle}`} onClick={after}></div>
 		</div>
 	</>
-} );
+}
 
 
 function HowToButton()
