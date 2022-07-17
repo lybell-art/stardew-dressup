@@ -505,10 +505,10 @@ function makeDefaultBodyColor()
 class BodySheetStore
 {
 	static defaultURLDict = {
-		body_male: "/assets/farmer_base.png",
-		body_male_bald: "/assets/farmer_base_bald.png",
-		body_female: "/assets/farmer_girl_base.png",
-		body_female_bald: "/assets/farmer_girl_base_bald.png"
+		body_male: "./assets/farmer_base.png",
+		body_male_bald: "./assets/farmer_base_bald.png",
+		body_female: "./assets/farmer_girl_base.png",
+		body_female_bald: "./assets/farmer_girl_base_bald.png"
 	}
 	urlDict = {...BodySheetStore.defaultURLDict}
 	bodyColor = {

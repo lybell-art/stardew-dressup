@@ -1,13 +1,13 @@
 @font-face {
 	font-family: "Stardust Pixel Title";
 	font-display: swap;
-	src: url("/assets/fonts/PF_stardust_S_Bold.ttf");
+	src: url("../assets/fonts/PF_stardust_S_Bold.ttf");
 	unicode-range: U+1100-11FF, U+AC00-D7AF;
 }
 
 @font-face {
 	font-family: "Stardust Pixel Title";
 	font-display: swap;
-	src: url("/assets/fonts/LanaPixel_NoKorean.ttf");
+	src: url("../assets/fonts/LanaPixel_NoKorean.ttf");
 	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }

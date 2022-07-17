@@ -270,7 +270,7 @@ main::-webkit-scrollbar {
 .viewer {
 	width: 480px;
 	box-sizing: border-box;
-	background: url("/assets/background.png") center/cover #7e7dfe;
+	background: url("../assets/background.png") center/cover #7e7dfe;
 	image-rendering: pixelated;
 
 	flex-shrink: 0;
@@ -768,7 +768,7 @@ footer {
 
 .ui-icon:after {
 	content: "";
-	background-image: url("/assets/ui.png");
+	background-image: url("../assets/ui.png");
 	background-repeat: no-repeat;
 	image-rendering: pixelated;
 	width: var(--base-width);

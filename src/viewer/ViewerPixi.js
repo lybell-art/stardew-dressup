@@ -13,15 +13,15 @@ const RIGHT = 1;
 function makeDefaultTextures()
 {
 	const defaultTextureSrc = {
-		body_male:"/assets/farmer_base.png",
-		body_male_bald:"/assets/farmer_base_bald.png",
-		body_female:"/assets/farmer_girl_base.png",
-		body_female_bald:"/assets/farmer_girl_base_bald.png",
-		hats:"/assets/hats.png",
-		hairstyle:"/assets/hairstyle.png",
-		hairstyle2:"/assets/hairstyles2.png",
-		shirts:"/assets/shirts.png",
-		pants:"/assets/pants.png"
+		body_male:"./assets/farmer_base.png",
+		body_male_bald:"./assets/farmer_base_bald.png",
+		body_female:"./assets/farmer_girl_base.png",
+		body_female_bald:"./assets/farmer_girl_base_bald.png",
+		hats:"./assets/hats.png",
+		hairstyle:"./assets/hairstyle.png",
+		hairstyle2:"./assets/hairstyles2.png",
+		shirts:"./assets/shirts.png",
+		pants:"./assets/pants.png"
 	};
 
 	const map=new Map();
@@ -112,7 +112,7 @@ class HatSprite extends ResponsiveSprite
 
 		// change sprite sheet
 		this.makeReaction( 
-			()=>farmer.hatsSheet._spritesheet?.blobURL ?? "/assets/hats.png",
+			()=>farmer.hatsSheet._spritesheet?.blobURL ?? "./assets/hats.png",
 
 			this.changeSpriteSheet.bind(this), 
 		false);
@@ -201,9 +201,9 @@ class HairSprite extends ResponsiveSprite
 		// change sprite sheet
 		this.makeReaction( 
 			()=>{
-				let additional = {...farmer.hairstyleSheet._additionalSheet, hairstyles2:"/assets/hairstyles2.png" };
+				let additional = {...farmer.hairstyleSheet._additionalSheet, hairstyles2:"./assets/hairstyles2.png" };
 				return {
-					base:farmer.hairstyleSheet._spritesheet?.blobURL ?? "/assets/hairstyle.png",
+					base:farmer.hairstyleSheet._spritesheet?.blobURL ?? "./assets/hairstyle.png",
 					additional
 				};
 			},
@@ -289,7 +289,7 @@ class ShirtSprite extends ResponsiveSprite
 
 		// change sprite sheet
 		this.makeReaction( 
-			()=>farmer.shirtsSheet._spritesheet?.blobURL ?? "/assets/shirts.png",
+			()=>farmer.shirtsSheet._spritesheet?.blobURL ?? "./assets/shirts.png",
 
 			this.changeSpriteSheet.bind(this), 
 		false);
@@ -359,7 +359,7 @@ class PantsSprite extends ResponsiveSprite
 
 		// change sprite sheet
 		this.makeReaction( 
-			()=>farmer.pantsSheet._spritesheet?.blobURL ?? "/assets/pants.png",
+			()=>farmer.pantsSheet._spritesheet?.blobURL ?? "./assets/pants.png",
 
 			this.changeSpriteSheet.bind(this), 
 		false);
