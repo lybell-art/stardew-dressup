@@ -367,8 +367,13 @@ class PantsSprite extends ResponsiveSprite
 
 	changeSprite(boundBox)
 	{
-		const texture = new PIXI.Texture(this.baseTexture, boundBox);
+		const {rect, flipped} = boundBox;
+		const texture = new PIXI.Texture(this.baseTexture, rect);
 		this.sprite.texture = texture;
+
+		this.sprite.x = 0;
+		this.sprite.scale.x = flipped ? -1 : 1;
+		if(flipped) this.sprite.x = this.sprite.width;
 	}
 	changeColor(tint)
 	{

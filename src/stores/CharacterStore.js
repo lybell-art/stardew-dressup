@@ -258,8 +258,9 @@ class CharacterStore
 		let y = Math.floor(index / columns)*deltaY + yOffset;
 
 		const rect = new Rectangle(x, y, width, height);
+		const flipped = (this.direction === LEFT);
 
-		return rect;
+		return {rect, flipped};
 	}
 
 	get hatTint()
