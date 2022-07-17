@@ -1,6 +1,7 @@
-import { Component, Fragment, createRef } from "react";
-import { Pagination, Mousewheel } from "swiper";
+import { useRef } from "react";
+import { Pagination } from "swiper";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
+import { hasParentClass } from "./utils/utils.js";
 
 function renderCustomMaker(names)
 {
@@ -17,8 +18,21 @@ function renderCustomMaker(names)
 	};
 }
 
+function _wheelSwipe(swiper)
+{
+	return (e)=>{
+		if(hasParentClass(e.target, "scrolled-area")) return;
+		if(swiper.animating) return;
+		if(e.deltaY < 0) swiper.slidePrev(300);
+		else if(e.deltaY > 0) swiper.slideNext(300);
+	};
+}
+
 function Controller({ids, children})
 {
+	const swiper = useSwiper();
+	let wheelSwipe = useRef(null);
+
 	return <Swiper
 		slidesPerView={1}
 		spaceBetween={10}
@@ -30,7 +44,6 @@ function Controller({ids, children})
 			type:"custom",
 			renderCustom: renderCustomMaker(ids)
 		}}
-		mousewheel={ {releaseOnEdges: true} }
 
 		breakpoints={ {
 			1366: {
@@ -44,7 +57,14 @@ function Controller({ids, children})
 		autoHeight={true}
 
 		className="controller"
-		modules={[Pagination, Mousewheel]}
+		modules={[Pagination]}
+		onSwiper={(swiper) => {
+			wheelSwipe.current = _wheelSwipe(swiper);
+			swiper.el.addEventListener('wheel', wheelSwipe.current);
+		}}
+		onDestroy={(swiper) => {
+			swiper.el.removeEventListener('wheel', wheelSwipe.current);
+		}}
 	>
 		{ children.map( (child, idx)=><SwiperSlide key={ids[idx]}>{child}</SwiperSlide> ) }
 	</Swiper>

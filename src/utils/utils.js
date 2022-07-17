@@ -124,4 +124,16 @@ function hasParentElement(child, parent)
 	return false;
 }
 
-export { isMobileView, canTouch, HSBtoRGB, colorArrayToHex, hexToColorArray, getPrismaticColor, multiplyColor, changeBrightness, clamp, lerp, easeOut, extractFileName, hasParentElement };
+function hasParentClass(child, className)
+{
+	if(parent === null) return false;
+
+	let node = child;
+	while(node.parentNode !== null){
+		if( [...node.classList].includes(className) ) return true;
+		node = node.parentNode;
+	}
+	return false;
+}
+
+export { isMobileView, canTouch, HSBtoRGB, colorArrayToHex, hexToColorArray, getPrismaticColor, multiplyColor, changeBrightness, clamp, lerp, easeOut, extractFileName, hasParentElement, hasParentClass };

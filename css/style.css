@@ -52,8 +52,6 @@ p {
 	display: none;
 }
 
-
-
 /* Dropdown */
 .dropdown-wrapper {
 	position: relative;
@@ -672,8 +670,13 @@ input[type=range]::-ms-thumb {
 }
 
 .description-content {
+	height: 100%;
 	font-size: 0.8rem;
 	white-space: pre-wrap;
+}
+
+.scrolled-area {
+	overflow-y: auto;
 }
 
 /* File Importer */

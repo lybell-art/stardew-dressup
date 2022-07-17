@@ -1,2 +1,4 @@
 node_modules
 src/legacy
+*.sublime-project
+*.sublime-workspace

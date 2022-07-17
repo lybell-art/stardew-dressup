@@ -1,4 +1,5 @@
 import {createRoot} from "react-dom/client";
+import debounce from "lodash.debounce";
 
 import {LangsProvider} from "./stores/Langs.js";
 import Viewer from "./Viewer.jsx";
@@ -38,7 +39,7 @@ function renderComponent(component, containerID)
 export default function render()
 {
 	setScreenSize();
-	window.addEventListener('resize', setScreenSize);
+	window.addEventListener('resize', debounce(setScreenSize, 400));
 	
 	renderComponent(<App />, "app");
 	renderComponent(<Banner />, "banner");
