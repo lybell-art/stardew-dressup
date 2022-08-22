@@ -25,6 +25,10 @@ p {
 	font-family: 'Noto Sans KR';
 }
 
+body {
+	background-image: url(../assets/background.png);
+}
+
 .bold {
 	font-weight: bold;
 }
@@ -118,10 +122,11 @@ p {
 /* Header */
 header {
 	width: 100vw;
-	height: 60px;
+	height: 80px;
 	padding: 0px calc(50% - 600px);
 	box-sizing: border-box;
-	background: #fff;
+	background: #fff4;
+	backdrop-filter: blur(5px);
 	box-shadow: 0 2px 5px #0002;
 	position: fixed;
 	z-index: 20;
@@ -250,15 +255,16 @@ header {
 /* Main */
 main {
 	width: 1200px;
-	height: calc( var(--vh, 1vh) * 100 - 120px );
+	height: calc( var(--vh, 1vh) * 100 - 160px );
 	margin: 0px calc(50% - 600px);
 	position: relative;
-	top: 80px;
+	top: 100px;
 
 	display: flex;
 	flex-direction: row;
+	box-sizing: border-box;
 
-	border: solid 8px #fff0;
+	border: solid 12px #fff0;
 	border-image: url("../assets/border.png") 16 round;
 }
 
@@ -268,7 +274,7 @@ main::-webkit-scrollbar {
 
 /* Viewer */
 .viewer {
-	width: 480px;
+	width: 36%;
 	box-sizing: border-box;
 	background: url("../assets/background.png") center/cover #7e7dfe;
 	image-rendering: pixelated;
@@ -281,10 +287,10 @@ main::-webkit-scrollbar {
 }
 
 .viewer-wrapper {
-	width: 50%;
-	height: 80%;
-	max-width: 280px;
-	max-height: 400px;
+	width: 256px;
+	height: 384px;
+	max-width: 256px;
+	max-height: 384px;
 	background: #fff;
 	position: relative;
 }
@@ -337,7 +343,7 @@ main::-webkit-scrollbar {
 
 /* Controller-main */
 .controller {
-	width: 720px;
+	width: 64%;
 	box-sizing: border-box;
 	padding: 20px 10px;
 	
@@ -749,11 +755,13 @@ input[type=range]::-ms-thumb {
 
 /* Footer */
 footer {
-	font-size: 0.75rem;
+	font-size: 0.8rem;
 	width: 100vw;
+	color: #fff;
+	font-family: 'Stardust Pixel Title';
 	text-align: center;
 	position: absolute;
-	bottom: 8px;
+	bottom: 20px;
 }
 
 
@@ -966,6 +974,7 @@ footer {
 
 @media (max-width: 1365px) {
 	header {
+		height: 60px;
 		padding: 0px 20px;
 	}
 
@@ -991,6 +1000,11 @@ footer {
 	.viewer {
 		width: 100vw;
 		flex-grow: 1;
+	}
+
+	.viewer-wrapper {
+		width: 50%;
+		height: 75%;
 	}
 
 	/* Controller-main */
