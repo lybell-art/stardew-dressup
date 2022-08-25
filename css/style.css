@@ -268,7 +268,7 @@ main {
 	box-sizing: border-box;
 
 	border: solid 12px #fff0;
-	border-image: url("../assets/border.png") 16 round;
+	border-image: url("../assets/border.png") 16 repeat;
 }
 
 main::-webkit-scrollbar {
@@ -346,16 +346,19 @@ main::-webkit-scrollbar {
 
 /* Controller-main */
 .controller {
-	width: calc(64% - 60px);
-	box-sizing: border-box;
-	padding: 20px 10px;
-	
-	flex-shrink: 0;
-
 	position: relative;
 	overflow: hidden;
 
+	box-sizing: border-box;
+	width: calc(64% - 60px);
+	padding: 20px 10px;
+
+	flex-shrink: 0;
+
 	background: #fff;
+	border-width: 0px 12px;
+    border-style: solid;
+	border-image: url("../assets/border.png") 16 repeat;
 }
 
 .swiper-wrapper {
@@ -1001,6 +1004,8 @@ footer {
 		padding: 10px;
 
 		flex-direction: row;
+
+		border: none;
 
 		scroll-snap-type: none;
 		scroll-padding: 0px;
