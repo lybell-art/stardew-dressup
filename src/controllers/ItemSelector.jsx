@@ -29,14 +29,13 @@ class ItemSelector extends Component
 		this.canvasDom = createRef();
 
 		// for expanding 
-		this.state = {
-			expanded : false
-		};
+		this.state = {expanded : false};
 
 		// for responsive app(reset expand state when viewport is changed)
 		this.resizeObserver = new ThresholdObserver([MOBILE_SCREEN, TABLET_SCREEN], document.body.clientWidth);
 
 		// event listeners
+		this.toggleTicking = this.toggleTicking.bind(this);
 		this.toggleExpansion = this.toggleExpansion.bind(this);
 		this.screenResize = debounce(this.screenResize.bind(this), 100);
 		this.mobileScrollToggle = debounce(this.mobileScrollToggle.bind(this), 100);
@@ -46,6 +45,9 @@ class ItemSelector extends Component
 			this.hud.onWheel(delta);
 			e.stopPropagation();
 		}
+
+		// intersection observer
+		this.intersectionObserver = new IntersectionObserver(this.toggleTicking);
 	}
 	makeSkinHud({selection, dataSet})
 	{
@@ -88,6 +90,7 @@ class ItemSelector extends Component
 			this.hud.appendParent(this.canvasDom.current);
 			this.hud.initialize(this.props.dataSet);
 			this.canvasDom.current.addEventListener('wheel', this.canvasScroll, {passive:false});
+			this.intersectionObserver.observe(this.canvasDom.current);
 		}
 		window.addEventListener('resize', this.screenResize);
 		APP_DOM.addEventListener('scroll', this.mobileScrollToggle);
@@ -96,6 +99,7 @@ class ItemSelector extends Component
 		if(this.canvasDom.current){
 			this.hud.halt();
 			this.canvasDom.current.removeEventListener('wheel', this.canvasScroll, {passive:false});
+			this.intersectionObserver.unobserve(this.canvasDom.current);
 		}
 		window.removeEventListener('resize', this.screenResize);
 		APP_DOM.removeEventListener('scroll', this.mobileScrollToggle);
@@ -105,6 +109,11 @@ class ItemSelector extends Component
 		this.setState((state) => {
 			return {expanded: !state.expanded};
 		});
+	}
+	toggleTicking([{ isIntersecting, target }], observer)
+	{
+		if(isIntersecting) this.hud.startTick();
+		else this.hud.stopTick();
 	}
 	componentDidUpdate() {
 		setTimeout(()=>{

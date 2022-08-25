@@ -515,6 +515,14 @@ class ItemListControllerBase
 		window.removeEventListener("resize", this.resize);
 		this.app.ticker.remove(this.ticker);
 	}
+	startTick()
+	{
+		this.app.start();
+	}
+	stopTick()
+	{
+		this.app.stop();
+	}
 	resize()
 	{
 		this.screenSizeObserver.update(document.body.clientWidth, ()=>{
