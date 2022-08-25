@@ -1,7 +1,15 @@
-import { useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Pagination } from "swiper";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { hasParentClass } from "./utils/utils.js";
+
+function useSwiperRef()
+{
+	const [swiperRef, setSwiperRef] = useState(null);
+	const domRef = useRef(null);
+	useEffect(()=>setSwiperRef(domRef.current), []);
+	return [swiperRef, domRef];
+}
 
 function renderCustomMaker(names)
 {
@@ -31,15 +39,16 @@ function _wheelSwipe(swiper)
 function Controller({ids, children})
 {
 	const swiper = useSwiper();
-	let wheelSwipe = useRef(null);
+	const wheelSwipe = useRef(null);
+	const [el, elRef] = useSwiperRef();
 
-	return <Swiper
+	return <>
+	<Swiper
 		slidesPerView={1}
 		spaceBetween={10}
 		pagination={{
+			el,
 			clickable:true,
-			horizontalClass:"nav-bar",
-			verticalClass:"nav-bar",
 			bulletClass:"nav-icon",
 			type:"custom",
 			renderCustom: renderCustomMaker(ids)
@@ -68,6 +77,8 @@ function Controller({ids, children})
 	>
 		{ children.map( (child, idx)=><SwiperSlide key={ids[idx]}>{child}</SwiperSlide> ) }
 	</Swiper>
+	<nav className="controller-nav" ref={elRef}/>
+	</>
 }
 
 export default Controller;

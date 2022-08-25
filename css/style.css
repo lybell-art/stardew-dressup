@@ -26,7 +26,11 @@ p {
 }
 
 body {
+	height: 100vh;
 	background-image: url(../assets/background.png);
+	background-position: bottom right;
+    background-size: cover;
+    image-rendering: pixelated;
 }
 
 .bold {
@@ -126,7 +130,6 @@ header {
 	padding: 0px calc(50% - 600px);
 	box-sizing: border-box;
 	background: #fff4;
-	backdrop-filter: blur(5px);
 	box-shadow: 0 2px 5px #0002;
 	position: fixed;
 	z-index: 20;
@@ -343,7 +346,7 @@ main::-webkit-scrollbar {
 
 /* Controller-main */
 .controller {
-	width: 64%;
+	width: calc(64% - 60px);
 	box-sizing: border-box;
 	padding: 20px 10px;
 	
@@ -357,7 +360,6 @@ main::-webkit-scrollbar {
 
 .swiper-wrapper {
 	position: relative;
-	width: calc(100% - 60px);
 	height: 100%;
 	z-index: 1;
 	display: flex;
@@ -688,38 +690,23 @@ input[type=range]::-ms-thumb {
 /* File Importer */
 
 /* nav */
-.swiper-pagination {
-	position: absolute;
-	text-align: center;
-	transition: .3s opacity;
-	transform: translate3d(0, 0, 0);
-	z-index: 10
-}
-
-.nav-bar {
-	background-color: #fff;
+.controller-nav {
+	width: 60px;
+	height: 100%;
+	z-index: 10;
+	
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 	gap: 20px;
-}
 
-.swiper-horizontal>.nav-bar {
-	width: 100%;
-	height: 60px;
-	left: 0px;
-	bottom: 0px;
-	box-shadow: 0px -2px 4px #0002;
-	flex-direction: row;
-}
-
-.swiper-vertical>.nav-bar {
-	width: 60px;
-	height: 100%;
-	top: 0px;
-	right: 0px;
+	background-color: #fff;
 	box-shadow: -2px 0px 4px #0002;
-	flex-direction: column;
+	
+	transition: .3s opacity;
+	transform: translate3d(0, 0, 0);
+	text-align: center;
 }
 
 .nav-icon {
@@ -1036,6 +1023,16 @@ footer {
 	}
 
 	/* Nav Bar */
+	.controller-nav {
+		position: fixed;
+		width: 100%;
+		height: 60px;
+		left: 0px;
+		bottom: 0px;
+		box-shadow: 0px -2px 4px #0002;
+		flex-direction: row;
+	}
+
 	.nav-icon {
 		transform: translateY(5px);
 	}
@@ -1185,8 +1182,7 @@ footer {
 	}
 
 	/* Nav Bar */
-	.swiper-horizontal>.nav-bar {
-		position: fixed;
+	.controller-nav {
 		height: 50px;
 	}
 

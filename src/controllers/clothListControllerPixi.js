@@ -547,6 +547,7 @@ class ItemListController extends ItemListControllerBase
 
 		// attach to container
 		this.container.addChild(this.uncolored, this.colored, this.prismatic);
+
 	}
 	setDisposer(spritesheetData)
 	{
