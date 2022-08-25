@@ -23,18 +23,7 @@ class ItemSelector extends Component
 		this.swiper = props.swiper;
 
 		// make item list controller pixi.js canvas
-		this.hud = null;
-		if(hudType === "skinColor")
-		{
-			this.hud = new SkinColorController(selection);
-			this.hud.initializeRadio(0);
-			this.hud.initializeSprites(dataSet.skinColor);
-		}
-		else {
-			this.hud = new ItemListController(selection, {defaultImage, additionalDefaultImage});
-			this.hud.initializeRadio(dataSet.constructor.omittable ? -1 : 0);
-			this.hud.initializeSprites(dataSet, defaultImage, additionalDefaultImage);
-		}
+		this.hud = this.makeHud(hudType, {selection, dataSet, defaultImage, additionalDefaultImage});
 
 		// for attach canvas
 		this.canvasDom = createRef();
@@ -57,6 +46,25 @@ class ItemSelector extends Component
 			this.hud.onWheel(delta);
 			e.stopPropagation();
 		}
+	}
+	makeSkinHud({selection, dataSet})
+	{
+		const hud = new SkinColorController(selection);
+		hud.initializeRadio(0);
+		hud.initializeSprites(dataSet.skinColor);
+		return hud;
+	}
+	makeItemHud({selection, dataSet, defaultImage, additionalDefaultImage})
+	{
+		const hud = new ItemListController(selection, {defaultImage, additionalDefaultImage});
+		hud.initializeRadio(dataSet.constructor.omittable ? -1 : 0);
+		hud.initializeSprites(dataSet, defaultImage, additionalDefaultImage);
+		return hud;
+	}
+	makeHud(type, stores)
+	{
+		if(type === "skinColor") return this.makeSkinHud(stores);
+		return this.makeItemHud(stores);
 	}
 	
 	mobileScrollToggle(e)
@@ -106,10 +114,11 @@ class ItemSelector extends Component
 	}
 	render()
 	{
+		const inactiveTag = this.state.expanded ? "inactive" : "";
 		return (
 			<div className="selector">
 				<div 
-					className={`ui-icon left-button hover-interact ${this.state.expanded ? "inactive" : ""}`} 
+					className={`ui-icon left-button hover-interact ${inactiveTag}`} 
 					onClick={()=>this.hud.slideLeft()}>
 				</div>
 				<div className="selector-border">
@@ -117,7 +126,7 @@ class ItemSelector extends Component
 					<div className="selector-canvas" ref={this.canvasDom} />
 				</div>
 				<div 
-					className={`ui-icon right-button hover-interact ${this.state.expanded ? "inactive" : ""}`} 
+					className={`ui-icon right-button hover-interact ${inactiveTag}`} 
 					onClick={()=>this.hud.slideRight()}>
 				</div>
 				<div className="ui-icon expand-button" onClick={this.toggleExpansion}></div>
