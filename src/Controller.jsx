@@ -3,6 +3,8 @@ import { Pagination } from "swiper";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { hasParentClass } from "./utils/utils.js";
 
+let globalDebug=null;
+
 function useSwiperRef()
 {
 	const [swiperRef, setSwiperRef] = useState(null);
@@ -22,6 +24,7 @@ function renderCustomMaker(names)
 	}
 
 	return function renderCustom(swiper, index, total) {
+		console.log(index);
 		return names.map( (name,i)=>renderBullet(name, i === index-1) ).join("\n");
 	};
 }
@@ -51,7 +54,8 @@ function Controller({ids, children})
 			clickable:true,
 			bulletClass:"nav-icon",
 			type:"custom",
-			renderCustom: renderCustomMaker(ids)
+			renderCustom: renderCustomMaker(ids),
+			holimoli:elRef
 		}}
 
 		breakpoints={ {
@@ -73,6 +77,9 @@ function Controller({ids, children})
 		}}
 		onDestroy={(swiper) => {
 			swiper.el.removeEventListener('wheel', wheelSwipe.current);
+		}}
+		onUpdate={(swiper)=>{
+			if(swiper.params.pagination.el === null) swiper.params.pagination.el=elRef.current;
 		}}
 	>
 		{ children.map( (child, idx)=><SwiperSlide key={ids[idx]}>{child}</SwiperSlide> ) }

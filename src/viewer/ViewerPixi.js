@@ -484,7 +484,7 @@ class ViewerPixi
 	{
 		// set application
 		this.app = new PIXI.Application({
-			width: 200,
+			width: 100,
 			height: 200,
 			resolution: 1,
 			antialias: true,
