@@ -326,6 +326,11 @@ main::-webkit-scrollbar {
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    position: relative;
+}
+
+.viewer-canvas canvas{
+	position: absolute;
 }
 
 /* Viewer Buttons */
@@ -1149,7 +1154,7 @@ footer {
 
 	/* Viewer */
 	.viewer {
-		height: calc( var(--vh, 1vh) * 100 - 320px );
+		height: calc( var(--vh, 1vh) * 100 - 340px );
 		scroll-snap-align: start;
 	}
 
@@ -1161,6 +1166,7 @@ footer {
 
 	.controller-item {
 		width: 100%;
+		height: calc( var(--vh, 1vh) * 80 - 70px );
 		min-height: unset;
 		padding: 0px;
 	}

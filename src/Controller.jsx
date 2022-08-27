@@ -3,7 +3,7 @@ import { Pagination } from "swiper";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { hasParentClass } from "./utils/utils.js";
 
-let globalDebug=null;
+import ResizeEventEmitter from "./events/resizeEventEmitter.js";
 
 function useSwiperRef()
 {
@@ -44,6 +44,14 @@ function Controller({ids, children})
 	const wheelSwipe = useRef(null);
 	const [el, elRef] = useSwiperRef();
 
+	useEffect( ()=>{
+		const updateSwiper = ()=>swiper?.update();
+		ResizeEventEmitter.addEventListener("change", updateSwiper);
+		return ()=>{
+			ResizeEventEmitter.removeEventListener("change", updateSwiper);
+		}
+	}, []);
+
 	return <>
 	<Swiper
 		slidesPerView={1}
@@ -53,8 +61,7 @@ function Controller({ids, children})
 			clickable:true,
 			bulletClass:"nav-icon",
 			type:"custom",
-			renderCustom: renderCustomMaker(ids),
-			holimoli:elRef
+			renderCustom: renderCustomMaker(ids)
 		}}
 
 		breakpoints={ {
@@ -62,6 +69,11 @@ function Controller({ids, children})
 				slidesPerView:"auto",
 				spaceBetween:20,
 				direction:"vertical"
+			},
+			max: {
+				slidesPerView:1,
+				spaceBetween:10,
+				direction:"horizontal"
 			}
 		} }
 
@@ -77,9 +89,7 @@ function Controller({ids, children})
 		onDestroy={(swiper) => {
 			swiper.el.removeEventListener('wheel', wheelSwipe.current);
 		}}
-		onUpdate={(swiper)=>{
-			if(swiper.params.pagination.el === null) swiper.params.pagination.el=elRef.current;
-		}}
+		onUpdate={(swiper)=>{}}
 	>
 		{ children.map( (child, idx)=><SwiperSlide key={ids[idx]}>{child}</SwiperSlide> ) }
 	</Swiper>

@@ -2,10 +2,9 @@ import { Component, createRef } from "react";
 import debounce from "lodash.debounce";
 import { ItemListController, SkinColorController } from "./clothListControllerPixi.js";
 import { ThresholdObserver } from "../utils/ThresholdObserver.js";
+import ResizeEventEmitter from "../events/resizeEventEmitter.js";
 
 const APP_DOM = document.getElementById("app");
-const MOBILE_SCREEN = 768;
-const TABLET_SCREEN = 1366;
 
 function getScrollDelta(e)
 {
@@ -31,13 +30,10 @@ class ItemSelector extends Component
 		// for expanding 
 		this.state = {expanded : false};
 
-		// for responsive app(reset expand state when viewport is changed)
-		this.resizeObserver = new ThresholdObserver([MOBILE_SCREEN, TABLET_SCREEN], document.body.clientWidth);
-
 		// event listeners
 		this.toggleTicking = this.toggleTicking.bind(this);
 		this.toggleExpansion = this.toggleExpansion.bind(this);
-		this.screenResize = debounce(this.screenResize.bind(this), 100);
+		this.screenResize = this.screenResize.bind(this);
 		this.mobileScrollToggle = debounce(this.mobileScrollToggle.bind(this), 100);
 		this.canvasScroll = e=>{
 			e.preventDefault();
@@ -71,6 +67,7 @@ class ItemSelector extends Component
 	
 	mobileScrollToggle(e)
 	{
+		const MOBILE_SCREEN = 768;
 		if(document.body.clientWidth >= MOBILE_SCREEN) return;
 		const {scrollTop} = e.target;
 		this.setState((state) => {
@@ -78,12 +75,10 @@ class ItemSelector extends Component
 			return {expanded: true};
 		})
 	}
+	// for responsive app(reset expand state when viewport is changed)
 	screenResize()
 	{
-		this.resizeObserver.update(document.body.clientWidth, ()=>{
-			APP_DOM.scrollTop = 0;
-			this.setState({expanded: false});
-		});
+		this.setState({expanded: false});
 	}
 	componentDidMount() {
 		if(this.canvasDom.current){
@@ -92,7 +87,7 @@ class ItemSelector extends Component
 			this.canvasDom.current.addEventListener('wheel', this.canvasScroll, {passive:false});
 			this.intersectionObserver.observe(this.canvasDom.current);
 		}
-		window.addEventListener('resize', this.screenResize);
+		ResizeEventEmitter.addEventListener('change', this.screenResize);
 		APP_DOM.addEventListener('scroll', this.mobileScrollToggle);
 	}
 	componentWillUnmount() {
@@ -101,7 +96,7 @@ class ItemSelector extends Component
 			this.canvasDom.current.removeEventListener('wheel', this.canvasScroll, {passive:false});
 			this.intersectionObserver.unobserve(this.canvasDom.current);
 		}
-		window.removeEventListener('resize', this.screenResize);
+		ResizeEventEmitter.removeEventListener('change', this.screenResize);
 		APP_DOM.removeEventListener('scroll', this.mobileScrollToggle);
 	}
 	toggleExpansion()
@@ -115,7 +110,8 @@ class ItemSelector extends Component
 		if(isIntersecting) this.hud.startTick();
 		else this.hud.stopTick();
 	}
-	componentDidUpdate() {
+	componentDidUpdate(_, prevState) {
+		if(prevState.expanded === this.state.expanded) return;
 		setTimeout(()=>{
 			this.hud.toggleExpantion(this.state.expanded);
 			this.swiper.update();
