@@ -36,7 +36,7 @@ const ColorSliderItem = observer( ({type, selection})=>{
 	return (
 		<label>
 			<p className="label">{type}</p>
-			<input type="range" min="0" max={type === "H" ? 360 : 100} defaultValue={value} className={name} 
+			<input type="range" min="0" max={type === "H" ? 360 : 100} value={value} className={name} 
 				onChange={e=>setValue(+e.target.value)} 
 				onTouchMove={e=>e.stopPropagation()} style={style}/>
 			<output>{value}</output>

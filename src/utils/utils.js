@@ -136,4 +136,9 @@ function hasParentClass(child, className)
 	return false;
 }
 
-export { isMobileView, canTouch, HSBtoRGB, colorArrayToHex, hexToColorArray, getPrismaticColor, multiplyColor, changeBrightness, clamp, lerp, easeOut, extractFileName, hasParentElement, hasParentClass };
+function randInt(from, to)
+{
+	return Math.floor( Math.random() * (to-from) + from );
+}
+
+export { isMobileView, canTouch, HSBtoRGB, colorArrayToHex, hexToColorArray, getPrismaticColor, multiplyColor, changeBrightness, clamp, lerp, easeOut, extractFileName, hasParentElement, hasParentClass, randInt };

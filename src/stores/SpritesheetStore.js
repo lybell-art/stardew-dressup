@@ -76,6 +76,10 @@ class SheetDataStore
 	{
 		return (index)=>`${this.constructor.id}.desc.${index}`;
 	}
+	get count()
+	{
+		return (index)=>0;
+	}
 }
 
 class HatsSheetStore extends SheetDataStore

@@ -308,14 +308,10 @@ main::-webkit-scrollbar {
     background: #fff;
 }
 
-.viewer-canvas {
+.viewer-box {
 	width: 160px;
     height: 62.5%;
     max-height: 240px;
-    display: flex;
-    overflow: hidden;
-    justify-content: center;
-    align-items: center;
     background: no-repeat url(../assets/playerbg.png) center/100%;
     position: relative;
     top: -30px;
@@ -323,18 +319,27 @@ main::-webkit-scrollbar {
     border-image: url(../assets/border_.png) 16 repeat;
 }
 
+.viewer-canvas{
+	width: 100%;
+	height: 100%;
+	display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
 /* Viewer Buttons */
 
 .viewer-wrapper .left-turn-button {
 	position: absolute;
-	left: 20px;
-	bottom: 60px;
+	left: -30px;
+	bottom: -15px;
 }
 
 .viewer-wrapper .right-turn-button {
 	position: absolute;
-	right: 20px;
-	bottom: 60px;
+	right: -30px;
+	bottom: -15px;
 }
 
 .viewer-wrapper .gender-select-wrapper {
@@ -353,6 +358,12 @@ main::-webkit-scrollbar {
 
 .gender-select-wrapper .selected {
 	outline: 2px solid #24adaf;
+}
+
+.viewer-wrapper .shuffle-button {
+    position: absolute;
+    right: 5px;
+    top: 5px;
 }
 
 /* Controller-main */

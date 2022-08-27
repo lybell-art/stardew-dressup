@@ -24,7 +24,6 @@ function renderCustomMaker(names)
 	}
 
 	return function renderCustom(swiper, index, total) {
-		console.log(index);
 		return names.map( (name,i)=>renderBullet(name, i === index-1) ).join("\n");
 	};
 }

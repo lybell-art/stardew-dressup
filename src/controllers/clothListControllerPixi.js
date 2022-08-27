@@ -8,6 +8,8 @@ import { tintedContainer, prismaticContainer } from "../utils/coloredContainers.
 import { convertTextureMap } from "../utils/convertTexture.js";
 import { replaceColorsFromBuffer } from "../utils/replaceColorsFromBuffer.js";
 
+import EventHub from "../events/eventHub.js";
+
 // constant
 const ITEM_GAP = 80;
 const DRAG_THRESHOLD = 30;
@@ -106,6 +108,8 @@ class RadioButtons
 		this.buttons = [];
 
 		this.check = this.check.bind(this);
+
+		EventHub.addEventListener("changeCloth", this.syncronize.bind(this));
 	}
 	get current()
 	{
@@ -137,32 +141,38 @@ class RadioButtons
 		this.container.removeChildren();
 		this.buttons = [];
 	}
+	change(value)
+	{
+		if(this.buttons[this.previousCheck] && this.previousCheck !== value) {
+			this.buttons[this.previousCheck].texture = this.constructor.deselectedTexture;
+		}
+		this.buttons[value].texture = this.constructor.selectedTexture;
+		this.previousCheck = value;
+	}
 	check(i)
 	{
 		return (e)=>{
 			// prevent selection while dragging
 			if( this.parent?.isDragged ) return;
 
-			if(this.buttons[this.previousCheck] && this.previousCheck !== i) {
-				this.buttons[this.previousCheck].texture = this.constructor.deselectedTexture;
-			}
-			this.selectBox.changeSelect(i);
-			this.buttons[i].texture = this.constructor.selectedTexture;
-			this.previousCheck = i;
+			this.selectBox.changeSelect(i, false);
+			this.change(i);
 		}
 	}
 	setInitialValue(i)
 	{
 		this.previousCheck = i;
 	}
-	syncronize()
+	syncronize({detail})
 	{
-		const value = this.selectBox.value;
-		if(this.previousCheck === value) return {resync:false, value};
+		if(detail.sender !== this.selectBox) return;
 
-		this.buttons[value].texture = this.constructor.selectedTexture;
-		this.previousCheck = value;
-		return {resync:true, value};
+		const value = detail.value;
+		if(this.previousCheck === value) return;
+
+		this.change(value);
+		const omittable = this.buttons[-1] !== undefined ? -1 : 0;
+		EventHub.dispatchEvent("syncronizeSlider", {sender:this, value: value - omittable});
 	}
 }
 
@@ -243,7 +253,12 @@ class ScrollSnappedContainer extends PIXI.Container
 	}
 	slide(offset, transitionTime=ScrollSnappedContainer.transitionTime)
 	{
-		this.slideTo(this.scroll_index + offset);
+		this.slideTo(this.scroll_index + offset, transitionTime);
+	}
+	slideToCenter(index, transitionTime=ScrollSnappedContainer.transitionTime)
+	{
+		const to = index - Math.floor( (this.screenItemNumber-1)/2 );
+		this.slideTo(to, transitionTime);
 	}
 	slideLeft()
 	{
@@ -366,6 +381,8 @@ class ItemListControllerBase
 		this.slideRight = this.slideRight.bind(this);
 		this.onWheel = this.onWheel.bind(this);
 		this.toggleExpantion = this.toggleExpantion.bind(this);
+
+		EventHub.addEventListener("syncronizeSlider", this.syncronize.bind(this));
 	}
 	get lines()
 	{
@@ -425,11 +442,12 @@ class ItemListControllerBase
 	ticker(dt)
 	{
 		const FPS = 60;
-		const {resync, value} = this.radioButton.syncronize();
-		if(resync){
-			this.container.slideTo( Math.floor(value / this.lines) );
-		}
 		this.container.progress(dt*FPS);
+	}
+	syncronize({detail})
+	{
+		if(detail.sender !== this.radioButton) return;
+		this.container.slideToCenter( Math.floor(detail.value / this.lines) );
 	}
 	slideLeft()
 	{
