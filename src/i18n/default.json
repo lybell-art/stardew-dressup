@@ -15,6 +15,10 @@
 	"UI.aside.help" : "Help",
 	"UI.aside.import" : "Import Textures",
 
+	"UI.aside.language.short" : "Langs",
+	"UI.aside.help.short" : "Help",
+	"UI.aside.import.short" : "Import",
+
 	"UI.import.texture" : "Import [style=size:0.7]Texture[/style]",
 	"UI.import.additionalTexture" : "Import [style=size:0.7]Additional Texture[/style]",
 	"UI.import.body" : "Import [style=size:0.7]Body Textures[/style]",

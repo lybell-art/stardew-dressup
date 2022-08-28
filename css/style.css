@@ -48,6 +48,7 @@ body {
 }
 
 .inactive {
+	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
 }
@@ -74,6 +75,7 @@ body {
 .dropdown-wrapper-center {
 	display: flex;
 	justify-content: center;
+	align-items: center;
 }
 
 .dropdown-list {
@@ -121,6 +123,7 @@ body {
 	height: calc(var(--vh, 1vh) * 100);
 	background-color: #000000aa;
 	z-index: 99;
+	transition: opacity 0.2s ease;
 }
 
 .modal-close {
@@ -148,6 +151,20 @@ header {
 	gap: 20px;
 }
 
+.banner-button {
+	width: 50px;
+	height: 50px;
+	display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.button-caption {
+	font-family: 'Stardust Pixel Title';
+	color: #fff;
+}
+
 .mobile-menu-modal-bg {
 	z-index: 49;
 }
@@ -165,9 +182,13 @@ header {
 	top: 15px;
 	width: 20px;
 	height: 20px;
-	color: #a65ffe;
+	color: #fff;
 	z-index: 51;
-	opacity: 0.5;
+	transition: color 0.5s ease-out;
+}
+
+.mobile-menu-button.activated {
+	color: #a65ffe;
 }
 
 .mobile-menu-list {
@@ -196,9 +217,8 @@ header {
 /* Language button */
 
 .language-wrapper {
-	position: relative;
-	width: 30px;
-	height: 30px;
+	width: 50px;
+	height: 50px;
 }
 
 .language-list {
@@ -598,6 +618,7 @@ main::-webkit-scrollbar {
 output {
 	width: 2rem;
 	text-align: center;
+	font-family: 'Noto Sans KR';
 }
 
 .slider-hue {
@@ -996,13 +1017,17 @@ footer {
 	}
 
 	main {
+		top: 0px;
 		width: 100vw;
-		height: calc( var(--vh, 1vh) * 100 - 60px );
+		height: calc( var(--vh, 1vh) * 100 );
 		margin: 0px;
-		top: 60px;
 		flex-direction: column;
 
 		border: none;
+	}
+
+	.button-caption {
+		display: none;
 	}
 
 	/* Howto */
@@ -1020,6 +1045,7 @@ footer {
 	}
 
 	.viewer-wrapper {
+		top: 30px;
 		width: 50%;
 		height: 75%;
 	}
@@ -1117,8 +1143,6 @@ footer {
 	}
 
 	main {
-		top: 50px;
-		height: calc( var(--vh, 1vh) * 100 - 50px );
 		overflow: auto;
 		scroll-behavior: smooth;
 		scroll-snap-type: y mandatory;
@@ -1154,7 +1178,7 @@ footer {
 
 	/* Viewer */
 	.viewer {
-		height: calc( var(--vh, 1vh) * 100 - 340px );
+		height: calc( var(--vh, 1vh) * 100 - 270px );
 		scroll-snap-align: start;
 	}
 

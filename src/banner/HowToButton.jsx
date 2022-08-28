@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Text, TextElement } from "../atom/Text.jsx";
 import { clamp } from "../utils/utils.js";
 import Dropdown from "../atom/Dropdown.jsx";
+import BannerButton from "./BannerButton.jsx";
 
 function HowToScene()
 {
@@ -37,7 +38,8 @@ function HowToButton()
 {
 	return <Dropdown 
 		wrapperClass="howto-wrapper"
-		buttonClass="ui-icon help-button" 
+		buttonClass="banner-button" 
+		button={<BannerButton type="help" />}
 		listClass="modal"
 		type="modal"
 	>
