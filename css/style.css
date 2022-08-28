@@ -267,16 +267,22 @@ header {
 .reset-button {
 	width: 200px;
 	height: 30px;
-	flex-shrink: 0;
-	font-size: 16px;
+	box-sizing: border-box;
+
 	display: flex;
 	gap: 10px;
 	align-items: center;
 	justify-content: center;
+	flex-shrink: 0;
+
+	font-size: 16px;
 	font-family: 'Stardust Pixel Title';
-	background-color: #ff5858;
 	color: #fff;
+
+	background-color: #ff5858;
 	border-radius: 5px;
+	border: 6px solid transparent;
+	border-image: url(../assets/border_button2.png) 9 repeat;
 }
 
 
@@ -304,7 +310,7 @@ main::-webkit-scrollbar {
 .viewer {
 	width: 36%;
 	box-sizing: border-box;
-	background: url("../assets/background.png") center/cover #7e7dfe;
+	background: url("../assets/background-inner.png") center/cover #7e7dfe;
 	image-rendering: pixelated;
 
 	flex-shrink: 0;
@@ -326,6 +332,7 @@ main::-webkit-scrollbar {
     align-items: center;
 
     background: #fff;
+    box-shadow: 6px 6px #0006;
 }
 
 .viewer-box {
@@ -495,21 +502,26 @@ main::-webkit-scrollbar {
 .file-import {
 	width: 120px;
 	height: 40px;
-	font-size: 16px;
+	box-sizing: border-box;
+	
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	font-family: 'Stardust Pixel Title';
-	background-color: #c2c1ff;
+	
+	background-color: #ffde90;
 	border-radius: 5px;
+	border: 6px solid transparent;
+	border-image: url(../assets/border_button.png) 9 repeat;
+
+	font-size: 16px;
+	font-family: 'Stardust Pixel Title';
 }
 
 .import-hub-card-items .file-import {
 	width: 200px;
 	min-height: 15px;
 	height: auto;
-	padding: 6px 0px;
 }
 
 /* Item Selector */
@@ -1011,6 +1023,10 @@ footer {
 
 
 @media (max-width: 1365px) {
+	body {
+		background: none;
+	}
+
 	header {
 		height: 60px;
 		padding: 0px 20px;
@@ -1040,6 +1056,7 @@ footer {
 
 	/* Viewer */
 	.viewer {
+		background: url("../assets/background.png") bottom right/cover #7e7dfe;
 		width: 100vw;
 		flex-grow: 1;
 	}
