@@ -72,7 +72,7 @@ function generateItem(i, sheets, sheetPos, size={width:20, height:20}, multiplie
 
 	cloth.setPosition(multiplier);
 	cloth.anchor.set(0.5);
-	cloth.scale.set(3 * multiplier);
+	cloth.scale.set(Math.floor(3 * multiplier));
 
 	return cloth;
 }
@@ -520,6 +520,7 @@ class ItemListControllerBase
 
 		this.arrangeContainerItems(multiplier);
 		this.container.resetHitArea();
+		this.container.slideTo(this.radioButton.current);
 	}
 	
 	flushChildren()
@@ -708,7 +709,7 @@ class SkinColorController extends ItemListControllerBase
 			const child = new GridedSprite(i, texture);
 			child.setPosition(this.multiplier);
 			child.anchor.set(0.5);
-			child.scale.set(3 * this.multiplier);
+			child.scale.set(Math.floor(3 * this.multiplier));
 			if(child) this.icons.addChild(child);
 		}
 
