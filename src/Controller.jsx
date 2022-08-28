@@ -89,7 +89,6 @@ function Controller({ids, children})
 		onDestroy={(swiper) => {
 			swiper.el.removeEventListener('wheel', wheelSwipe.current);
 		}}
-		onUpdate={(swiper)=>{}}
 	>
 		{ children.map( (child, idx)=><SwiperSlide key={ids[idx]}>{child}</SwiperSlide> ) }
 	</Swiper>
