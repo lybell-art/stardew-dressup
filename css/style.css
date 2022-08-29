@@ -572,11 +572,14 @@ main::-webkit-scrollbar {
 }
 
 .selector-border {
+	box-sizing: border-box;
 	width: 100%;
 	padding: 5px 0px;
+
 	display: flex;
-	border: 9px solid transparent;
 	justify-content: center;
+
+	border: 9px solid transparent;
 	border-image: url(../assets/border_button2.png) 9 repeat;
 }
 
@@ -1083,7 +1086,6 @@ footer {
 
 	.viewer-wrapper {
 		top: 30px;
-		width: 50%;
 		height: 75%;
 	}
 
@@ -1219,6 +1221,10 @@ footer {
 		scroll-snap-align: start;
 	}
 
+	.viewer-wrapper {
+		top: 25px;
+	}
+
 	/* Controller-main */
 	.controller {
 		height: calc( var(--vh, 1vh) * 80 );
@@ -1299,28 +1305,28 @@ footer {
 	}
 }
 
-@media (max-width: 527px) {
+@media (max-width: 551px) {
 	/* 7 columns */
 	.selector-canvas {
 		width: 448px;
 	}
 }
 
-@media (max-width: 463px) {
+@media (max-width: 487px) {
 	/* 6 columns */
 	.selector-canvas {
 		width: 384px;
 	}
 }
 
-@media (max-width: 399px) {
+@media (max-width: 424px) {
 	/* 5 columns */
 	.selector-canvas {
 		width: 320px;
 	}
 }
 
-@media (max-width: 336px) {
+@media (max-width: 359px) {
 	.selector-canvas {
 		width: 95%;
 	}

@@ -369,7 +369,7 @@ class ItemListControllerBase
 		this.expanded = false;
 
 		// mobile adjustment
-		this.screenSizeObserver = new ThresholdObserver([336, 400, 464, 528, MOBILE_MAX_SCREEN_WIDTH], document.body.clientWidth, 20);
+		this.screenSizeObserver = new ThresholdObserver([359, 424, 488, 552, MOBILE_MAX_SCREEN_WIDTH], document.body.clientWidth, 0);
 
 		// mobx reaction
 		this.disposer = ()=>{};
