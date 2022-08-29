@@ -311,13 +311,29 @@ class CharacterStore
 			this.shirtsSheet.setGender(value);
 		}
 	}
+	getRandomSkinColor()
+	{
+		let result = randInt(0,6);
+		if(Math.random() >= 0.25) return result;
+		return randInt(0,this.bodySheet.count);
+	}
+	getRandomItemIndex(count, omittable=false)
+	{
+		if(omittable && Math.random() >= 0.33) return -1;
+		return randInt(0, count);
+	}
 	randomize()
 	{
-		for(let name of ["body", "hats", "hairstyle", "shirts", "pants"])
+		this.bodySelector.changeSelect( this.getRandomSkinColor() );
+		this.bodySelector.randomizeColor(true);
+
+		for(let name of ["hats", "hairstyle", "shirts", "pants"])
 		{
 			const {selection:selector, dataSet} = this.getProps(name);
-			selector.changeSelect( randInt(dataSet.constructor.omittable ? -1 : 0, dataSet.count) );
-			selector.randomizeColor();
+
+			const itemNo=this.getRandomItemIndex(dataSet.count, dataSet.constructor.omittable);
+			selector.changeSelect( itemNo );
+			selector.randomizeColor(false);
 		}
 	}
 

@@ -19,6 +19,30 @@ function HSBToString(hue, saturation, brightness)
 	return `RGB(${rgb.join(", ")})`;
 }
 
+// from stardew valley decompiled code
+function RGBtoHSB(red, green, blue)
+{
+	const [r, g, b] = [red, green, blue].map( e=>e/255 );
+
+	const min = Math.min(r, g, b);
+	const max = Math.max(r, g, b);
+	const delta = max - min;
+
+	let hue;
+	let saturation = delta / max * 100;
+	let brightness = max * 100;
+    if(delta === 0) return [0, 0, Math.floor(brightness)];
+    
+	if (r === max) hue = (g - b) / delta;
+	else if(g === max) hue = 2 + (b - r) / delta;
+	else hue = 4 + (r - g) / delta;
+    
+	hue *= 60;
+	if(hue < 0) hue += 360;
+
+	return [hue, saturation, brightness].map( e=>Math.floor(e) );
+}
+
 function colorArrayToHex(arr)
 {
 	return (arr[0]<<16) + (arr[1]<<8) + arr[2];
@@ -83,4 +107,15 @@ function getPrismaticColor(percent)
 	return lerpColor(prismaticArray[part%6], prismaticArray[(part+1)%6], lerp);
 }
 
-export {HSBtoRGB, HSBToString, colorArrayToHex, hexToColorArray, multiplyColor, changeBrightness, lerpColor, getPrismaticColor};
+function getRandomClothesColor(darken=false)
+{
+	let rgb=Array.from({length:3}, ()=>randInt(25, 255));
+	if(darken) rgb = rgb.map( e=> Math.floor(e/2) );
+	rgb = rgb.map( e=> {
+		if(Math.random() < 0.5) return e;
+		return randInt(15, 50);
+	} );
+	return RGBtoHSB(...rgb);
+}
+
+export {HSBtoRGB, HSBToString, RGBtoHSB, colorArrayToHex, hexToColorArray, multiplyColor, changeBrightness, lerpColor, getPrismaticColor, getRandomClothesColor};

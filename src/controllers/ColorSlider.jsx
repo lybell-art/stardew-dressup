@@ -10,7 +10,6 @@ function getStyle(type, {hue, saturation, brightness})
 			["--thumb-border-color"] : HSBToString(hue, saturation, brightness),
 			["--left"] : HSBToString(hue, 0, brightness),
 			["--right"] : HSBToString(hue, 100, brightness)
-			
 		};
 	}
 	if(type === "B")

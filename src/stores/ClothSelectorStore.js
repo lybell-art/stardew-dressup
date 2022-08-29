@@ -1,6 +1,5 @@
 import { makeObservable, observable, action, computed } from "mobx";
-import { HSBtoRGB } from "../utils/colors.js";
-import { randInt } from "../utils/utils.js";
+import { HSBtoRGB, getRandomClothesColor } from "../utils/colors.js";
 import EventHub from "../events/eventHub.js";
 
 class ClothSelectorStore
@@ -56,11 +55,10 @@ class ClothSelectorStore
 	{
 		this.brightness = +brightness;
 	}
-	randomizeColor()
+	randomizeColor(alwaysDarken=false)
 	{
-		this.hue = randInt(0, 360);
-		this.saturation = randInt(0, 100);
-		this.brightness = randInt(0, 100);
+		const darken = alwaysDarken || (Math.random() < 0.5);
+		[this.hue, this.saturation, this.brightness] = getRandomClothesColor(darken);
 	}
 }
 
