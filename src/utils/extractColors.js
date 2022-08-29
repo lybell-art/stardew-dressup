@@ -57,9 +57,9 @@ function extractBodyColors(colorArray)
 {
 	const extractHex = idx=>colorArrayToHex( extractPixel(colorArray, idx) );
 	return {
-		sleeve:[258, 257, 256].map(extractHex),
-		skin:[262, 261, 260].map(extractHex),
-		eye:[277, 276].map(extractHex)
+		sleeve:[258, 257, 256].map(extractHex), //[light, mid, dark]
+		skin:[262, 261, 260].map(extractHex), //[light, mid, dark]
+		eye:[276, 277].map(extractHex) //[base, dark]
 	};
 }
 
