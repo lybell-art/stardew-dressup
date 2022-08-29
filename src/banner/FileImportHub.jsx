@@ -2,6 +2,7 @@ import Dropdown from "../atom/Dropdown.jsx";
 import {ControllerTitle} from "../controllers/ClothesController.jsx";
 import {BodyTextureImporter, SkinImporter, HairstyleTextureImporter, ClothesTextureImporter} from "../controllers/FileImporter/FileImporters.jsx";
 import {ResetImportButton, ResetAllButton} from "../controllers/FileImporter/ResetImport.jsx";
+import BannerButton from "./BannerButton.jsx";
 
 function FileImportHubItem({name, children})
 {
@@ -43,7 +44,8 @@ function FileImportHub()
 {
 	return <Dropdown 
 		wrapperClass="import-hub-wrapper"
-		buttonClass="ui-icon import-button" 
+		buttonClass="banner-button" 
+		button={<BannerButton type="import" />}
 		listClass="modal scrolling-modal"
 		type="modal"
 	>

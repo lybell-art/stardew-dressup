@@ -1,7 +1,4 @@
-function colorArrayToHex(arr)
-{
-	return (arr[0]<<16) + (arr[1]<<8) + arr[2];
-}
+import { colorArrayToHex } from "./colors.js";
 
 function extractPixel(colorArray, index)
 {

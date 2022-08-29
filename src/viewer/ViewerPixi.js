@@ -1,7 +1,7 @@
 import { reaction } from "mobx";
 import * as PIXI from "pixi.js";
 import { MultiColorReplaceFilter } from "@pixi/filter-multi-color-replace";
-import { colorArrayToHex, getPrismaticColor } from "../utils/utils.js";
+import { colorArrayToHex, getPrismaticColor } from "../utils/colors.js";
 import { convertTextureMap } from "../utils/convertTexture.js";
 
 // direction constant(using stardew valley code)
@@ -484,7 +484,7 @@ class ViewerPixi
 	{
 		// set application
 		this.app = new PIXI.Application({
-			width: 200,
+			width: 100,
 			height: 200,
 			resolution: 1,
 			antialias: true,

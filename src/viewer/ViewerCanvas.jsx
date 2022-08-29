@@ -5,7 +5,7 @@ class ViewerCanvas extends Component
 {
 	constructor(props)
 	{
-		super();
+		super(props);
 
 		// make item list controller pixi.js canvas
 		this.hud = new ViewerPixi(props.characterStore);
@@ -27,7 +27,7 @@ class ViewerCanvas extends Component
 	}
 	render()
 	{
-		return <div className="viewer-canvas" ref={this.canvasDom}></div>;
+		return <div className="viewer-canvas" ref={this.canvasDom}/>;
 	}
 }
 

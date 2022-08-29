@@ -1,42 +1,40 @@
 import { observer } from "mobx-react-lite";
-import { HSBtoRGB }from "../utils/utils.js";
+import { HSBtoRGB, HSBToString } from "../utils/colors.js";
 
-function HSBToString(hue, saturation, brightness)
+function getStyle(type, {hue, saturation, brightness})
 {
-	const rgb = HSBtoRGB(hue, saturation, brightness);
-	return `RGB(${rgb.join(", ")})`;
+	if(type === "H") return {["--thumb-border-color"] : HSBToString(hue, 100, 100)};
+	if(type === "S")
+	{
+		return {
+			["--thumb-border-color"] : HSBToString(hue, saturation, brightness),
+			["--left"] : HSBToString(hue, 0, brightness),
+			["--right"] : HSBToString(hue, 100, brightness)
+		};
+	}
+	if(type === "B")
+	{
+		return {
+			["--thumb-border-color"] : HSBToString(hue, saturation, brightness),
+			["--left"] : HSBToString(hue, saturation, 0),
+			["--right"] : HSBToString(hue, saturation, 100)
+		};
+	}
 }
 
 const ColorSliderItem = observer( ({type, selection})=>{
-	
 	const [value, setValue, name] = ( (type, selection)=>{
 		if(type === "H") return [selection.hue, selection.changeHue.bind(selection), "slider-hue"];
 		if(type === "S") return [selection.saturation, selection.changeSaturation.bind(selection), "slider-saturation"];
 		if(type === "B") return [selection.brightness, selection.changeBrightness.bind(selection), "slider-brightness"];
 	} )(type, selection);
 
-	let style={};
-	if(type === "H")
-	{
-		style["--thumb-border-color"] = HSBToString(selection.hue, 100, 100);
-	}
-	else if(type === "S")
-	{
-		style["--thumb-border-color"] = HSBToString(selection.hue, selection.saturation, selection.brightness);
-		style["--left"] = HSBToString(selection.hue, 0, selection.brightness);
-		style["--right"] = HSBToString(selection.hue, 100, selection.brightness);
-	}
-	else if(type === "B")
-	{
-		style["--thumb-border-color"] = HSBToString(selection.hue, selection.saturation, selection.brightness);
-		style["--left"] = HSBToString(selection.hue, selection.saturation, 0);
-		style["--right"] = HSBToString(selection.hue, selection.saturation, 100);
-	}
+	const style = getStyle(type, selection);
 
 	return (
 		<label>
 			<p className="label">{type}</p>
-			<input type="range" min="0" max={type === "H" ? 360 : 100} defaultValue={value} className={name} 
+			<input type="range" min="0" max={type === "H" ? 360 : 100} value={value} className={name} 
 				onChange={e=>setValue(+e.target.value)} 
 				onTouchMove={e=>e.stopPropagation()} style={style}/>
 			<output>{value}</output>

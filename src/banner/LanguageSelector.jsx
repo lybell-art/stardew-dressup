@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite";
 
 import Langs, { LangsContext } from "../stores/Langs.js";
 import Dropdown from "../atom/Dropdown.jsx";
+import BannerButton from "./BannerButton.jsx";
 
 
 const LanguageList = observer( ()=>
@@ -27,7 +28,8 @@ function LanguageSelector()
 {
 	return <Dropdown 
 		wrapperClass="language-wrapper dropdown-wrapper-center"
-		buttonClass="ui-icon language-button" 
+		buttonClass="banner-button" 
+		button={<BannerButton type="language" />}
 		listClass="dropdown-list language-list"
 		type="dropdown"
 	>

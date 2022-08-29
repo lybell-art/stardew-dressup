@@ -1,4 +1,4 @@
-import { colorArrayToHex, getPrismaticColor } from "./utils.js";
+import { colorArrayToHex, getPrismaticColor } from "./colors.js";
 import { Container, filters } from "pixi.js";
 
 class tintedContainer extends Container

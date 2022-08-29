@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Text, TextElement } from "../atom/Text.jsx";
 import { clamp } from "../utils/utils.js";
 import Dropdown from "../atom/Dropdown.jsx";
+import BannerButton from "./BannerButton.jsx";
 
 function HowToScene()
 {
@@ -24,6 +25,7 @@ function HowToScene()
 
 	return <>
 		<h2><Text text={`howto.title.${pageNo}`} /></h2>
+		<img className="howto-image" src={`./assets/howto/howto-image${pageNo}.png`} />
 		<p><TextElement text={`howto.desc.${pageNo}`} /></p>
 		<div className="howto-nav">
 			<div className={`ui-icon left-button ${leftStyle}`} onClick={before}></div>
@@ -37,7 +39,8 @@ function HowToButton()
 {
 	return <Dropdown 
 		wrapperClass="howto-wrapper"
-		buttonClass="ui-icon help-button" 
+		buttonClass="banner-button" 
+		button={<BannerButton type="help" />}
 		listClass="modal"
 		type="modal"
 	>

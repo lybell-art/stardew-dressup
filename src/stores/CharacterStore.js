@@ -9,7 +9,8 @@ import {HatsSheetStore, HairstyleSheetStore, ShirtsSheetStore, PantsSheetStore, 
 import {hatsJsonProcessing, hairstyleJsonProcessing, clothesJsonProcessing} from "../utils/dataProcessing.js";
 
 // color utils
-import {colorArrayToHex, multiplyColor, changeBrightness} from "../utils/utils.js";
+import {colorArrayToHex, multiplyColor, changeBrightness} from "../utils/colors.js";
+import {randInt} from "../utils/utils.js";
 
 // direction constant(using stardew valley code)
 const FRONT = 2;
@@ -308,6 +309,31 @@ class CharacterStore
 		{
 			this.isMale=false;
 			this.shirtsSheet.setGender(value);
+		}
+	}
+	getRandomSkinColor()
+	{
+		let result = randInt(0,6);
+		if(Math.random() >= 0.25) return result;
+		return randInt(0,this.bodySheet.count);
+	}
+	getRandomItemIndex(count, omittable=false)
+	{
+		if(omittable && Math.random() >= 0.33) return -1;
+		return randInt(0, count);
+	}
+	randomize()
+	{
+		this.bodySelector.changeSelect( this.getRandomSkinColor() );
+		this.bodySelector.randomizeColor(true);
+
+		for(let name of ["hats", "hairstyle", "shirts", "pants"])
+		{
+			const {selection:selector, dataSet} = this.getProps(name);
+
+			const itemNo=this.getRandomItemIndex(dataSet.count, dataSet.constructor.omittable);
+			selector.changeSelect( itemNo );
+			selector.randomizeColor(false);
 		}
 	}
 

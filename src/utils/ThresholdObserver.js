@@ -10,13 +10,13 @@ class ThresholdObserver
 	}
 	checkEach(current, threshold)
 	{
-		if( (this.prev >= threshold - this.offset) && (current < threshold + this.offset ) ) return -1;
-		if( (this.prev <= threshold - this.offset) && (current > threshold + this.offset ) ) return 1;
+		if( (this.prev >= threshold - this.offset) && (current < threshold + this.offset ) ) return -1; //below
+		if( (this.prev <= threshold - this.offset) && (current > threshold + this.offset ) ) return 1; //over
 		return 0;
 	}
 	update(current, callback)
 	{
-		const debouncedCallback = debounce(callback, 400);
+		const debouncedCallback = debounce(callback, 200);
 
 		if(typeof this.threshold === "number")
 		{

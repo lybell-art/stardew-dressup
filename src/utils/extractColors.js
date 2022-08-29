@@ -1,4 +1,4 @@
-import { colorArrayToHex } from "./utils.js";
+import { colorArrayToHex } from "./colors.js";
 
 function extractPixel(colorArray, index)
 {

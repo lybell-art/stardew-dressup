@@ -2,10 +2,9 @@ import { Component, createRef } from "react";
 import debounce from "lodash.debounce";
 import { ItemListController, SkinColorController } from "./clothListControllerPixi.js";
 import { ThresholdObserver } from "../utils/ThresholdObserver.js";
+import ResizeEventEmitter from "../events/resizeEventEmitter.js";
 
 const APP_DOM = document.getElementById("app");
-const MOBILE_SCREEN = 768;
-const TABLET_SCREEN = 1366;
 
 function getScrollDelta(e)
 {
@@ -23,33 +22,18 @@ class ItemSelector extends Component
 		this.swiper = props.swiper;
 
 		// make item list controller pixi.js canvas
-		this.hud = null;
-		if(hudType === "skinColor")
-		{
-			this.hud = new SkinColorController(selection);
-			this.hud.initializeRadio(0);
-			this.hud.initializeSprites(dataSet.skinColor);
-		}
-		else {
-			this.hud = new ItemListController(selection, {defaultImage, additionalDefaultImage});
-			this.hud.initializeRadio(dataSet.constructor.omittable ? -1 : 0);
-			this.hud.initializeSprites(dataSet, defaultImage, additionalDefaultImage);
-		}
+		this.hud = this.makeHud(hudType, {selection, dataSet, defaultImage, additionalDefaultImage});
 
 		// for attach canvas
 		this.canvasDom = createRef();
 
 		// for expanding 
-		this.state = {
-			expanded : false
-		};
-
-		// for responsive app(reset expand state when viewport is changed)
-		this.resizeObserver = new ThresholdObserver([MOBILE_SCREEN, TABLET_SCREEN], document.body.clientWidth);
+		this.state = {expanded : false};
 
 		// event listeners
+		this.toggleTicking = this.toggleTicking.bind(this);
 		this.toggleExpansion = this.toggleExpansion.bind(this);
-		this.screenResize = debounce(this.screenResize.bind(this), 100);
+		this.screenResize = this.screenResize.bind(this);
 		this.mobileScrollToggle = debounce(this.mobileScrollToggle.bind(this), 100);
 		this.canvasScroll = e=>{
 			e.preventDefault();
@@ -57,10 +41,33 @@ class ItemSelector extends Component
 			this.hud.onWheel(delta);
 			e.stopPropagation();
 		}
+
+		// intersection observer
+		this.intersectionObserver = new IntersectionObserver(this.toggleTicking);
+	}
+	makeSkinHud({selection, dataSet})
+	{
+		const hud = new SkinColorController(selection);
+		hud.initializeRadio(0);
+		hud.initializeSprites(dataSet.skinColor);
+		return hud;
+	}
+	makeItemHud({selection, dataSet, defaultImage, additionalDefaultImage})
+	{
+		const hud = new ItemListController(selection, {defaultImage, additionalDefaultImage});
+		hud.initializeRadio(dataSet.constructor.omittable ? -1 : 0);
+		hud.initializeSprites(dataSet, defaultImage, additionalDefaultImage);
+		return hud;
+	}
+	makeHud(type, stores)
+	{
+		if(type === "skinColor") return this.makeSkinHud(stores);
+		return this.makeItemHud(stores);
 	}
 	
 	mobileScrollToggle(e)
 	{
+		const MOBILE_SCREEN = 768;
 		if(document.body.clientWidth >= MOBILE_SCREEN) return;
 		const {scrollTop} = e.target;
 		this.setState((state) => {
@@ -68,28 +75,28 @@ class ItemSelector extends Component
 			return {expanded: true};
 		})
 	}
+	// for responsive app(reset expand state when viewport is changed)
 	screenResize()
 	{
-		this.resizeObserver.update(document.body.clientWidth, ()=>{
-			APP_DOM.scrollTop = 0;
-			this.setState({expanded: false});
-		});
+		this.setState({expanded: false});
 	}
 	componentDidMount() {
 		if(this.canvasDom.current){
 			this.hud.appendParent(this.canvasDom.current);
 			this.hud.initialize(this.props.dataSet);
 			this.canvasDom.current.addEventListener('wheel', this.canvasScroll, {passive:false});
+			this.intersectionObserver.observe(this.canvasDom.current);
 		}
-		window.addEventListener('resize', this.screenResize);
+		ResizeEventEmitter.addEventListener('change', this.screenResize);
 		APP_DOM.addEventListener('scroll', this.mobileScrollToggle);
 	}
 	componentWillUnmount() {
 		if(this.canvasDom.current){
 			this.hud.halt();
 			this.canvasDom.current.removeEventListener('wheel', this.canvasScroll, {passive:false});
+			this.intersectionObserver.unobserve(this.canvasDom.current);
 		}
-		window.removeEventListener('resize', this.screenResize);
+		ResizeEventEmitter.removeEventListener('change', this.screenResize);
 		APP_DOM.removeEventListener('scroll', this.mobileScrollToggle);
 	}
 	toggleExpansion()
@@ -98,7 +105,13 @@ class ItemSelector extends Component
 			return {expanded: !state.expanded};
 		});
 	}
-	componentDidUpdate() {
+	toggleTicking([{ isIntersecting, target }], observer)
+	{
+		if(isIntersecting) this.hud.startTick();
+		else this.hud.stopTick();
+	}
+	componentDidUpdate(_, prevState) {
+		if(prevState.expanded === this.state.expanded) return;
 		setTimeout(()=>{
 			this.hud.toggleExpantion(this.state.expanded);
 			this.swiper.update();
@@ -106,10 +119,11 @@ class ItemSelector extends Component
 	}
 	render()
 	{
+		const inactiveTag = this.state.expanded ? "inactive" : "";
 		return (
 			<div className="selector">
 				<div 
-					className={`ui-icon left-button hover-interact ${this.state.expanded ? "inactive" : ""}`} 
+					className={`ui-icon left-button hover-interact ${inactiveTag}`} 
 					onClick={()=>this.hud.slideLeft()}>
 				</div>
 				<div className="selector-border">
@@ -117,7 +131,7 @@ class ItemSelector extends Component
 					<div className="selector-canvas" ref={this.canvasDom} />
 				</div>
 				<div 
-					className={`ui-icon right-button hover-interact ${this.state.expanded ? "inactive" : ""}`} 
+					className={`ui-icon right-button hover-interact ${inactiveTag}`} 
 					onClick={()=>this.hud.slideRight()}>
 				</div>
 				<div className="ui-icon expand-button" onClick={this.toggleExpansion}></div>

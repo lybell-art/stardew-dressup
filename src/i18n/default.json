@@ -15,6 +15,10 @@
 	"UI.aside.help" : "Help",
 	"UI.aside.import" : "Import Textures",
 
+	"UI.aside.language.short" : "Langs",
+	"UI.aside.help.short" : "Help",
+	"UI.aside.import.short" : "Import",
+
 	"UI.import.texture" : "Import [style=size:0.7]Texture[/style]",
 	"UI.import.additionalTexture" : "Import [style=size:0.7]Additional Texture[/style]",
 	"UI.import.body" : "Import [style=size:0.7]Body Textures[/style]",
@@ -34,7 +38,7 @@
 	"howto.title.6": "Navigation Bar",
 	"howto.title.7": "In Mobile",
 
-	"howto.desc.1": "You can preview the appearence of the character you coordinated on the controller.\nYou can rotate it with the [icon=left-turn-button][icon=right-turn-button] buttons, select the character's gender with the [icon=male-button][icon=female-button] buttons.",
+	"howto.desc.1": "You can preview the appearence of the character you coordinated on the controller.\nYou can rotate it with the [icon=left-turn-button][icon=right-turn-button] buttons, select the character's gender with the [icon=male-button][icon=female-button] buttons.\nYou can randomize the appearence of the character with the [icon=shuffle-button] button.",
 	"howto.desc.2": "This where you can choose the character's outfit.\nYou can browse the item with swiping the carousel, mouse wheel, or the [icon=left-button][icon=right-button] buttons, and select it by clicking on the item.\nYou can expand and fold the selection box with the [icon=expand-button] button.\nIf color slides exist, you can change the color of the item only for items that can be colored.",
 	"howto.desc.3": "You can import your character's texture with 'Import Texture' button.\nFiles that can be imported are png and xnb.\nIn hairstyle section, you can import hairstyles2.xnb file by clicking 'Import Additional Texture' button.",
 	"howto.desc.4": "In this area, you can see how to obtain the item you chose.",
