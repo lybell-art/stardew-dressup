@@ -289,7 +289,7 @@ header {
 /* Main */
 main {
 	width: 1200px;
-	height: calc( var(--vh, 1vh) * 100 - 160px );
+	height: calc( var(--vh, 1vh) * 100 - 140px );
 	margin: 0px calc(50% - 600px);
 	position: relative;
 	top: 100px;
@@ -834,7 +834,7 @@ footer {
 	font-family: 'Stardust Pixel Title';
 	text-align: center;
 	position: absolute;
-	bottom: 20px;
+	bottom: 15px;
 }
 
 
@@ -1236,6 +1236,7 @@ footer {
 		height: calc( var(--vh, 1vh) * 80 - 70px );
 		min-height: unset;
 		padding: 0px;
+		gap: 10px;
 	}
 
 	.swiper-wrapper {
@@ -1259,12 +1260,12 @@ footer {
 	}
 
 	.expanded + .selector-canvas {
-		height: calc( var(--vh, 1vh) * 80 - 320px );
+		height: calc( var(--vh, 1vh) * 80 - 340px );
 	}
 
 	/* Controller-sub */
 	.controller-sub {
-		gap: 30px;
+		gap: 20px;
 		flex-direction: column;
 	}
 
