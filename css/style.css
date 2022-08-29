@@ -34,6 +34,11 @@ body {
     image-rendering: pixelated;
 }
 
+a{
+	color: #eca612;
+	text-decoration: none;
+}
+
 .bold {
 	font-weight: bold;
 }
@@ -123,7 +128,14 @@ body {
 	height: calc(var(--vh, 1vh) * 100);
 	background-color: #000000aa;
 	z-index: 99;
+	opacity: 0;
+    pointer-events: none;
 	transition: opacity 0.2s ease;
+}
+
+.modal-bg.active {
+	opacity: 1;
+	pointer-events: auto;
 }
 
 .modal-close {
@@ -227,12 +239,24 @@ header {
 
 /* Howto */
 
+.howto-wrapper .modal {
+	padding: 0px 20px 20px 20px;
+	gap: 20px;
+}
+
 .howto-nav {
 	display: flex;
 	width: calc(100% - 40px);
 	justify-content: space-between;
 	position: absolute;
 	bottom: 30px;
+}
+
+.howto-image {
+	max-width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    -o-object-fit: contain;
 }
 
 /* Import Hub */

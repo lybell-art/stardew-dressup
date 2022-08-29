@@ -25,6 +25,7 @@ function HowToScene()
 
 	return <>
 		<h2><Text text={`howto.title.${pageNo}`} /></h2>
+		<img className="howto-image" src={`./assets/howto/howto-image${pageNo}.png`} />
 		<p><TextElement text={`howto.desc.${pageNo}`} /></p>
 		<div className="howto-nav">
 			<div className={`ui-icon left-button ${leftStyle}`} onClick={before}></div>

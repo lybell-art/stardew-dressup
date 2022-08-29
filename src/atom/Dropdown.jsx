@@ -58,12 +58,13 @@ function Dropdown( {
 		}
 	}, [isOpened]);
 
+	const shown = isOpened ? "active" : "";
 	const hidden = isOpened ? "" : "inactive";
 	return <div className={`dropdown-wrapper ${wrapperClass}`} ref={wrapperRef}>
 		<div className={`${buttonClass} hover-interact`} onClick={()=>open(p=>!p)}>
 			{button}
 		</div>
-		{hasModalBG && <div className={`modal-bg ${hidden}`} onClick={()=>open(false)}></div>}
+		{hasModalBG && <div className={`modal-bg ${shown}`} onClick={()=>open(false)}></div>}
 		<div className={`${listClass} ${hidden}`}>
 			{hasCloseButton && <div className="ui-icon close-button modal-close hover-interact" onClick={()=>open(false)}></div>}
 			{children}

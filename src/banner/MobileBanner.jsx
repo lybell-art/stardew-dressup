@@ -13,10 +13,11 @@ function MobileBanner()
 	let [openedModal, openModal] = useState("none");
 	let [isOpenedLanguage, openLanguage] = useState(false);
 
+	const menuBGStyle = openedModal === "menu" ? "active" : "";
 	const menuStyle = openedModal === "menu" ? "" : "inactive";
 	const howtoModalStyle = openedModal === "howto" ? "" : "inactive";
 	const importModalStyle = openedModal === "import" ? "" : "inactive";
-	const modalBGStyle = (openedModal === "howto" || openedModal === "import") ? "" : "inactive";
+	const modalBGStyle = (openedModal === "howto" || openedModal === "import") ? "active" : "";
 	const languageListStyle = isOpenedLanguage ? "" : "inactive";
 
 	function toggleMenu()
@@ -30,7 +31,7 @@ function MobileBanner()
 	return <div className="mobile-banner">
 		<HamburgerButton className="mobile-menu-button hover-interact" isActivated={openedModal === "menu"} onClick={toggleMenu} />
 
-		<div className={`modal-bg mobile-menu-modal-bg ${menuStyle}`} onClick={()=>openModal("none")}></div>
+		<div className={`modal-bg mobile-menu-modal-bg ${menuBGStyle}`} onClick={()=>openModal("none")}></div>
 		<div className={`mobile-menu-list ${menuStyle}`}>
 			<h2 className="hover-interact" onClick={()=>openLanguage(e=>!e)}>
 				<span className="ui-icon language-button inline"></span>
