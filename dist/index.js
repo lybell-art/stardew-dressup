@@ -1,3 +1,3 @@
-import render from "./App.js";
+import render from "./App_indev.js";
 
 render();

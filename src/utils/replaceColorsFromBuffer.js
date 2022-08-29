@@ -1,4 +1,4 @@
-import { colorArrayToHex, hexToColorArray } from "./utils.js";
+import { colorArrayToHex, hexToColorArray } from "./colors.js";
 
 function replaceColorsFromBuffer(bitmap, replaceMap)
 {

@@ -9,7 +9,8 @@ import {HatsSheetStore, HairstyleSheetStore, ShirtsSheetStore, PantsSheetStore, 
 import {hatsJsonProcessing, hairstyleJsonProcessing, clothesJsonProcessing} from "../utils/dataProcessing.js";
 
 // color utils
-import {colorArrayToHex, multiplyColor, changeBrightness, randInt} from "../utils/utils.js";
+import {colorArrayToHex, multiplyColor, changeBrightness} from "../utils/colors.js";
+import {randInt} from "../utils/utils.js";
 
 // direction constant(using stardew valley code)
 const FRONT = 2;

@@ -1,5 +1,6 @@
 import { makeObservable, observable, action, computed } from "mobx";
-import { HSBtoRGB, randInt } from "../utils/utils.js";
+import { HSBtoRGB } from "../utils/colors.js";
+import { randInt } from "../utils/utils.js";
 import EventHub from "../events/eventHub.js";
 
 class ClothSelectorStore
