@@ -13,8 +13,13 @@ const LanguageList = observer( ()=>
 
 	function makeLangSelector(langCode)
 	{
+		function changeLanguage()
+		{
+			document.documentElement.lang = langCode;
+			langs.changeLanguage(langCode);
+		}
 		const style = langCode === langs.currentLanguage ? "bold" : "";
-		return <p className={style} key={langCode} onClick={ ()=>langs.changeLanguage(langCode) }>
+		return <p className={style} key={langCode} onClick={ changeLanguage }>
 			{langs.getText(`UI.language.${langCode}`)}
 		</p>
 	}

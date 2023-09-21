@@ -1,4 +1,6 @@
 node_modules
 src/legacy
+dist/App_indev.js
+dist/App_indev.js.map
 *.sublime-project
 *.sublime-workspace
