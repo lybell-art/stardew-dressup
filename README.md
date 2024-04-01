@@ -1,7 +1,6 @@
 
 # Stardew Dressup
-
-![enter image description here](https://file.notion.so/f/f/f16836bb-6553-4985-b853-82ea3347b291/a9936f97-74f5-4d8d-a20d-08c535859039/Untitled.png?id=4bfa443d-ed62-4222-a7b0-9333d4543917&table=block&spaceId=f16836bb-6553-4985-b853-82ea3347b291&expirationTimestamp=1710230400000&signature=hIbJ8uvYUwsziERQoyR2wwSFh3LnkQbpqy5kJtYiDqs&downloadName=Untitled.png)
+<img width="1280" alt="Stardew Dressup" src="https://github.com/lybell-art/stardew-dressup/assets/32293736/c5a515d7-bf59-431d-a2e7-c55e0fbe50c5">
 Stardew Dressup은 웹 브라우저에서 동작하는 **[Stardew Valley](https://store.steampowered.com/app/413150/Stardew_Valley/)의 의상 코디네이팅 시뮬레이터**입니다.
 
 ## 👉🏻Try this!
