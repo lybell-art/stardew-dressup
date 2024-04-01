@@ -1,6 +1,7 @@
 
 # Stardew Dressup
 <img width="1280" alt="Stardew Dressup" src="https://github.com/lybell-art/stardew-dressup/assets/32293736/c5a515d7-bf59-431d-a2e7-c55e0fbe50c5">
+
 Stardew Dressup은 웹 브라우저에서 동작하는 **[Stardew Valley](https://store.steampowered.com/app/413150/Stardew_Valley/)의 의상 코디네이팅 시뮬레이터**입니다.
 
 ## 👉🏻Try this!
